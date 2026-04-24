@@ -156,40 +156,40 @@
           </div>
         </section>
 
-        <!-- Formulario -->
-        <section class="volunteer-form" id="formulario">
-          <h2>¿Listo para Unirte?</h2>
-          <p>Llena el formulario y nos pondremos en contacto contigo pronto.</p>
-          <form class="formulario" action="#" method="POST">
-            <fieldset>
-              <div class="form-grid">
-                <div class="campo">
-                  <label for="nombre">Nombre</label>
-                  <input class="text" id="nombre" type="text" placeholder="María" required />
-                </div>
-                <div class="campo">
-                  <label for="apellido">Apellido</label>
-                  <input class="text" id="apellido" type="text" placeholder="García" required />
-                </div>
-                <div class="campo">
-                  <label for="rol">Rol de Interés</label>
-                  <input class="text" id="rol" type="text" placeholder="Médico / Odontólogo / Logística..." required />
-                </div>
-                <div class="campo">
-                  <label for="telefono">Número de Teléfono</label>
-                  <input class="text" id="telefono" type="tel" placeholder="+504 9999-9999" required />
-                </div>
-                <div class="campo-full">
-                  <label for="mensaje">Mensaje (Opcional)</label>
-                  <textarea class="text" id="mensaje" placeholder="Cuéntanos un poco de ti y por qué quieres ser voluntario..." rows="4"></textarea>
-                </div>
-              </div>
-              <div class="alinear-derecha flex">
-                <input class="header-button" type="submit" value="Enviar Solicitud" />
-              </div>
-            </fieldset>
-          </form>
-        </section>
+       <section class="volunteer-form" id="formulario">
+  <h2>¿Listo para Unirte?</h2>
+  <p>Llena el formulario y nos pondremos en contacto contigo pronto.</p>
+  
+  <form class="formulario" name="unirse-voluntariado" method="POST" data-netlify="true">
+    <fieldset>
+      <div class="form-grid">
+        <div class="campo">
+          <label for="nombre">Nombre</label>
+          <input class="text" id="nombre" name="nombre" type="text" placeholder="María" required />
+        </div>
+        <div class="campo">
+          <label for="apellido">Apellido</label>
+          <input class="text" id="apellido" name="apellido" type="text" placeholder="García" required />
+        </div>
+        <div class="campo">
+          <label for="rol">Rol de Interés</label>
+          <input class="text" id="rol" name="rol" type="text" placeholder="Médico / Odontólogo / Logística..." required />
+        </div>
+        <div class="campo">
+          <label for="telefono">Número de Teléfono</label>
+          <input class="text" id="telefono" name="telefono" type="tel" placeholder="+504 9999-9999" required />
+        </div>
+        <div class="campo-full">
+          <label for="mensaje">Mensaje (Opcional)</label>
+          <textarea class="text" id="mensaje" name="mensaje" placeholder="Cuéntanos un poco de ti y por qué quieres ser voluntario..." rows="4"></textarea>
+        </div>
+      </div>
+      <div class="alinear-derecha flex">
+        <button class="header-button" type="submit">Enviar Solicitud</button>
+      </div>
+    </fieldset>
+  </form>
+</section>
 
       </div>
     </main>

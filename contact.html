@@ -109,41 +109,40 @@
           </div>
         </div>
 
-        <!-- Formulario -->
-        <div class="contact-form-wrapper">
-          <h3>Envíanos un Mensaje</h3>
-          <form class="contact-form" action="#" method="POST">
-            <div class="form-grid">
-              <div class="campo">
-                <label for="nombre">Nombre</label>
-                <input class="text" id="nombre" type="text" name="nombre" placeholder="Tu nombre" required />
-              </div>
-              <div class="campo">
-                <label for="apellido">Apellido</label>
-                <input class="text" id="apellido" type="text" name="apellido" placeholder="Tu apellido" required />
-              </div>
-              <div class="campo">
-                <label for="email">Correo Electrónico</label>
-                <input class="text" id="email" type="email" name="email" placeholder="tucorreo@ejemplo.com" required />
-              </div>
-              <div class="campo">
-                <label for="telefono">Teléfono (Opcional)</label>
-                <input class="text" id="telefono" type="tel" name="telefono" placeholder="+504 9999-9999" />
-              </div>
-              <div class="campo-full">
-                <label for="asunto">Asunto</label>
-                <input class="text" id="asunto" type="text" name="asunto" placeholder="¿En qué podemos ayudarte?" required />
-              </div>
-              <div class="campo-full">
-                <label for="mensaje">Mensaje</label>
-                <textarea class="text" id="mensaje" name="mensaje" placeholder="Escribe tu mensaje aquí..." rows="5" required></textarea>
-              </div>
-            </div>
-            <div class="alinear-derecha flex" style="margin-top: 2rem;">
-              <button type="submit" class="btn-primary">Enviar Mensaje →</button>
-            </div>
-          </form>
-        </div>
+<div class="contact-form-wrapper">
+  <h3>Envíanos un Mensaje</h3>
+  <form class="contact-form" name="contacto-general" method="POST" data-netlify="true">
+    <div class="form-grid">
+      <div class="campo">
+        <label for="nombre">Nombre</label>
+        <input class="text" id="nombre" type="text" name="nombre" placeholder="Tu nombre" required />
+      </div>
+      <div class="campo">
+        <label for="apellido">Apellido</label>
+        <input class="text" id="apellido" type="text" name="apellido" placeholder="Tu apellido" required />
+      </div>
+      <div class="campo">
+        <label for="email">Correo Electrónico</label>
+        <input class="text" id="email" type="email" name="email" placeholder="tucorreo@ejemplo.com" required />
+      </div>
+      <div class="campo">
+        <label for="telefono">Teléfono (Opcional)</label>
+        <input class="text" id="telefono" type="tel" name="telefono" placeholder="+504 9999-9999" />
+      </div>
+      <div class="campo-full">
+        <label for="asunto">Asunto</label>
+        <input class="text" id="asunto" type="text" name="asunto" placeholder="¿En qué podemos ayudarte?" required />
+      </div>
+      <div class="campo-full">
+        <label for="mensaje">Mensaje</label>
+        <textarea class="text" id="mensaje" name="mensaje" placeholder="Escribe tu mensaje aquí..." rows="5" required></textarea>
+      </div>
+    </div>
+    <div class="alinear-derecha flex" style="margin-top: 2rem;">
+      <button type="submit" class="btn-primary">Enviar Mensaje →</button>
+    </div>
+  </form>
+</div>
 
       </div>
     </section>
