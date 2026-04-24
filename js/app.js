@@ -24,75 +24,32 @@
    - "totalFotos"  → cuántas fotos hay en esa carpeta (1.jpg, 2.jpg…)
                      Si es 0 o no hay fotos, aparece un mensaje.
    ================================================================ */
-const brigadas = [
-  {
-    id: "Brigada-1",
-    numero: "Brigada 01",
-    nombre: "El Progreso",
-    fecha: "2022",
-    lugar: "El Progreso, Yoro – Honduras",
-    descripcion: "Nuestra primera brigada oficial. Atendimos a más de 80 personas con consultas médicas y extracciones dentales en una comunidad rural sin acceso a servicios de salud. Fue un día lleno de bendiciones, aprendizaje y mucha fe.",
-    lat: 15.4007,
-    lng: -87.7933,
-    totalFotos: 0   // ← cambia esto al número real de fotos en img/Brigada-1/
-  },
-  {
-    id: "Brigada-2",
-    numero: "Brigada 02",
-    nombre: "La Lima",
-    fecha: "2022",
-    lugar: "La Lima, Cortés – Honduras",
-    descripcion: "Segunda brigada realizada en una colonia de La Lima. Brindamos atención odontológica y medicina general a familias de escasos recursos. También oramos con los pacientes y predicamos el evangelio.",
-    lat: 15.4368,
-    lng: -87.9195,
-    totalFotos: 45
-  },
-  {
-    id: "Brigada-3",
-    numero: "Brigada 03",
-    nombre: "Villanueva",
-    fecha: "2023",
-    lugar: "Villanueva, Cortés – Honduras",
-    descripcion: "En Villanueva llegamos a colonias nuevas donde muchas familias no tienen acceso a clínicas. Atendimos niños, adultos y personas de la tercera edad con mucho amor.",
-    lat: 15.3219,
-    lng: -88.0227,
-    totalFotos: 6
-  },
-  {
-    id: "Brigada-4",
-    numero: "Brigada 04",
-    nombre: "San Pedro Sula",
-    fecha: "2023",
-    lugar: "San Pedro Sula, Cortés – Honduras",
-    descripcion: "Brigada realizada en una colonia vulnerable de San Pedro Sula. Donamos medicamentos e insumos médicos y compartimos el mensaje de esperanza del evangelio con cada familia atendida.",
-    lat: 15.5037,
-    lng: -88.0253,
-    totalFotos: 0
-  },
-  {
-    id: "Brigada-5",
-    numero: "Brigada 05",
-    nombre: "Choloma",
-    fecha: "2023",
-    lugar: "Choloma, Cortés – Honduras",
-    descripcion: "Llegamos a Choloma con un equipo fortalecido de voluntarios médicos y odontólogos. Atendimos a más de 120 personas en un solo día. ¡Para Dios nada es imposible!",
-    lat: 15.6094,
-    lng: -87.9524,
-    totalFotos: 0
-  },
-  {
-    id: "Brigada-6",
-    numero: "Brigada 06",
-    nombre: "Santa Cruz de Yojoa",
-    fecha: "2024",
-    lugar: "Santa Cruz de Yojoa, Cortés – Honduras",
-    descripcion: "Una de nuestras brigadas más grandes hasta la fecha. Llegamos a una comunidad a orillas del Lago de Yojoa y brindamos atención a familias que viajan horas para recibir ayuda médica.",
-    lat: 14.8701,
-    lng: -88.0265,
-    totalFotos: 0
+
+
+const supabaseUrl = "https://rnuvfkhutuuyhlummzeb.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
+let brigadas = [];
+
+async function cargarBrigadas() {
+  const { data, error } = await supabase
+    .from("brigadas")
+    .select("*")
+    .order("orden", { ascending: true });
+
+  if (error) {
+    console.error("Error cargando brigadas:", error);
+    return;
   }
-  // Agrega más brigadas aquí siguiendo el mismo formato ↑
-];
+
+  brigadas = data;
+
+  iniciarCarrusel();
+  construirPaneles();
+}
 
 
 /* ================================================================
@@ -492,11 +449,7 @@ function aplicarTema(tema) {
    ================================================================ */
 document.addEventListener("DOMContentLoaded", function () {
 
-  // Construir paneles de brigadas
-  construirPaneles();
-
-  // Iniciar carrusel de selección
-  iniciarCarrusel();
+cargarBrigadas();
 
   // Activar la primera brigada por defecto
   if (brigadas.length > 0) {

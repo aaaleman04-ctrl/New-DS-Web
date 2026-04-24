@@ -199,5 +199,36 @@
       </div>
     </footer>
 
+    <script>
+const supabase = window.supabase.createClient("https://rnuvfkhutuuyhlummzeb.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q");
+
+const form = document.querySelector(".contact-form");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(form);
+
+  const data = {
+    nombre: formData.get("nombre"),
+    apellido: formData.get("apellido"),
+    email: formData.get("email"),
+    telefono: formData.get("telefono"),
+    asunto: formData.get("asunto"),
+    mensaje: formData.get("mensaje"),
+  };
+
+  const { error } = await supabase.from("contacto").insert([data]);
+
+  if (error) {
+    alert("Error al enviar");
+    console.error(error);
+  } else {
+    alert("Mensaje enviado correctamente");
+    form.reset();
+  }
+});
+</script>
+
   </body>
 </html>
