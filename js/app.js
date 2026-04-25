@@ -117,10 +117,10 @@ function construirPaneles(brigadas) {
           <h3>${b.numero} — ${b.nombre}</h3>
           <p>${b.descripcion || ""}</p>
           <div class="brigada-meta">
-            <div class="brigada-meta-item"><span class="icon">📅</span><span>Año: ${b.fecha || "—"}</span></div>
-            <div class="brigada-meta-item"><span class="icon">📍</span><span>${b.lugar || "—"}</span></div>
+            <div class="brigada-meta-item"><span>Año: ${b.fecha || "—"}</span></div>
+            <div class="brigada-meta-item"><span>${b.lugar || "—"}</span></div>
             <div class="brigada-meta-item" id="meta-fotos-${b.id}">
-              <span class="icon">📸</span><span>Cargando fotos…</span>
+              <span>Cargando fotos…</span>
             </div>
           </div>
         </div>
@@ -267,7 +267,7 @@ async function cargarFotosDesdeStorage(brigada, grid) {
   if (error) {
     console.error(`Storage error en ${brigada.id}:`, error.message);
     mostrarSinFotos(grid, brigada.id);
-    if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Error cargando fotos</span>`;
+    if (metaEl) metaEl.innerHTML = `<span>Error cargando fotos</span>`;
     return;
   }
 
@@ -278,13 +278,13 @@ async function cargarFotosDesdeStorage(brigada, grid) {
 
   if (imagenes.length === 0) {
     mostrarSinFotos(grid, brigada.id);
-    if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Fotos próximamente</span>`;
+    if (metaEl) metaEl.innerHTML = `<span>Fotos próximamente</span>`;
     return;
   }
 
   // Actualizar el contador de fotos en la meta info
   if (metaEl) {
-    metaEl.innerHTML = `<span class="icon">📸</span><span>${imagenes.length} fotos</span>`;
+    metaEl.innerHTML = `<span>${imagenes.length} fotos</span>`;
   }
 
   // Guardar las URLs para el lightbox
@@ -336,9 +336,9 @@ function cargarFotosLocales(brigada, grid) {
   function terminar() {
     if (urls.length === 0) {
       mostrarSinFotos(grid, brigada.id);
-      if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Fotos próximamente</span>`;
+      if (metaEl) metaEl.innerHTML = `<span>Fotos próximamente</span>`;
     } else {
-      if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>${urls.length} fotos</span>`;
+      if (metaEl) metaEl.innerHTML = `<span>${urls.length} fotos</span>`;
       renderizarGaleria(grid, urls);
     }
   }
@@ -375,7 +375,6 @@ function renderizarGaleria(grid, urls) {
 function mostrarSinFotos(grid, brigadaId) {
   grid.innerHTML = `
     <div class="no-fotos-msg">
-      <span>📸</span>
       Las fotos de esta brigada estarán disponibles próximamente.
     </div>`;
 }
