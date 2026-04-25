@@ -1,62 +1,68 @@
 /* ================================================================
    DIBUJANDO SONRISAS — js/app.js
-   Funciones:
-     1. Conexión a Supabase
-     2. Cargar brigadas desde la base de datos
-     3. Carrusel de selección (4 visibles en desktop)
-     4. Galería de fotos locales con lazy loading + lightbox
-   ================================================================ */
-
-
-/* ================================================================
-   1. CONFIGURACIÓN DE SUPABASE
    ─────────────────────────────────────────────────────────────────
-   IMPORTANTE: el CDN de Supabase debe cargarse ANTES que este
-   archivo en el HTML. Verifica que en brigadas.html sea:
-     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-     <script src="js/app.js"></script>   ← este va después
+   Módulos:
+   1. Configuración de Supabase
+   2. Cargar brigadas desde la base de datos
+   3. Construir paneles (texto + mapa)
+   4. Carrusel de selección (flechas ← →, 4 visibles en desktop)
+   5. Galería de fotos  ← dos modos según dónde estén tus fotos:
+        MODO A — Imágenes en Supabase Storage  (recomendado)
+        MODO B — Imágenes en local (img/Brigada-X/1.jpg)
+      Actualmente el MODO A está activo. Para cambiar al B,
+      busca "CAMBIAR MODO" más abajo.
+   6. Lightbox / Modal con navegación ← → y teclado
    ================================================================ */
-const SUPABASE_URL     = "https://rnuvfkhutuuyhlummzeb.supabase.co";
+
+
+/* ── 1. SUPABASE ────────────────────────────────────────────── */
+const SUPABASE_URL      = "https://rnuvfkhutuuyhlummzeb.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q";
 
-// Crear cliente de Supabase (viene del CDN cargado antes en el HTML)
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// El CDN de Supabase DEBE estar cargado antes que este archivo.
+// En brigadas.html debe aparecer así (en ese orden):
+//   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+//   <script src="js/app.js"></script>
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/*
+   ── CAMBIAR MODO DE IMÁGENES ────────────────────────────────
+   true  → Supabase Storage (necesitas bucket "brigadas" configurado)
+   false → Imágenes locales  (img/Brigada-X/1.jpg, 2.jpg...)
+   ────────────────────────────────────────────────────────── */
+const USAR_SUPABASE_STORAGE = true;
+
+// Nombre del bucket que creaste en Supabase Storage
+const STORAGE_BUCKET = "brigadas";
 
 
-/* ================================================================
-   2. VARIABLES GLOBALES
-   ================================================================ */
+/* ── 2. VARIABLES GLOBALES ──────────────────────────────────── */
 let carouselIndex         = 0;
+let totalBrigadasGlobal   = 0;   // se llena cuando llegan los datos
 let imagenesBrigadaActiva = [];
 let imagenActualIndex     = 0;
 
 
-/* ================================================================
-   3. CARGAR BRIGADAS DESDE SUPABASE
-   ─────────────────────────────────────────────────────────────────
-   Trae todas las brigadas ordenadas por el campo "orden".
-   Una vez cargadas, construye los paneles y el carrusel.
-   ================================================================ */
+/* ── 3. CARGAR BRIGADAS DESDE SUPABASE ─────────────────────── */
 async function cargarBrigadas() {
-  // Mostrar indicador de carga mientras espera
-  const panelsContainer = document.getElementById("brigadasPanels");
-  if (panelsContainer) {
-    panelsContainer.innerHTML = `
-      <p style="text-align:center; color:var(--gray); font-size:1.6rem; padding:4rem 0;">
-        Cargando brigadas...
+  const panelsEl = document.getElementById("brigadasPanels");
+  if (panelsEl) {
+    panelsEl.innerHTML = `
+      <p style="text-align:center;color:var(--gray);font-size:1.6rem;padding:4rem 0;">
+        Cargando brigadas…
       </p>`;
   }
 
-  const { data: brigadas, error } = await supabaseClient
+  const { data: brigadas, error } = await sb
     .from("brigadas")
     .select("*")
     .order("orden", { ascending: true });
 
   if (error) {
     console.error("Error cargando brigadas:", error.message);
-    if (panelsContainer) {
-      panelsContainer.innerHTML = `
-        <p style="text-align:center; color:#e74c3c; font-size:1.5rem; padding:4rem 0;">
+    if (panelsEl) {
+      panelsEl.innerHTML = `
+        <p style="text-align:center;color:#e74c3c;font-size:1.5rem;padding:4rem 0;">
           No se pudieron cargar las brigadas. Verifica la conexión.
         </p>`;
     }
@@ -64,92 +70,169 @@ async function cargarBrigadas() {
   }
 
   if (!brigadas || brigadas.length === 0) {
-    if (panelsContainer) {
-      panelsContainer.innerHTML = `
-        <p style="text-align:center; color:var(--gray); font-size:1.5rem; padding:4rem 0;">
+    if (panelsEl) {
+      panelsEl.innerHTML = `
+        <p style="text-align:center;color:var(--gray);font-size:1.5rem;padding:4rem 0;">
           Aún no hay brigadas registradas.
         </p>`;
     }
     return;
   }
 
-  // Con los datos listos, construir la página
+  totalBrigadasGlobal = brigadas.length;
+
   construirPaneles(brigadas);
   iniciarCarrusel(brigadas);
+
+  // Cargar las fotos de cada brigada en paralelo
+  brigadas.forEach(b => {
+    const grid = document.getElementById(`galeria-${b.id}`);
+    if (!grid) return;
+    if (USAR_SUPABASE_STORAGE) {
+      cargarFotosDesdeStorage(b, grid);
+    } else {
+      cargarFotosLocales(b, grid);
+    }
+  });
 
   // Activar la primera brigada por defecto
   activarBrigada(brigadas[0].id);
 }
 
 
-/* ================================================================
-   4. CARRUSEL DE SELECCIÓN
-   ─────────────────────────────────────────────────────────────────
-   Muestra 4 brigadas visibles en desktop, 2 en tablet,
-   scroll táctil en móvil. Las flechas mueven el track.
-   ================================================================ */
+/* ── 4. CONSTRUIR PANELES ───────────────────────────────────── */
+function construirPaneles(brigadas) {
+  const contenedor = document.getElementById("brigadasPanels");
+  if (!contenedor) return;
+  contenedor.innerHTML = "";
+
+  brigadas.forEach((b, i) => {
+    const panel     = document.createElement("div");
+    panel.id        = `panel-${b.id}`;
+    panel.className = "brigada-panel" + (i === 0 ? " active" : "");
+
+    panel.innerHTML = `
+      <div class="brigada-info">
+        <div class="brigada-info-text">
+          <h3>${b.numero} — ${b.nombre}</h3>
+          <p>${b.descripcion || ""}</p>
+          <div class="brigada-meta">
+            <div class="brigada-meta-item"><span class="icon">📅</span><span>Año: ${b.fecha || "—"}</span></div>
+            <div class="brigada-meta-item"><span class="icon">📍</span><span>${b.lugar || "—"}</span></div>
+            <div class="brigada-meta-item" id="meta-fotos-${b.id}">
+              <span class="icon">📸</span><span>Cargando fotos…</span>
+            </div>
+          </div>
+        </div>
+        <div class="brigada-map">
+          <iframe
+            src="https://maps.google.com/maps?q=${b.lat},${b.lng}&z=14&output=embed"
+            title="Mapa de ${b.nombre}"
+            allowfullscreen loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+      <div class="brigada-gallery">
+        <h3>Galería de Fotos</h3>
+        <div class="gallery-grid" id="galeria-${b.id}"></div>
+      </div>
+    `;
+
+    contenedor.appendChild(panel);
+  });
+}
+
+
+/* ── 5A. CARRUSEL ───────────────────────────────────────────────
+   El carrusel calcula el ancho de los items directamente desde
+   el DOM —después— de que el navegador haya pintado los botones
+   (via setTimeout). Esto evita que offsetWidth sea 0.
+   ─────────────────────────────────────────────────────────────── */
+function iniciarCarrusel(brigadas) {
+  const track   = document.getElementById("carouselTrack");
+  const btnPrev = document.getElementById("carouselPrev");
+  const btnNext = document.getElementById("carouselNext");
+  if (!track) return;
+
+  track.innerHTML = "";
+
+  brigadas.forEach((b, i) => {
+    const btn      = document.createElement("button");
+    btn.className  = "brigada-btn" + (i === 0 ? " active" : "");
+    btn.dataset.id = b.id;
+    btn.innerHTML  = `
+      <span class="brigada-num">${b.numero}</span>
+      <span class="brigada-name">${b.nombre}</span>
+    `;
+    btn.addEventListener("click", () => activarBrigada(b.id));
+    track.appendChild(btn);
+  });
+
+  btnPrev.addEventListener("click", () => moverCarrusel(carouselIndex - 1));
+  btnNext.addEventListener("click", () => moverCarrusel(carouselIndex + 1));
+
+  // ── El setTimeout es la clave del fix del carrusel ──────────
+  // Cuando los botones se insertan dinámicamente, el navegador
+  // aún no ha calculado su tamaño real (offsetWidth = 0).
+  // setTimeout(fn, 0) pone la función al final de la cola,
+  // después de que el navegador haya terminado de pintar.
+  setTimeout(() => moverCarrusel(0), 0);
+
+  // Recalcular si cambia el tamaño de ventana
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => moverCarrusel(carouselIndex), 100);
+  });
+}
+
 function getVisibleCount() {
   if (window.innerWidth <= 550) return 1;
   if (window.innerWidth <= 900) return 2;
   return 4;
 }
 
-function moverCarrusel(nuevoIndex, totalBtns) {
-  const track   = document.getElementById("carouselTrack");
-  const btnPrev = document.getElementById("carouselPrev");
-  const btnNext = document.getElementById("carouselNext");
+function moverCarrusel(nuevoIndex) {
+  const track    = document.getElementById("carouselTrack");
+  const viewport = document.querySelector(".carousel-viewport");
+  const btnPrev  = document.getElementById("carouselPrev");
+  const btnNext  = document.getElementById("carouselNext");
+  if (!track || !viewport) return;
 
-  const visibleCount = getVisibleCount();
-  const maxIndex     = Math.max(0, totalBtns - visibleCount);
-  carouselIndex      = Math.min(Math.max(nuevoIndex, 0), maxIndex);
+  const visible  = getVisibleCount();
+  const GAP_PX   = 15;                               // gap: 1.5rem = ~15px
+  const total    = totalBrigadasGlobal;
+  const maxIndex = Math.max(0, total - visible);
 
-  const primerBtn = track.querySelector(".brigada-btn");
-  if (!primerBtn) return;
+  carouselIndex = Math.min(Math.max(nuevoIndex, 0), maxIndex);
 
-  // 15px ≈ 1.5rem gap entre items
-  const itemAncho = primerBtn.offsetWidth + 15;
-  track.style.transform = `translateX(-${carouselIndex * itemAncho}px)`;
+  // Calcular el ancho de cada botón en función del viewport real
+  // ────────────────────────────────────────────────────────────
+  // viewportW = ancho real del contenedor visible
+  // itemWidth = (total ancho - gaps entre items) / items visibles
+  const viewportW = viewport.offsetWidth;
+  const itemWidth = (viewportW - GAP_PX * (visible - 1)) / visible;
 
-  btnPrev.disabled = carouselIndex === 0;
-  btnNext.disabled = carouselIndex >= maxIndex;
-}
-
-function iniciarCarrusel(brigadas) {
-  const track   = document.getElementById("carouselTrack");
-  const btnPrev = document.getElementById("carouselPrev");
-  const btnNext = document.getElementById("carouselNext");
-
-  if (!track) return;
-  track.innerHTML = ""; // limpiar si hubiera algo
-
-  // Crear un botón por brigada
-  brigadas.forEach((brigada, i) => {
-    const btn      = document.createElement("button");
-    btn.className  = "brigada-btn" + (i === 0 ? " active" : "");
-    btn.dataset.id = brigada.id;
-    btn.innerHTML  = `
-      <span class="brigada-num">${brigada.numero}</span>
-      <span class="brigada-name">${brigada.nombre}</span>
-    `;
-    btn.addEventListener("click", () => activarBrigada(brigada.id));
-    track.appendChild(btn);
+  // Aplicar el ancho a cada botón
+  track.querySelectorAll(".brigada-btn").forEach(btn => {
+    btn.style.width     = `${itemWidth}px`;
+    btn.style.flexShrink = "0";
   });
 
-  btnPrev.addEventListener("click", () => moverCarrusel(carouselIndex - 1, brigadas.length));
-  btnNext.addEventListener("click", () => moverCarrusel(carouselIndex + 1, brigadas.length));
+  // Mover el track
+  const offset = carouselIndex * (itemWidth + GAP_PX);
+  track.style.transform = `translateX(-${offset}px)`;
 
-  // Estado inicial
-  moverCarrusel(0, brigadas.length);
-
-  // Recalcular al cambiar tamaño de ventana
-  window.addEventListener("resize", () => moverCarrusel(carouselIndex, brigadas.length));
+  // Habilitar / deshabilitar flechas
+  if (btnPrev) btnPrev.disabled = carouselIndex === 0;
+  if (btnNext) btnNext.disabled = carouselIndex >= maxIndex;
 }
 
 function activarBrigada(id) {
   document.querySelectorAll(".brigada-panel").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".brigada-btn").forEach(b => b.classList.remove("active"));
 
-  const panel = document.getElementById("panel-" + id);
+  const panel = document.getElementById(`panel-${id}`);
   if (panel) {
     panel.classList.add("active");
     setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
@@ -160,178 +243,151 @@ function activarBrigada(id) {
 }
 
 
-/* ================================================================
-   5. CONSTRUCCIÓN DE PANELES
-   ─────────────────────────────────────────────────────────────────
-   Genera un panel por brigada con:
-   - Texto informativo (viene de Supabase)
-   - Mapa embebido con las coordenadas de Supabase
-   - Galería de fotos locales (img/Brigada-X/1.jpg, 2.jpg...)
-   ================================================================ */
-function construirPaneles(brigadas) {
-  const contenedor = document.getElementById("brigadasPanels");
-  if (!contenedor) return;
-  contenedor.innerHTML = "";
+/* ── 5B. GALERÍA — MODO A: Supabase Storage ─────────────────────
+   Requiere:
+   - Bucket público llamado "brigadas" en Supabase Storage
+   - Carpetas dentro del bucket: Brigada-1/, Brigada-2/, etc.
+   - Las fotos pueden tener cualquier nombre (foto1.jpg, etc.)
 
-  brigadas.forEach((brigada, i) => {
-    const panel     = document.createElement("DIV");
-    panel.id        = "panel-" + brigada.id;
-    panel.className = "brigada-panel" + (i === 0 ? " active" : "");
+   Lo que hace este código:
+   1. Lista todos los archivos de la carpeta "Brigada-X" en el bucket
+   2. Para cada archivo obtiene su URL pública
+   3. Crea un elemento <picture> con lazy loading
+   ─────────────────────────────────────────────────────────────── */
+async function cargarFotosDesdeStorage(brigada, grid) {
+  const metaEl = document.getElementById(`meta-fotos-${brigada.id}`);
 
-    panel.innerHTML = `
-      <div class="brigada-info">
-        <div class="brigada-info-text">
-          <h3>${brigada.numero} — ${brigada.nombre}</h3>
-          <p>${brigada.descripcion || ""}</p>
-          <div class="brigada-meta">
-            <div class="brigada-meta-item">
-              <span class="icon">📅</span>
-              <span>Año: ${brigada.fecha || "—"}</span>
-            </div>
-            <div class="brigada-meta-item">
-              <span class="icon">📍</span>
-              <span>${brigada.lugar || "—"}</span>
-            </div>
-            <div class="brigada-meta-item">
-              <span class="icon">📸</span>
-              <span id="foto-count-${brigada.id}">${brigada.total_fotos > 0 ? brigada.total_fotos + " fotos" : "Fotos próximamente"}</span>
-            </div>
-          </div>
-        </div>
+  // Listar archivos de la carpeta en el bucket
+  const { data: archivos, error } = await sb.storage
+    .from(STORAGE_BUCKET)
+    .list(brigada.id, {
+      sortBy: { column: "name", order: "asc" }
+    });
 
-        <div class="brigada-map">
-          <iframe
-            src="https://maps.google.com/maps?q=${brigada.lat},${brigada.lng}&z=14&output=embed"
-            title="Mapa de ${brigada.nombre}"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>
-      </div>
+  if (error) {
+    console.error(`Storage error en ${brigada.id}:`, error.message);
+    mostrarSinFotos(grid, brigada.id);
+    if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Error cargando fotos</span>`;
+    return;
+  }
 
-      <div class="brigada-gallery">
-        <h3>Galería de Fotos</h3>
-        <div class="gallery-grid" id="galeria-${brigada.id}"></div>
-      </div>
-    `;
+  // Filtrar solo archivos de imagen (ignorar carpetas u otros archivos)
+  const imagenes = (archivos || []).filter(f =>
+    f.name && /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name)
+  );
 
-    contenedor.appendChild(panel);
+  if (imagenes.length === 0) {
+    mostrarSinFotos(grid, brigada.id);
+    if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Fotos próximamente</span>`;
+    return;
+  }
 
-    // Crear la galería con las fotos locales
-    const grid = panel.querySelector(`#galeria-${brigada.id}`);
-    crearGaleria(brigada, grid);
+  // Actualizar el contador de fotos en la meta info
+  if (metaEl) {
+    metaEl.innerHTML = `<span class="icon">📸</span><span>${imagenes.length} fotos</span>`;
+  }
+
+  // Guardar las URLs para el lightbox
+  const urls = imagenes.map(f => {
+    const { data } = sb.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(`${brigada.id}/${f.name}`);
+    return data.publicUrl;
   });
+
+  // Renderizar la galería
+  renderizarGaleria(grid, urls);
 }
 
 
-/* ================================================================
-   6. GALERÍA DE FOTOS LOCALES
-   ─────────────────────────────────────────────────────────────────
-   Las fotos están guardadas en: img/Brigada-X/1.jpg, 2.jpg...
-   El código intenta cargar 1.jpg, 2.jpg, etc. y se detiene
-   automáticamente cuando una imagen falla (ya no hay más).
+/* ── 5C. GALERÍA — MODO B: Imágenes locales ─────────────────────
+   Las fotos deben estar en: img/Brigada-X/1.jpg, 2.jpg, 3.jpg…
+   El código intenta cargar secuencialmente y para cuando falla.
+   ─────────────────────────────────────────────────────────────── */
+function cargarFotosLocales(brigada, grid) {
+  const metaEl  = document.getElementById(`meta-fotos-${brigada.id}`);
+  const urls    = [];
+  let   indice  = 1;
+  const MAX     = 200; // tope de seguridad
 
-   ¿Por qué funciona así?
-   El navegador no puede leer carpetas directamente por seguridad.
-   El truco es usar el evento "onerror" de cada <img>: si la foto
-   no existe, el error nos indica que ya no hay más imágenes.
-   Así no necesitas contar manualmente cuántas fotos hay.
-
-   NOTA: total_fotos en Supabase se usa como máximo de seguridad
-   para no hacer requests infinitos. Si es 0 o null, usa 200
-   como límite máximo (más que suficiente para cualquier brigada).
-   ================================================================ */
-function crearGaleria(brigada, grid) {
-  grid.innerHTML = "";
-
-  const maxFotos = brigada.total_fotos > 0 ? brigada.total_fotos : 200;
-  let   contador = 0; // fotos que cargaron correctamente
-  let   indice   = 1; // foto que se está intentando cargar
-
-  function cargarSiguiente() {
-    if (indice > maxFotos) {
-      // Llegamos al límite — mostrar mensaje si no cargó ninguna
-      if (contador === 0) mostrarSinFotos(grid, brigada.id);
+  function intentar() {
+    if (indice > MAX) {
+      terminar();
       return;
     }
 
-    const rutaJpg = `img/${brigada.id}/${indice}.jpg`;
-    const num     = indice; // captura para el closure del click
-
-    const picture = document.createElement("PICTURE");
-    picture.classList.add("gallery-item");
-
-    const img        = document.createElement("img");
-    img.src          = rutaJpg;
-    img.alt          = `Foto ${num} de la brigada ${brigada.nombre}`;
-    img.loading      = "lazy";   // el navegador la carga solo cuando aparece en pantalla
-    img.width        = 400;
-    img.height       = 400;
+    const url = `img/${brigada.id}/${indice}.jpg`;
+    const img = new Image();
 
     img.onload = () => {
-      // La foto existe y cargó bien — agregarla a la galería
-      contador++;
-      picture.appendChild(img);
-      grid.appendChild(picture);
-
-      // Guardar la ruta en el array global para el lightbox
-      // (lo hacemos aquí para que el orden sea correcto)
-      picture.dataset.index = contador - 1;
-      picture.addEventListener("click", () => {
-        // Recopilar todas las fotos visibles de esta brigada en orden
-        const todasLasFotos = Array.from(
-          grid.querySelectorAll(".gallery-item img")
-        ).map(i => i.src);
-
-        imagenesBrigadaActiva = todasLasFotos;
-        abrirLightbox(parseInt(picture.dataset.index));
-      });
-
-      // Intentar la siguiente
+      urls.push(url);
       indice++;
-      cargarSiguiente();
+      intentar();
     };
 
     img.onerror = () => {
-      // Esta foto no existe — significa que ya se acabaron
-      if (contador === 0) mostrarSinFotos(grid, brigada.id);
-      // No seguir intentando
+      // Ya no hay más fotos
+      terminar();
     };
 
-    // Para fotos que aún no tienen picture en el DOM,
-    // creamos la imagen fuera del DOM primero para detectar el error
-    if (counter === 0 && !picture.parentNode) {
-      // ya está siendo cargada por onload/onerror arriba
+    img.src = url;
+  }
+
+  function terminar() {
+    if (urls.length === 0) {
+      mostrarSinFotos(grid, brigada.id);
+      if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>Fotos próximamente</span>`;
+    } else {
+      if (metaEl) metaEl.innerHTML = `<span class="icon">📸</span><span>${urls.length} fotos</span>`;
+      renderizarGaleria(grid, urls);
     }
   }
 
-  cargarSiguiente();
+  intentar();
+}
+
+
+/* ── 5D. RENDERIZAR GALERÍA (compartido por ambos modos) ──────── */
+function renderizarGaleria(grid, urls) {
+  grid.innerHTML = "";
+
+  urls.forEach((url, i) => {
+    const picture = document.createElement("picture");
+    picture.classList.add("gallery-item");
+
+    const img    = document.createElement("img");
+    img.src      = url;
+    img.alt      = `Foto ${i + 1} de la brigada`;
+    img.loading  = "lazy";   // carga diferida: el navegador solo descarga
+    img.width    = 400;      // la foto cuando el usuario se acerca en scroll
+    img.height   = 400;
+
+    picture.appendChild(img);
+    grid.appendChild(picture);
+
+    picture.addEventListener("click", () => {
+      imagenesBrigadaActiva = urls;
+      abrirLightbox(i);
+    });
+  });
 }
 
 function mostrarSinFotos(grid, brigadaId) {
   grid.innerHTML = `
     <div class="no-fotos-msg">
       <span>📸</span>
-      Las fotos de esta brigada estarán disponibles próximamente.<br>
-      <small>Agrega tus fotos en <code>img/${brigadaId}/</code> nombradas 1.jpg, 2.jpg, 3.jpg...</small>
-    </div>
-  `;
+      Las fotos de esta brigada estarán disponibles próximamente.
+    </div>`;
 }
 
 
-/* ================================================================
-   7. LIGHTBOX
-   ─────────────────────────────────────────────────────────────────
-   Modal que muestra la foto en grande con navegación ← →
-   y soporte de teclado (flechas + Escape).
-   ================================================================ */
+/* ── 6. LIGHTBOX ─────────────────────────────────────────────── */
 function abrirLightbox(indice) {
   imagenActualIndex = indice;
 
-  const modal = document.createElement("DIV");
+  const modal = document.createElement("div");
   modal.id    = "modalLightbox";
   modal.classList.add("modal");
-
   modal.innerHTML = `
     <button class="btn-cerrar" id="btnCerrarModal" aria-label="Cerrar">✕</button>
     <button class="modal-nav modal-nav-prev" id="btnNavPrev" aria-label="Foto anterior">&#8592;</button>
@@ -345,10 +401,10 @@ function abrirLightbox(indice) {
   document.body.classList.add("overflow-hidden");
   actualizarNavModal();
 
-  modal.addEventListener("click",    (e) => { if (e.target === modal) cerrarModal(); });
+  modal.addEventListener("click", e => { if (e.target === modal) cerrarModal(); });
   document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
-  document.getElementById("btnNavPrev").addEventListener("click", (e) => { e.stopPropagation(); navegarModal(-1); });
-  document.getElementById("btnNavNext").addEventListener("click", (e) => { e.stopPropagation(); navegarModal(1); });
+  document.getElementById("btnNavPrev").addEventListener("click", e => { e.stopPropagation(); navegarModal(-1); });
+  document.getElementById("btnNavNext").addEventListener("click", e => { e.stopPropagation(); navegarModal(1); });
 }
 
 function navegarModal(dir) {
@@ -364,8 +420,8 @@ function actualizarNavModal() {
   const prev = document.getElementById("btnNavPrev");
   const next = document.getElementById("btnNavNext");
   if (!prev || !next) return;
-  prev.style.display = imagenActualIndex === 0                                 ? "none" : "flex";
-  next.style.display = imagenActualIndex === imagenesBrigadaActiva.length - 1  ? "none" : "flex";
+  prev.style.display = imagenActualIndex === 0                                ? "none" : "flex";
+  next.style.display = imagenActualIndex === imagenesBrigadaActiva.length - 1 ? "none" : "flex";
 }
 
 function cerrarModal() {
@@ -375,7 +431,7 @@ function cerrarModal() {
   setTimeout(() => { modal.remove(); document.body.classList.remove("overflow-hidden"); }, 400);
 }
 
-document.addEventListener("keydown", (e) => {
+document.addEventListener("keydown", e => {
   if (!document.getElementById("modalLightbox")) return;
   if (e.key === "ArrowLeft")  navegarModal(-1);
   if (e.key === "ArrowRight") navegarModal(1);
@@ -383,9 +439,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 
-/* ================================================================
-   INICIALIZACIÓN
-   ================================================================ */
-document.addEventListener("DOMContentLoaded", function () {
+/* ── INIT ────────────────────────────────────────────────────── */
+document.addEventListener("DOMContentLoaded", () => {
   cargarBrigadas();
 });
