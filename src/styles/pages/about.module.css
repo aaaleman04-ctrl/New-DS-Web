@@ -1,0 +1,211 @@
+/* =====================================================
+   ABOUT US — about.module.css
+   Estilos exclusivos para la página /sobre-nosotros
+===================================================== */
+
+/* ── HERO ── */
+.hero {
+  background-image: url(/aboutUs-hero.png);
+  background-color: rgba(26, 35, 50, 0.55);
+  background-blend-mode: multiply;
+  background-size: cover;
+  background-position: center;
+  height: 40rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.heroHeading {
+  color: var(--white);
+  font-size: 5.5rem;
+  margin: 0;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ── SECCIONES PRINCIPALES (3 tarjetas) ── */
+.mainAbout {
+  padding: 6rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+}
+
+@media (min-width: 768px) {
+  .mainAbout {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow-sm);
+  border-top: 4px solid var(--primaryColor);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.cardHeader {
+  color: var(--primaryColor);
+  font-size: 2.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.valuesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.valuesItem {
+  font-size: 1.5rem;
+  color: var(--gray);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.valuesItem:last-child {
+  border-bottom: none;
+}
+
+.checkmark {
+  color: var(--primaryColor);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── LOGROS ── */
+.achievements {
+  background: var(--bg-section);
+  padding: 7rem 2rem;
+}
+
+.achievementsInner h2 {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.achievementsRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .achievementsRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.achievementCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 3rem 2.5rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s ease;
+}
+
+.achievementCard:hover {
+  transform: translateY(-4px);
+}
+
+.iconWrap {
+  background: var(--primaryLight);
+  color: var(--primaryColor);
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.achievementText h3 {
+  font-size: 1.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.achievementText p {
+  font-size: 1.4rem;
+}
+
+/* ── EQUIPO ── */
+.team {
+  padding: 7rem 2rem;
+  text-align: center;
+}
+
+.team h2 {
+  margin-bottom: 5rem;
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .teamGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.teamPerson {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.teamImage {
+  width: 14rem;
+  height: 14rem;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  border: 4px solid var(--primaryLight);
+  box-shadow: var(--shadow-sm);
+}
+
+.teamImage1 {
+  background-image: url(/team2.jpg);
+}
+
+.teamImage2 {
+  background-image: url(/team2.jpg);
+}
+
+.teamImage3 {
+  background-image: url(/team2.jpg);
+}
+
+.teamPerson h4 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.teamPerson p {
+  font-size: 1.4rem;
+  color: var(--primaryColor);
+  margin: 0;
+}

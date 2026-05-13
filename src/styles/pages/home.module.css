@@ -1,0 +1,234 @@
+.hero {
+  position: relative;
+  height: 70rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: white;
+}
+
+.heroVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+}
+
+.heroHeading {
+  color: var(--white);
+  font-size: 6rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 768px) {
+  .heroHeading {
+    font-size: 8rem;
+  }
+}
+
+.heroParagraph {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 70rem;
+  margin: 0 auto 3rem;
+}
+
+.heroButtons {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* ── MAIN ── */
+.main {
+  align-items: center;
+  margin-top: 4rem;
+}
+
+/* ── MISIÓN ── */
+.mision {
+  text-align: center;
+  margin-bottom: 8rem;
+  padding: 5rem 2rem;
+  background: var(--bg-section);
+  border-radius: var(--radius-lg);
+}
+
+.mision h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primaryColor);
+}
+
+.mision p {
+  font-size: 1.7rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+/* ── IMPACTO ── */
+.impactHeader,
+.testimonialsHeader {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.impactGrid {
+  margin-bottom: 8rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 768px) {
+  .impactGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.impactCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.impactCard:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.impactCardBody {
+  padding: 2rem;
+  text-align: center;
+}
+
+.impactCardBody h3 {
+  font-size: 2rem;
+  margin-bottom: 0.8rem;
+}
+
+.impactCardBody p {
+  font-size: 1.5rem;
+}
+
+.cardImg1 {
+  background-image: url(/1-impact.png);
+  background-size: cover;
+  background-position: center;
+  height: 18rem;
+}
+
+.cardImg2 {
+  background-image: url(/2-impact.png);
+  background-size: cover;
+  background-position: center;
+  height: 18rem;
+}
+
+.cardImg3 {
+  background-image: url(/3-impact.png);
+  background-size: cover;
+  background-position: center;
+  height: 18rem;
+}
+
+/* ── TESTIMONIOS ── */
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  margin-bottom: 8rem;
+}
+
+@media (min-width: 768px) {
+  .testimonialsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.testimonialCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.testimonialCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.testimonialImgPlaceholder {
+  background: var(--bg-section);
+  height: 22rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  color: var(--primaryLight);
+}
+
+.testimonialCardBody {
+  padding: 2rem;
+  text-align: center;
+}
+
+.testimonialCardBody h4 {
+  font-size: 1.7rem;
+  font-weight: 600;
+}
+
+.testimonialCardBody p {
+  font-size: 1.4rem;
+}
+
+/* ── CTA / SUPPORT ── */
+.support {
+  background: linear-gradient(135deg, #3498db, #1abc9c);
+  text-align: center;
+  padding: 8rem 2rem;
+  color: var(--white);
+}
+
+.support h2 {
+  color: var(--white);
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.support p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 2rem;
+  margin-bottom: 3rem;
+}

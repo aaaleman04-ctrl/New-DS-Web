@@ -1,0 +1,370 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import { getBrigadas, Brigada } from "../../lib/db/brigadas";
+import { listBrigadaPhotos } from "../../lib/storage/brigadas";
+import styles from "../../styles/pages/brigadas.module.css";
+
+interface LightboxState {
+  urls: string[];
+  index: number;
+}
+
+export default function BrigadasClient() {
+  const [brigadas, setBrigadas] = useState<Brigada[]>([]);
+  const [status, setStatus] = useState<"loading" | "error" | "ok">("loading");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Record<string, string[]>>({});
+  const [photoStatus, setPhotoStatus] = useState<Record<string, string>>({});
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
+
+  // Carrusel refs (legacy replica)
+  const carIdxRef = useRef(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const btnPrevRef = useRef<HTMLButtonElement>(null);
+  const btnNextRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    async function load() {
+      const { data, error } = await getBrigadas();
+
+      if (error || !data || data.length === 0) {
+        setStatus(error ? "error" : "ok");
+        return;
+      }
+
+      setBrigadas(data);
+      setActiveId(data[0].id);
+      setStatus("ok");
+
+      data.forEach((b: Brigada) => loadPhotos(b));
+    }
+    load();
+  }, []);
+
+  async function loadPhotos(b: Brigada) {
+    setPhotoStatus((prev) => ({ ...prev, [b.id]: "loading" }));
+
+    const { urls, error } = await listBrigadaPhotos(b.id);
+
+    if (error) {
+      setPhotoStatus((prev) => ({ ...prev, [b.id]: "error" }));
+      return;
+    }
+
+    if (urls.length === 0) {
+      setPhotoStatus((prev) => ({ ...prev, [b.id]: "empty" }));
+      return;
+    }
+
+    setPhotos((prev) => ({ ...prev, [b.id]: urls }));
+    setPhotoStatus((prev) => ({ ...prev, [b.id]: `${urls.length} fotos` }));
+  }
+
+  function getVisibleCount() {
+    if (typeof window === "undefined") return 4;
+    if (window.innerWidth <= 550) return 1;
+    if (window.innerWidth <= 900) return 2;
+    return 4;
+  }
+
+  const applyCarousel = useCallback(
+    (nuevoIndex: number) => {
+      const track = trackRef.current;
+      const viewport = viewportRef.current;
+      const btnPrev = btnPrevRef.current;
+      const btnNext = btnNextRef.current;
+      if (!track || !viewport) return;
+
+      const visible = getVisibleCount();
+      const GAP_PX = 15;
+      const total = brigadas.length;
+      const maxIndex = Math.max(0, total - visible);
+
+      carIdxRef.current = Math.min(Math.max(nuevoIndex, 0), maxIndex);
+
+      const viewportW = viewport.offsetWidth - 8;
+      const itemWidth = (viewportW - GAP_PX * (visible - 1)) / visible;
+
+      track
+        .querySelectorAll<HTMLElement>("[data-carousel-item]")
+        .forEach((btn) => {
+          btn.style.width = `${itemWidth}px`;
+          btn.style.flexShrink = "0";
+        });
+
+      const offset = carIdxRef.current * (itemWidth + GAP_PX);
+      track.style.transform = `translateX(-${offset}px)`;
+
+      if (btnPrev) btnPrev.disabled = carIdxRef.current === 0;
+      if (btnNext) btnNext.disabled = carIdxRef.current >= maxIndex;
+    },
+    [brigadas.length]
+  );
+
+  useEffect(() => {
+    if (!brigadas.length) return;
+    const timer = setTimeout(() => applyCarousel(0), 0);
+    const onResize = () => {
+      clearTimeout(timer);
+      setTimeout(() => applyCarousel(carIdxRef.current), 100);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [brigadas, applyCarousel]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!lightbox) return;
+      if (e.key === "ArrowLeft") navigate(-1);
+      if (e.key === "ArrowRight") navigate(1);
+      if (e.key === "Escape") setLightbox(null);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
+
+  function navigate(dir: number) {
+    setLightbox((prev) => {
+      if (!prev) return null;
+      const next = prev.index + dir;
+      if (next < 0 || next >= prev.urls.length) return prev;
+      return { ...prev, index: next };
+    });
+  }
+
+  const visible = brigadas.length > 0 ? getVisibleCount() : 4;
+  const maxIdx = Math.max(0, brigadas.length - visible);
+
+  function handleBrigadaClick(id: string) {
+    setActiveId(id);
+    setTimeout(() => {
+      const panel = document.getElementById(`panel-${id}`);
+      if (panel) {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  }
+
+  return (
+    <>
+      {status === "loading" && (
+        <p className={styles.statusMsg}>Cargando brigadas…</p>
+      )}
+      {status === "error" && (
+        <p className={styles.errorMsg}>
+          No se pudieron cargar las brigadas. Verifica la conexión.
+        </p>
+      )}
+
+      {status === "ok" && brigadas.length === 0 && (
+        <p className={styles.statusMsg}>Aún no hay brigadas registradas.</p>
+      )}
+
+      {brigadas.length > 0 && (
+        <>
+          <div className={styles.carouselWrapper}>
+            <button
+              ref={btnPrevRef}
+              className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
+              aria-label="Anterior"
+              onClick={() => applyCarousel(carIdxRef.current - 1)}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <div className={styles.carouselViewport} ref={viewportRef}>
+              <div className={styles.carouselTrack} ref={trackRef}>
+                {brigadas.map((b) => (
+                  <button
+                    key={b.id}
+                    data-carousel-item="true"
+                    className={`${styles.brigadaBtn}${activeId === b.id ? " " + styles.active : ""}`}
+                    onClick={() => handleBrigadaClick(b.id)}
+                  >
+                    <span className={styles.brigadaNum}>{b.numero}</span>
+                    <span className={styles.brigadaName}>{b.nombre}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              ref={btnNextRef}
+              className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
+              aria-label="Siguiente"
+              onClick={() => applyCarousel(carIdxRef.current + 1)}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+
+          <div>
+            {brigadas.map((b) => {
+              const isActive = activeId === b.id;
+              const bPhotos = photos[b.id] ?? [];
+              const bStatus = photoStatus[b.id];
+
+              return (
+                <div
+                  key={b.id}
+                  className={
+                    isActive ? styles.brigadaPanelActive : styles.brigadaPanel
+                  }
+                  id={`panel-${b.id}`}
+                >
+                  <div className={styles.brigadaInfo}>
+                    <div className={styles.brigadaInfoText}>
+                      <h3>
+                        {b.numero} — {b.nombre}
+                      </h3>
+                      {b.descripcion && <p>{b.descripcion}</p>}
+                      <div className={styles.brigadaMeta}>
+                        {b.fecha && (
+                          <p className={styles.brigadaMetaItem}>
+                            Año: {b.fecha}
+                          </p>
+                        )}
+                        {b.lugar && (
+                          <p className={styles.brigadaMetaItem}>{b.lugar}</p>
+                        )}
+                        {bStatus && (
+                          <p className={styles.brigadaMetaItem}>
+                            {bStatus === "loading"
+                              ? "Cargando fotos…"
+                              : bStatus === "error"
+                                ? "Error cargando fotos"
+                                : bStatus === "empty"
+                                  ? "Fotos próximamente"
+                                  : bStatus}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {b.lat && b.lng && (
+                      <div className={styles.brigadaMap}>
+                        <iframe
+                          src={`https://maps.google.com/maps?q=${b.lat},${b.lng}&z=14&output=embed`}
+                          title={`Mapa de ${b.nombre}`}
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Gallery */}
+                  <div>
+                    <h3 className={styles.galleryHeading}>Galería de Fotos</h3>
+                    <div className={styles.galleryGrid}>
+                      {bPhotos.length === 0 ? (
+                        <p className={styles.noFotos}>
+                          Las fotos de esta brigada estarán disponibles
+                          próximamente.
+                        </p>
+                      ) : (
+                        bPhotos.map((url, i) => (
+                          <picture
+                            key={url}
+                            className={styles.galleryItem}
+                            onClick={() =>
+                              setLightbox({ urls: bPhotos, index: i })
+                            }
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={url}
+                              alt={`Foto ${i + 1} de ${b.nombre}`}
+                              loading="lazy"
+                              width={400}
+                              height={400}
+                            />
+                          </picture>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* ── Lightbox ── */}
+      {lightbox && (
+        <div
+          className={styles.modal}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setLightbox(null);
+          }}
+        >
+          <button
+            className={styles.btnCerrar}
+            aria-label="Cerrar"
+            onClick={() => setLightbox(null)}
+          >
+            ✕
+          </button>
+
+          {lightbox.index > 0 && (
+            <button
+              className={`${styles.modalNav} ${styles.modalNavPrev}`}
+              aria-label="Foto anterior"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(-1);
+              }}
+            >
+              ←
+            </button>
+          )}
+
+          <img
+            src={lightbox.urls[lightbox.index]}
+            alt={`Foto ${lightbox.index + 1}`}
+            width={900}
+            height={700}
+          />
+
+          {lightbox.index < lightbox.urls.length - 1 && (
+            <button
+              className={`${styles.modalNav} ${styles.modalNavNext}`}
+              aria-label="Foto siguiente"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(1);
+              }}
+            >
+              →
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}

@@ -1,0 +1,143 @@
+.comingSoon {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-section) 0%, var(--white) 100%);
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.content {
+  max-width: 72rem;
+  width: 100%;
+}
+
+.icon {
+  font-size: 7rem;
+  margin-bottom: 2rem;
+  line-height: 1;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.content h1 {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  color: var(--primaryColor);
+}
+
+.content > p {
+  font-size: 1.8rem;
+  margin-bottom: 4rem;
+  color: var(--gray);
+}
+
+.altGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin: 0 auto 4rem;
+}
+
+@media (min-width: 600px) {
+  .altGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.altCard {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 2.8rem 2.2rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.altCard:hover {
+  border-color: var(--primaryColor);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.altIcon {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.altCard h4 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.altCard p {
+  font-size: 1.4rem;
+  color: var(--gray);
+  margin: 0;
+  flex: 1;
+}
+
+.btnGofundme {
+  display: inline-block;
+  background: #02a95c;
+  color: var(--white);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: var(--fontBody);
+  padding: 1.2rem 2.8rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.btnGofundme:hover {
+  background: #028f4e;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btnOutline {
+  display: inline-block;
+  border: 2px solid var(--primaryColor);
+  color: var(--primaryColor);
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--fontBody);
+  padding: 1rem 2.2rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.btnOutline:hover {
+  background: var(--primaryColor);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.note {
+  font-size: 1.5rem;
+  color: var(--gray);
+  margin-top: 1rem;
+}
+
+.note small {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 1.3rem;
+}

@@ -1,0 +1,396 @@
+/* =====================================================
+   BRIGADAS — brigadas.module.css
+   Estilos exclusivos para la página /brigadas
+===================================================== */
+
+/* ── HERO ── */
+.hero {
+  background-image: url(/HeroDS.png);
+  background-color: rgba(26, 35, 50, 0.65);
+  background-blend-mode: multiply;
+  background-size: cover;
+  background-position: center;
+  color: var(--white);
+  text-align: center;
+  padding: 10rem 2rem 8rem;
+}
+
+.hero h1 {
+  color: var(--white);
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+}
+
+.heroSub {
+  font-size: 1.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+/* ── SECTION ── */
+.section {
+  padding: 7rem 2rem;
+}
+
+.section h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 4rem;
+}
+
+/* ── CARRUSEL ── */
+.carouselWrapper {
+  position: relative;
+  margin-bottom: 5rem;
+}
+
+.carouselBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dark);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.carouselBtn:hover {
+  background: var(--primaryColor);
+  color: #fff;
+  border-color: var(--primaryColor);
+  box-shadow: var(--shadow-md);
+}
+
+.carouselBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%) !important;
+}
+
+.carouselBtnPrev {
+  left: -2rem;
+}
+
+.carouselBtnNext {
+  right: -2rem;
+}
+
+.carouselViewport {
+  overflow: hidden;
+  padding: 0.8rem 0.4rem;
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 1.5rem;
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* ── BRIGADE BUTTONS ── */
+.brigadaBtn {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--fontBody);
+  flex-shrink: 0;
+}
+
+.brigadaBtn:hover {
+  border-color: var(--primaryColor);
+  background: var(--primaryLight);
+}
+
+.brigadaBtn.active {
+  border-color: var(--primaryColor);
+  background: var(--primaryColor);
+  color: var(--white);
+}
+
+.brigadaNum {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.brigadaBtn.active .brigadaNum {
+  opacity: 0.8;
+}
+
+.brigadaName {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+/* ── PANELS ── */
+.brigadaPanel {
+  display: none;
+}
+
+.brigadaPanelActive {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Panel info layout */
+.brigadaInfo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .brigadaInfo {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.brigadaInfoText h3 {
+  color: var(--primaryColor);
+  margin-bottom: 1.5rem;
+}
+
+.brigadaInfoText p {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.brigadaMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.brigadaMetaItem {
+  font-size: 1.5rem;
+  color: var(--gray);
+}
+
+.brigadaMap {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  height: 30rem;
+}
+
+.brigadaMap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ── GALLERY ── */
+.galleryHeading {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+}
+
+@media (min-width: 600px) {
+  .galleryGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .galleryGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.galleryItem {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  display: block;
+}
+
+.galleryItem:hover {
+  transform: scale(1.04);
+  box-shadow: var(--shadow-md);
+}
+
+.galleryItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── NO PHOTOS ── */
+.noFotos {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--gray);
+  font-size: 1.5rem;
+  grid-column: 1 / -1;
+}
+
+/* ── LOADING / ERROR ── */
+.statusMsg {
+  text-align: center;
+  color: var(--gray);
+  font-size: 1.6rem;
+  padding: 4rem 0;
+}
+
+.errorMsg {
+  text-align: center;
+  color: #e74c3c;
+  font-size: 1.5rem;
+  padding: 4rem 0;
+}
+
+/* ── LIGHTBOX ── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.93);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeInModal 0.25s ease;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.btnCerrar {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btnCerrar:hover {
+  background: var(--primaryColor);
+  border-color: var(--primaryColor);
+  transform: rotate(90deg);
+}
+
+.modalNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 2.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.modalNav:hover {
+  background: var(--primaryColor);
+}
+
+.modalNavPrev {
+  left: 2rem;
+}
+.modalNavNext {
+  right: 2rem;
+}
+
+/* ── @media mobile tweaks ── */
+@media (max-width: 900px) {
+  .carouselBtnPrev {
+    left: -1.6rem;
+  }
+  .carouselBtnNext {
+    right: -1.6rem;
+  }
+}
+
+@media (max-width: 550px) {
+  .carouselViewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+  }
+  .carouselBtn {
+    display: none;
+  }
+}

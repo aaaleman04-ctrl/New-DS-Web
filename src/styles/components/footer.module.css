@@ -1,0 +1,128 @@
+/* =====================================================
+   FOOTER — footer.module.css
+===================================================== */
+
+.footer {
+  background-color: var(--dark);
+  color: var(--white);
+}
+
+.footerTop {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  padding: 5rem 0;
+}
+
+@media (min-width: 768px) {
+  .footerTop {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.logo {
+  font-family: var(--fontHeading);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0;
+  padding: 0;
+}
+
+.logoSpan {
+  color: var(--primaryColor);
+}
+
+.tagline {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.7;
+  max-width: 28rem;
+}
+
+.social {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.socialLink {
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.socialLink:hover {
+  color: var(--primaryColor);
+}
+
+.gfmLink {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Nav column */
+.navTitle {
+  font-family: var(--fontHeading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1.6rem;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.navList a {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.75);
+  transition: color 0.2s ease;
+}
+
+.navList a:hover {
+  color: var(--white);
+}
+
+/* Info column */
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.infoCol p {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Bottom bar */
+.footerBottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footerBottomInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.footerBottomInner p {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.5);
+}

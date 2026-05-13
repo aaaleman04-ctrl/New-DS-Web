@@ -1,0 +1,79 @@
+/* =====================================================
+   HEADER — header.module.css
+===================================================== */
+
+.header {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: var(--fontHeading);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin: 0;
+  padding: 0;
+}
+
+.logoSpan {
+  color: var(--primaryColor);
+}
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.2rem;
+  align-items: center;
+}
+
+.navRef {
+  color: var(--gray);
+  font-size: 1.5rem;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.navRef:hover,
+.navRefActive {
+  color: var(--primaryColor);
+  background: var(--primaryLight);
+}
+
+.headerButton {
+  display: inline-block;
+  background-color: var(--primaryColor);
+  color: var(--white);
+  font-size: 1.5rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 2rem;
+  border: 2px solid var(--primaryColor);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.headerButton:hover {
+  background-color: var(--primaryDark);
+  border-color: var(--primaryDark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}

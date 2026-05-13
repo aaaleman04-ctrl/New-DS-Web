@@ -14,10 +14,10 @@
    6. Lightbox / Modal con navegación ← → y teclado
    ================================================================ */
 
-
 /* ── 1. SUPABASE ────────────────────────────────────────────── */
-const SUPABASE_URL      = "https://rnuvfkhutuuyhlummzeb.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q";
+const SUPABASE_URL = "https://rnuvfkhutuuyhlummzeb.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q";
 
 // El CDN de Supabase DEBE estar cargado antes que este archivo.
 // En brigadas.html debe aparecer así (en ese orden):
@@ -35,13 +35,11 @@ const USAR_SUPABASE_STORAGE = true;
 // Nombre del bucket que creaste en Supabase Storage
 const STORAGE_BUCKET = "brigadas";
 
-
 /* ── 2. VARIABLES GLOBALES ──────────────────────────────────── */
-let carouselIndex         = 0;
-let totalBrigadasGlobal   = 0;   // se llena cuando llegan los datos
+let carouselIndex = 0;
+let totalBrigadasGlobal = 0; // se llena cuando llegan los datos
 let imagenesBrigadaActiva = [];
-let imagenActualIndex     = 0;
-
+let imagenActualIndex = 0;
 
 /* ── 3. CARGAR BRIGADAS DESDE SUPABASE ─────────────────────── */
 async function cargarBrigadas() {
@@ -85,7 +83,7 @@ async function cargarBrigadas() {
   iniciarCarrusel(brigadas);
 
   // Cargar las fotos de cada brigada en paralelo
-  brigadas.forEach(b => {
+  brigadas.forEach((b) => {
     const grid = document.getElementById(`galeria-${b.id}`);
     if (!grid) return;
     if (USAR_SUPABASE_STORAGE) {
@@ -99,7 +97,6 @@ async function cargarBrigadas() {
   activarBrigada(brigadas[0].id);
 }
 
-
 /* ── 4. CONSTRUIR PANELES ───────────────────────────────────── */
 function construirPaneles(brigadas) {
   const contenedor = document.getElementById("brigadasPanels");
@@ -107,8 +104,8 @@ function construirPaneles(brigadas) {
   contenedor.innerHTML = "";
 
   brigadas.forEach((b, i) => {
-    const panel     = document.createElement("div");
-    panel.id        = `panel-${b.id}`;
+    const panel = document.createElement("div");
+    panel.id = `panel-${b.id}`;
     panel.className = "brigada-panel" + (i === 0 ? " active" : "");
 
     panel.innerHTML = `
@@ -142,14 +139,13 @@ function construirPaneles(brigadas) {
   });
 }
 
-
 /* ── 5A. CARRUSEL ───────────────────────────────────────────────
    El carrusel calcula el ancho de los items directamente desde
    el DOM —después— de que el navegador haya pintado los botones
    (via setTimeout). Esto evita que offsetWidth sea 0.
    ─────────────────────────────────────────────────────────────── */
 function iniciarCarrusel(brigadas) {
-  const track   = document.getElementById("carouselTrack");
+  const track = document.getElementById("carouselTrack");
   const btnPrev = document.getElementById("carouselPrev");
   const btnNext = document.getElementById("carouselNext");
   if (!track) return;
@@ -157,10 +153,10 @@ function iniciarCarrusel(brigadas) {
   track.innerHTML = "";
 
   brigadas.forEach((b, i) => {
-    const btn      = document.createElement("button");
-    btn.className  = "brigada-btn" + (i === 0 ? " active" : "");
+    const btn = document.createElement("button");
+    btn.className = "brigada-btn" + (i === 0 ? " active" : "");
     btn.dataset.id = b.id;
-    btn.innerHTML  = `
+    btn.innerHTML = `
       <span class="brigada-num">${b.numero}</span>
       <span class="brigada-name">${b.nombre}</span>
     `;
@@ -193,15 +189,15 @@ function getVisibleCount() {
 }
 
 function moverCarrusel(nuevoIndex) {
-  const track    = document.getElementById("carouselTrack");
+  const track = document.getElementById("carouselTrack");
   const viewport = document.querySelector(".carousel-viewport");
-  const btnPrev  = document.getElementById("carouselPrev");
-  const btnNext  = document.getElementById("carouselNext");
+  const btnPrev = document.getElementById("carouselPrev");
+  const btnNext = document.getElementById("carouselNext");
   if (!track || !viewport) return;
 
-  const visible  = getVisibleCount();
-  const GAP_PX   = 15;                               // gap: 1.5rem = ~15px
-  const total    = totalBrigadasGlobal;
+  const visible = getVisibleCount();
+  const GAP_PX = 15; // gap: 1.5rem = ~15px
+  const total = totalBrigadasGlobal;
   const maxIndex = Math.max(0, total - visible);
 
   carouselIndex = Math.min(Math.max(nuevoIndex, 0), maxIndex);
@@ -214,8 +210,8 @@ function moverCarrusel(nuevoIndex) {
   const itemWidth = (viewportW - GAP_PX * (visible - 1)) / visible;
 
   // Aplicar el ancho a cada botón
-  track.querySelectorAll(".brigada-btn").forEach(btn => {
-    btn.style.width     = `${itemWidth}px`;
+  track.querySelectorAll(".brigada-btn").forEach((btn) => {
+    btn.style.width = `${itemWidth}px`;
     btn.style.flexShrink = "0";
   });
 
@@ -229,19 +225,25 @@ function moverCarrusel(nuevoIndex) {
 }
 
 function activarBrigada(id) {
-  document.querySelectorAll(".brigada-panel").forEach(p => p.classList.remove("active"));
-  document.querySelectorAll(".brigada-btn").forEach(b => b.classList.remove("active"));
+  document
+    .querySelectorAll(".brigada-panel")
+    .forEach((p) => p.classList.remove("active"));
+  document
+    .querySelectorAll(".brigada-btn")
+    .forEach((b) => b.classList.remove("active"));
 
   const panel = document.getElementById(`panel-${id}`);
   if (panel) {
     panel.classList.add("active");
-    setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+    setTimeout(
+      () => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+      50
+    );
   }
 
   const btn = document.querySelector(`.brigada-btn[data-id="${id}"]`);
   if (btn) btn.classList.add("active");
 }
-
 
 /* ── 5B. GALERÍA — MODO A: Supabase Storage ─────────────────────
    Requiere:
@@ -261,7 +263,7 @@ async function cargarFotosDesdeStorage(brigada, grid) {
   const { data: archivos, error } = await sb.storage
     .from(STORAGE_BUCKET)
     .list(brigada.id, {
-      sortBy: { column: "name", order: "asc" }
+      sortBy: { column: "name", order: "asc" },
     });
 
   if (error) {
@@ -272,8 +274,8 @@ async function cargarFotosDesdeStorage(brigada, grid) {
   }
 
   // Filtrar solo archivos de imagen (ignorar carpetas u otros archivos)
-  const imagenes = (archivos || []).filter(f =>
-    f.name && /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name)
+  const imagenes = (archivos || []).filter(
+    (f) => f.name && /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name)
   );
 
   if (imagenes.length === 0) {
@@ -288,7 +290,7 @@ async function cargarFotosDesdeStorage(brigada, grid) {
   }
 
   // Guardar las URLs para el lightbox
-  const urls = imagenes.map(f => {
+  const urls = imagenes.map((f) => {
     const { data } = sb.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(`${brigada.id}/${f.name}`);
@@ -299,16 +301,15 @@ async function cargarFotosDesdeStorage(brigada, grid) {
   renderizarGaleria(grid, urls);
 }
 
-
 /* ── 5C. GALERÍA — MODO B: Imágenes locales ─────────────────────
    Las fotos deben estar en: img/Brigada-X/1.jpg, 2.jpg, 3.jpg…
    El código intenta cargar secuencialmente y para cuando falla.
    ─────────────────────────────────────────────────────────────── */
 function cargarFotosLocales(brigada, grid) {
-  const metaEl  = document.getElementById(`meta-fotos-${brigada.id}`);
-  const urls    = [];
-  let   indice  = 1;
-  const MAX     = 200; // tope de seguridad
+  const metaEl = document.getElementById(`meta-fotos-${brigada.id}`);
+  const urls = [];
+  let indice = 1;
+  const MAX = 200; // tope de seguridad
 
   function intentar() {
     if (indice > MAX) {
@@ -346,7 +347,6 @@ function cargarFotosLocales(brigada, grid) {
   intentar();
 }
 
-
 /* ── 5D. RENDERIZAR GALERÍA (compartido por ambos modos) ──────── */
 function renderizarGaleria(grid, urls) {
   grid.innerHTML = "";
@@ -355,12 +355,12 @@ function renderizarGaleria(grid, urls) {
     const picture = document.createElement("picture");
     picture.classList.add("gallery-item");
 
-    const img    = document.createElement("img");
-    img.src      = url;
-    img.alt      = `Foto ${i + 1} de la brigada`;
-    img.loading  = "lazy";   // carga diferida: el navegador solo descarga
-    img.width    = 400;      // la foto cuando el usuario se acerca en scroll
-    img.height   = 400;
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = `Foto ${i + 1} de la brigada`;
+    img.loading = "lazy"; // carga diferida: el navegador solo descarga
+    img.width = 400; // la foto cuando el usuario se acerca en scroll
+    img.height = 400;
 
     picture.appendChild(img);
     grid.appendChild(picture);
@@ -379,13 +379,12 @@ function mostrarSinFotos(grid, brigadaId) {
     </div>`;
 }
 
-
 /* ── 6. LIGHTBOX ─────────────────────────────────────────────── */
 function abrirLightbox(indice) {
   imagenActualIndex = indice;
 
   const modal = document.createElement("div");
-  modal.id    = "modalLightbox";
+  modal.id = "modalLightbox";
   modal.classList.add("modal");
   modal.innerHTML = `
     <button class="btn-cerrar" id="btnCerrarModal" aria-label="Cerrar">✕</button>
@@ -400,10 +399,20 @@ function abrirLightbox(indice) {
   document.body.classList.add("overflow-hidden");
   actualizarNavModal();
 
-  modal.addEventListener("click", e => { if (e.target === modal) cerrarModal(); });
-  document.getElementById("btnCerrarModal").addEventListener("click", cerrarModal);
-  document.getElementById("btnNavPrev").addEventListener("click", e => { e.stopPropagation(); navegarModal(-1); });
-  document.getElementById("btnNavNext").addEventListener("click", e => { e.stopPropagation(); navegarModal(1); });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) cerrarModal();
+  });
+  document
+    .getElementById("btnCerrarModal")
+    .addEventListener("click", cerrarModal);
+  document.getElementById("btnNavPrev").addEventListener("click", (e) => {
+    e.stopPropagation();
+    navegarModal(-1);
+  });
+  document.getElementById("btnNavNext").addEventListener("click", (e) => {
+    e.stopPropagation();
+    navegarModal(1);
+  });
 }
 
 function navegarModal(dir) {
@@ -419,24 +428,27 @@ function actualizarNavModal() {
   const prev = document.getElementById("btnNavPrev");
   const next = document.getElementById("btnNavNext");
   if (!prev || !next) return;
-  prev.style.display = imagenActualIndex === 0                                ? "none" : "flex";
-  next.style.display = imagenActualIndex === imagenesBrigadaActiva.length - 1 ? "none" : "flex";
+  prev.style.display = imagenActualIndex === 0 ? "none" : "flex";
+  next.style.display =
+    imagenActualIndex === imagenesBrigadaActiva.length - 1 ? "none" : "flex";
 }
 
 function cerrarModal() {
   const modal = document.getElementById("modalLightbox");
   if (!modal) return;
   modal.classList.add("fade-out");
-  setTimeout(() => { modal.remove(); document.body.classList.remove("overflow-hidden"); }, 400);
+  setTimeout(() => {
+    modal.remove();
+    document.body.classList.remove("overflow-hidden");
+  }, 400);
 }
 
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", (e) => {
   if (!document.getElementById("modalLightbox")) return;
-  if (e.key === "ArrowLeft")  navegarModal(-1);
+  if (e.key === "ArrowLeft") navegarModal(-1);
   if (e.key === "ArrowRight") navegarModal(1);
-  if (e.key === "Escape")     cerrarModal();
+  if (e.key === "Escape") cerrarModal();
 });
-
 
 /* ── INIT ────────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
