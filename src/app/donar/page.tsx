@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const alternatives = [
   {
     id: "gofundme",
-    icon: "💛",
+    icon: "",
     title: "GoFundMe",
     desc: "Dona de forma segura desde cualquier parte del mundo a través de nuestra campaña en GoFundMe.",
     cta: (
@@ -29,7 +29,7 @@ const alternatives = [
   },
   {
     id: "contacto",
-    icon: "🤝",
+    icon: "",
     title: "Contacto Directo",
     desc: "¿Estás en Honduras? Contáctanos directamente para coordinar una donación en insumos médicos o medicamentos.",
     cta: (
@@ -40,7 +40,7 @@ const alternatives = [
   },
   {
     id: "insumos",
-    icon: "💊",
+    icon: "",
     title: "Dona Insumos",
     desc: "Medicamentos, equipos médicos, material odontológico o cualquier insumo que pueda servir en nuestras brigadas.",
     cta: (
@@ -51,7 +51,7 @@ const alternatives = [
   },
   {
     id: "voluntario",
-    icon: "🙌",
+    icon: "",
     title: "Sé Voluntario",
     desc: "Tu tiempo y habilidades también son una forma poderosa de apoyar. ¡Únete a nuestro equipo de voluntarios!",
     cta: (
@@ -71,7 +71,7 @@ export default function Donar() {
         <section className={styles.comingSoon} aria-labelledby="donate-heading">
           <div className={styles.content}>
             <div className={styles.icon} aria-hidden="true">
-              ❤️
+              
             </div>
 
             <h1 id="donate-heading">¡Tu apoyo hace la diferencia!</h1>
