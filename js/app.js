@@ -15,9 +15,9 @@
    ================================================================ */
 
 /* ── 1. SUPABASE ────────────────────────────────────────────── */
+/* Solo para HTML estático legacy. La app Next usa .env.local (no subas claves al repo). */
 const SUPABASE_URL = "https://rnuvfkhutuuyhlummzeb.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJudXZma2h1dHV1eWhsdW1temViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNTgwMzEsImV4cCI6MjA5MjYzNDAzMX0.7bj9YpOA7ENZWesLhTiUg6Tvd2eT-FAp2nsDCX4Lg_Q";
+const SUPABASE_ANON_KEY = "PASTE_ANON_KEY_FROM_SUPABASE_DASHBOARD_SETTINGS_API";
 
 // El CDN de Supabase DEBE estar cargado antes que este archivo.
 // En brigadas.html debe aparecer así (en ese orden):

@@ -1,0 +1,6 @@
+# La anon key de Supabase es pública por diseño (va al bundle de Next como NEXT_PUBLIC_*).
+# Netlify la marca en el output de build; hay que omitirla del escaneo de secretos.
+# https://ntl.fyi/configure-secrets-scanning
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
