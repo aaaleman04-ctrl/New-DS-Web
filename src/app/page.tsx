@@ -15,7 +15,6 @@ export default function Home() {
     <>
       <Header />
 
-      {/* ── HERO (video) ── */}
       <section className={styles.hero}>
         <video
           autoPlay
@@ -115,7 +114,6 @@ export default function Home() {
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
             >
-              💬
             </div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;Dibujando Sonrisas cambió la vida de mi familia&#34;</h4>
@@ -128,7 +126,6 @@ export default function Home() {
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
             >
-              💬
             </div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;La atención que recibimos fue un regalo de Dios&#34;</h4>
@@ -141,7 +138,6 @@ export default function Home() {
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
             >
-              💬
             </div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;Su dedicación y amor nos inspira profundamente&#34;</h4>

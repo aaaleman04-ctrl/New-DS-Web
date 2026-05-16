@@ -25,7 +25,6 @@ export default async function proxy(request: NextRequest) {
     }
   );
 
-  // getUser() refresca el token si está por expirar.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -34,14 +33,12 @@ export default async function proxy(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/administracion");
   const isLoginPage = pathname.startsWith("/auth/login");
 
-  // Sin sesión → redirige al login
   if (isAdminRoute && !user) {
     const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("next", pathname); // para redirigir después del login
+    loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Ya autenticado → si intenta ir al login, lo mandamos al panel
   if (isLoginPage && user) {
     return NextResponse.redirect(new URL("/administracion", request.url));
   }
@@ -50,8 +47,6 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Ejecuta el proxy solo en rutas relevantes;
-  // excluye assets estáticos, imágenes y archivos.
   matcher: [
     "/administracion/:path*",
     "/auth/login",

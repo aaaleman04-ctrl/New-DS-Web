@@ -3,7 +3,7 @@ import styles from "@/styles/pages/admin.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const metadata = {
-  title: "Panel de Administración",
+  title: "Dashboard | Dibujando Sonrisas",
   description: "Panel de control para gestionar Dibujando Sonrisas.",
 };
 
