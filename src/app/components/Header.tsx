@@ -32,9 +32,14 @@ export default function Header() {
           </Link>
         </nav>
 
-        <Link href="/donar" className={styles.headerButton}>
-          Donar
-        </Link>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <Link href="/auth/login" className={styles.headerButtonOutline}>
+            Iniciar Sesión
+          </Link>
+          <Link href="/donar" className={styles.headerButton}>
+            Donar
+          </Link>
+        </div>
       </div>
     </header>
   );
