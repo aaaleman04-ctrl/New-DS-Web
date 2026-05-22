@@ -110,7 +110,7 @@ export default function SobreNosotros() {
               <div className={styles.achievementText}>
                 <h3>+2,000 Pacientes Atendidos</h3>
                 <p>
-                  Hemos brindado atención médica y odontológica a más de 1,200
+                  Hemos brindado atención médica y odontológica a más de 2,000
                   personas en zonas sin acceso a salud.
                 </p>
               </div>

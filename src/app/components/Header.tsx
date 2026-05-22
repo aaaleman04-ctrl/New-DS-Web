@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import styles from "../../styles/components/header.module.css";
 
@@ -5,7 +6,16 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={`${styles.headerContent} container`}>
-        <Link href="/">
+        <Link href="/" className={styles.logoLink}>
+          <span className={styles.headerLogo}>
+            <Image
+              src="/DS-LOGO.png"
+              alt="Logo Dibujando Sonrisas"
+              width={50}
+              height={50}
+              priority
+            />
+          </span>
           <p className={styles.logo}>
             Dibujando<span className={styles.logoSpan}> Sonrisas</span>
           </p>

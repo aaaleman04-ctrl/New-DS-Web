@@ -20,6 +20,14 @@
   flex-wrap: wrap;
 }
 
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
 .logo {
   font-family: var(--fontHeading);
   font-size: 2.4rem;
@@ -96,4 +104,19 @@
   color: var(--white);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+.headerLogo {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 10%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-style: none;
+}
+
+.headerLogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
