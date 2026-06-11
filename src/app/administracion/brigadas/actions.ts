@@ -10,6 +10,7 @@ import {
   slugifyBrigadaId,
   updateBrigada,
 } from "@/lib/db/brigadas";
+import { uploadBrigadaPhotos } from "@/lib/storage/brigadas";
 
 export type BrigadaActionState = {
   success?: boolean;
@@ -84,7 +85,7 @@ export async function createBrigadaAction(
     const { data } = parsed;
     if (!data) return { error: "Datos inválidos." };
 
-    const id = slugifyBrigadaId(data.nombre, data.numero);
+    const id = slugifyBrigadaId(data.numero);
 
     const { error } = await insertBrigada(supabase, { id, ...data });
 
@@ -98,10 +99,28 @@ export async function createBrigadaAction(
       return { error: `No se pudo crear la brigada: ${error}` };
     }
 
+    // Subir fotos si se adjuntaron
+    const files = formData.getAll("photos") as File[];
+    const validFiles = files.filter((f) => f.size > 0);
+    let photoMsg = "";
+
+    if (validFiles.length > 0) {
+      const { uploaded, errors: photoErrors } = await uploadBrigadaPhotos(
+        supabase,
+        id,
+        validFiles
+      );
+      if (photoErrors.length > 0) {
+        photoMsg = ` Se subieron ${uploaded} de ${validFiles.length} fotos.`;
+      } else {
+        photoMsg = ` Se subieron ${uploaded} fotos.`;
+      }
+    }
+
     revalidateBrigadas();
     return {
       success: true,
-      message: "La brigada se creó exitosamente.",
+      message: `La brigada se creó exitosamente.${photoMsg}`,
     };
   } catch (e) {
     return {
@@ -138,10 +157,28 @@ export async function updateBrigadaAction(
       return { error: `No se pudo actualizar la brigada: ${error}` };
     }
 
+    // Subir fotos si se adjuntaron
+    const files = formData.getAll("photos") as File[];
+    const validFiles = files.filter((f) => f.size > 0);
+    let photoMsg = "";
+
+    if (validFiles.length > 0) {
+      const { uploaded, errors: photoErrors } = await uploadBrigadaPhotos(
+        supabase,
+        id,
+        validFiles
+      );
+      if (photoErrors.length > 0) {
+        photoMsg = ` Se subieron ${uploaded} de ${validFiles.length} fotos.`;
+      } else {
+        photoMsg = ` Se subieron ${uploaded} fotos.`;
+      }
+    }
+
     revalidateBrigadas();
     return {
       success: true,
-      message: "La brigada se actualizó exitosamente.",
+      message: `La brigada se actualizó exitosamente.${photoMsg}`,
     };
   } catch (e) {
     return {

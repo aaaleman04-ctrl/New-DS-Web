@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import type { Brigada } from "@/lib/db/brigadas";
 import {
   createBrigadaAction,
@@ -55,12 +55,43 @@ function BrigadaFormModal({
     FormData
   >(action, null);
 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (state?.success && state.message) {
       onSuccess(state.message);
       onClose();
     }
   }, [state, onSuccess, onClose]);
+
+  function addFiles(newFiles: FileList | File[]) {
+    const arr = Array.from(newFiles).filter(
+      (f) => f.type.startsWith("image/") && f.size > 0
+    );
+    setSelectedFiles((prev) => [...prev, ...arr]);
+  }
+
+  function removeFile(index: number) {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length > 0) {
+      addFiles(e.dataTransfer.files);
+    }
+  }
+
+  function handleFormAction(formData: FormData) {
+    // Append selected files to formData
+    for (const file of selectedFiles) {
+      formData.append("photos", file);
+    }
+    formAction(formData);
+  }
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -85,7 +116,7 @@ function BrigadaFormModal({
           </button>
         </div>
 
-        <form action={formAction} className={styles.adminForm}>
+        <form action={handleFormAction} className={styles.adminForm}>
           {mode === "edit" && brigada && (
             <input type="hidden" name="id" value={brigada.id} />
           )}
@@ -171,6 +202,81 @@ function BrigadaFormModal({
                 placeholder="Ej: -87.1921"
               />
             </label>
+          </div>
+
+          {/* ── Dropzone de fotos ── */}
+          <div className={styles.formField}>
+            <span>Fotos de la brigada</span>
+            <div
+              className={`${styles.dropzone} ${dragOver ? styles.dropzoneDragOver : ""}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className={styles.dropzoneIcon}>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <p className={styles.dropzoneText}>
+                <strong>Haz clic o arrastra</strong> imágenes aquí
+                <br />
+                JPG, PNG, WEBP
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                className={styles.dropzoneInput}
+                onChange={(e) => {
+                  if (e.target.files) addFiles(e.target.files);
+                  e.target.value = "";
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {selectedFiles.length > 0 && (
+              <>
+                <div className={styles.photoPreviewGrid}>
+                  {selectedFiles.map((file, i) => (
+                    <div key={`${file.name}-${i}`} className={styles.photoPreviewItem}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                      />
+                      <button
+                        type="button"
+                        className={styles.photoPreviewRemove}
+                        onClick={() => removeFile(i)}
+                        aria-label={`Quitar ${file.name}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className={styles.photoCount}>
+                  {selectedFiles.length}{" "}
+                  {selectedFiles.length === 1 ? "foto seleccionada" : "fotos seleccionadas"}
+                </p>
+              </>
+            )}
           </div>
 
           {mode === "edit" && brigada && (

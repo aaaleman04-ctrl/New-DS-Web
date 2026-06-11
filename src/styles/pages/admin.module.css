@@ -676,6 +676,104 @@
   line-height: 1.6;
 }
 
+/* ── Dropzone / Upload de fotos ── */
+.dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2.4rem 1.6rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-light);
+  position: relative;
+}
+
+.dropzone:hover,
+.dropzoneDragOver {
+  border-color: var(--primaryColor);
+  background: var(--primaryLight);
+}
+
+.dropzoneIcon {
+  width: 3.6rem;
+  height: 3.6rem;
+  margin: 0 auto 1rem;
+  color: var(--gray);
+}
+
+.dropzoneDragOver .dropzoneIcon {
+  color: var(--primaryColor);
+}
+
+.dropzoneText {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--gray);
+  line-height: 1.5;
+}
+
+.dropzoneText strong {
+  color: var(--primaryColor);
+}
+
+.dropzoneInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.photoPreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.photoPreviewItem {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid var(--border-color);
+}
+
+.photoPreviewItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoPreviewRemove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.photoPreviewRemove:hover {
+  background: #dc2626;
+}
+
+.photoCount {
+  margin: 0.8rem 0 0;
+  font-size: 1.3rem;
+  color: var(--gray);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .sidebar {

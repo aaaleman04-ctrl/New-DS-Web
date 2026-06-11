@@ -63,14 +63,7 @@ export async function deleteBrigada(
   return { error: error?.message ?? null };
 }
 
-export function slugifyBrigadaId(nombre: string, numero: string): string {
-  const base = `${numero}-${nombre}`
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-
-  return `Brigada-${base || Date.now()}`;
+export function slugifyBrigadaId(numero: string): string {
+  const num = numero.trim();
+  return `Brigada-${num || Date.now()}`;
 }
