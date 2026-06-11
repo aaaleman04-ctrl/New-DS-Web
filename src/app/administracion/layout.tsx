@@ -1,6 +1,9 @@
 import SideBar from "./components/SideBar";
+import { PermissionsProvider } from "./components/PermissionsProvider";
 import styles from "@/styles/pages/admin.module.css";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getAuthContext } from "@/lib/auth/session";
+import { ROLE_LABELS } from "@/lib/auth/roles";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Dashboard | Dibujando Sonrisas",
@@ -12,30 +15,34 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const ctx = await getAuthContext();
+
+  if (!ctx) {
+    redirect("/auth/sin-acceso");
+  }
 
   return (
-    <div className={styles.adminLayout}>
-      <SideBar />
-      
-      <main className={styles.mainContent}>
-        <header className={styles.topbar}>
-          <h1 className={styles.pageTitle}>Administración</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", color: "var(--gray)", fontSize: "1.4rem" }}>
-            <span>{user?.email}</span>
-            <div style={{ width: "3.2rem", height: "3.2rem", borderRadius: "50%", backgroundColor: "var(--primaryLight)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primaryColor)", fontWeight: "bold" }}>
-              {user?.email?.charAt(0).toUpperCase() || "A"}
+    <PermissionsProvider role={ctx.role}>
+      <div className={styles.adminLayout}>
+        <SideBar />
+
+        <main className={styles.mainContent}>
+          <header className={styles.topbar}>
+            <h1 className={styles.pageTitle}>Administración</h1>
+            <div className={styles.topbarUser}>
+              <div className={styles.topbarUserInfo}>
+                <span>{ctx.user.email}</span>
+                <span className={styles.roleBadge}>{ROLE_LABELS[ctx.role]}</span>
+              </div>
+              <div className={styles.topbarAvatar}>
+                {ctx.user.email?.charAt(0).toUpperCase() || "A"}
+              </div>
             </div>
-          </div>
-        </header>
-        
-        <div className={styles.contentArea}>
-          {children}
-        </div>
-      </main>
-    </div>
+          </header>
+
+          <div className={styles.contentArea}>{children}</div>
+        </main>
+      </div>
+    </PermissionsProvider>
   );
 }

@@ -37,7 +37,11 @@ export async function loginAction(
     }
     return { error: "Ocurrió un error al iniciar sesión. Intenta de nuevo." };
   }
-  redirect("/administracion");
+
+  const next = (formData.get("next") as string)?.trim();
+  const safeNext =
+    next && next.startsWith("/administracion") ? next : "/administracion";
+  redirect(safeNext);
 }
 
 export async function logoutAction() {

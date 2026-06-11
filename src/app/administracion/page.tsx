@@ -1,6 +1,8 @@
 import styles from "@/styles/pages/admin.module.css";
+import { requireRouteAccess } from "@/lib/auth/session";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  await requireRouteAccess("/administracion");
   return (
     <div>
       <div style={{ marginBottom: "2.4rem" }}>

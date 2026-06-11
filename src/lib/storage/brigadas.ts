@@ -15,7 +15,7 @@ export async function listBrigadaPhotos(brigadaId: string): Promise<{
   }
 
   const images = files.filter(
-    (f) => f.name && /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name)
+    (f) => f.name && /\.(jpg|jpeg|png|webp|avif|JPG)$/i.test(f.name)
   );
 
   if (images.length === 0) {

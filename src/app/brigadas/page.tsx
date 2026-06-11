@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BrigadasClient from "./BrigadasClient";
+import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/brigadas.module.css";
 
 export const metadata: Metadata = {
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
     "Conoce las más de 15 brigadas médico-odontológicas de Dibujando Sonrisas en Honduras — selecciona una brigada para ver sus fotos y su historia.",
 };
 
-export default function Brigadas() {
+export default async function Brigadas() {
+  const { data: brigadas, error } = await getBrigadas();
+
   return (
     <>
       <Header />
@@ -29,11 +32,16 @@ export default function Brigadas() {
       >
         <h2 id="brigadas-heading">Elige una Brigada</h2>
         <p className={styles.subtitle}>
-          Hemos realizado <strong>15+ brigadas</strong> en distintas comunidades
-          de Honduras. Cada una tiene su historia.
+          Hemos realizado{" "}
+          <strong>{brigadas?.length ?? 0}+ brigadas</strong> en distintas
+          comunidades de Honduras. Cada una tiene su historia.
         </p>
 
-        <BrigadasClient />
+        {error ? (
+          <p>No se pudieron cargar las brigadas. Intenta de nuevo más tarde.</p>
+        ) : (
+          <BrigadasClient brigadas={brigadas ?? []} />
+        )}
       </section>
 
       <Footer />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { getBrigadas, Brigada } from "../../lib/db/brigadas";
+import { Brigada } from "../../lib/db/brigadas";
 import { listBrigadaPhotos } from "../../lib/storage/brigadas";
 import styles from "../../styles/pages/brigadas.module.css";
 
@@ -10,9 +10,7 @@ interface LightboxState {
   index: number;
 }
 
-export default function BrigadasClient() {
-  const [brigadas, setBrigadas] = useState<Brigada[]>([]);
-  const [status, setStatus] = useState<"loading" | "error" | "ok">("loading");
+export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [photoStatus, setPhotoStatus] = useState<Record<string, string>>({});
@@ -26,22 +24,11 @@ export default function BrigadasClient() {
   const btnNextRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    async function load() {
-      const { data, error } = await getBrigadas();
+    if (brigadas.length === 0) return;
 
-      if (error || !data || data.length === 0) {
-        setStatus(error ? "error" : "ok");
-        return;
-      }
-
-      setBrigadas(data);
-      setActiveId(data[0].id);
-      setStatus("ok");
-
-      data.forEach((b: Brigada) => loadPhotos(b));
-    }
-    load();
-  }, []);
+    setActiveId(brigadas[0].id);
+    brigadas.forEach((b: Brigada) => loadPhotos(b));
+  }, [brigadas]);
 
   async function loadPhotos(b: Brigada) {
     setPhotoStatus((prev) => ({ ...prev, [b.id]: "loading" }));
@@ -149,16 +136,7 @@ export default function BrigadasClient() {
 
   return (
     <>
-      {status === "loading" && (
-        <p className={styles.statusMsg}>Cargando brigadas…</p>
-      )}
-      {status === "error" && (
-        <p className={styles.errorMsg}>
-          No se pudieron cargar las brigadas. Verifica la conexión.
-        </p>
-      )}
-
-      {status === "ok" && brigadas.length === 0 && (
+      {brigadas.length === 0 && (
         <p className={styles.statusMsg}>Aún no hay brigadas registradas.</p>
       )}
 

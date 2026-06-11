@@ -43,6 +43,10 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/administracion", request.url));
   }
 
+  if (pathname.startsWith("/auth/sin-acceso")) {
+    return response;
+  }
+
   return response;
 }
 
