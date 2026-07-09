@@ -7,11 +7,11 @@ export default function QuickActions({ role }: { role: AppRole }) {
   const permissions = getPermissionsForRole(role);
 
   const actions = [
-    { label: "Nueva Brigada", href: "/administracion/brigadas", icon: "🏥", perm: PERMISSIONS.BRIGADAS_CREATE },
-    { label: "Registrar Paciente", href: "/administracion/pacientes/nuevo", icon: "📝", perm: PERMISSIONS.PACIENTES_REGISTER },
-    { label: "Agregar Inventario", href: "/administracion/inventario", icon: "💊", perm: PERMISSIONS.INVENTORY_MANAGE },
-    { label: "Registrar Venta", href: "/administracion/ventas", icon: "💲", perm: PERMISSIONS.SALES_MANAGE },
-    { label: "Registrar Donación", href: "/administracion/donaciones", icon: "👕", perm: PERMISSIONS.DONATIONS_MANAGE },
+    { label: "Nueva Brigada", href: "/administracion/brigadas", icon: "", perm: PERMISSIONS.BRIGADAS_CREATE },
+    { label: "Registrar Paciente", href: "/administracion/pacientes/nuevo", icon: "", perm: PERMISSIONS.PACIENTES_REGISTER },
+    { label: "Agregar Inventario", href: "/administracion/inventario", icon: "", perm: PERMISSIONS.INVENTORY_MANAGE },
+    { label: "Registrar Venta", href: "/administracion/ventas", icon: "", perm: PERMISSIONS.SALES_MANAGE },
+    { label: "Registrar Donación", href: "/administracion/donaciones", icon: "", perm: PERMISSIONS.DONATIONS_MANAGE },
   ];
 
   const visibleActions = actions.filter(a => permissions.includes(a.perm));

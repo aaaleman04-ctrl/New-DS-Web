@@ -204,7 +204,7 @@ export function VentasClient({ userId }: { userId: string }) {
 
               <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
-                  <h3>⚠️ Productos con Bajo Stock (5 o menos)</h3>
+                  <h3> Productos con Bajo Stock (5 o menos)</h3>
                 </div>
                 <table className={styles.adminTable}>
                   <thead>

@@ -12,6 +12,12 @@ export function ActividadesClient({ userId }: { userId: string }) {
   const [todasLasBrigadas, setTodasLasBrigadas] = useState<any[]>([]);
   const [filtroBrigada, setFiltroBrigada] = useState<string>("todas");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroBrigada]);
 
   // Modals
   const [isActividadModalOpen, setIsActividadModalOpen] = useState(false);
@@ -143,35 +149,65 @@ export function ActividadesClient({ userId }: { userId: string }) {
             <tbody>
               {isLoading ? (<tr><td colSpan={6} style={{ textAlign: "center" }}>Cargando...</td></tr>) :
                (() => {
-                 const filtered = filtroBrigada === "todas"
-                   ? actividades
-                   : actividades.filter(act => act.brigada_id === filtroBrigada);
-                 return filtered.length === 0 ? (
-                   <tr><td colSpan={6} style={{ textAlign: "center", color: "var(--gray)" }}>No hay actividades registradas en esta brigada.</td></tr>
-                 ) : (
-                   filtered.map(act => (
-                     <tr key={act.id}>
-                       <td>{new Date(act.created_at).toLocaleDateString()}</td>
-                       <td style={{ fontWeight: "bold" }}>
-                         {act.nombre}
-                         {act.descripcion && <div style={{ fontSize: "1.2rem", color: "var(--gray)", fontWeight: "normal" }}>{act.descripcion}</div>}
-                       </td>
-                       <td>{act.brigadas?.nombre}</td>
-                       <td style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{act.cantidad_regalos}</td>
-                       <td style={{ fontWeight: "bold", fontSize: "1.2rem", color: "var(--primaryColor)" }}>{act.total_ninos}</td>
-                       <td>
-                         <button className={styles.btnSecondary} onClick={() => openParticipantesModal(act.id)}>
-                           + Sumar Niños
-                         </button>
-                       </td>
-                     </tr>
-                   ))
-                 );
-               })()
+                  const filtered = filtroBrigada === "todas"
+                    ? actividades
+                    : actividades.filter(act => act.brigada_id === filtroBrigada);
+                  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                  return filtered.length === 0 ? (
+                    <tr><td colSpan={6} style={{ textAlign: "center", color: "var(--gray)" }}>No hay actividades registradas en esta brigada.</td></tr>
+                  ) : (
+                    paginated.map(act => (
+                      <tr key={act.id}>
+                        <td>{new Date(act.created_at).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: "bold" }}>
+                          {act.nombre}
+                          {act.descripcion && <div style={{ fontSize: "1.2rem", color: "var(--gray)", fontWeight: "normal" }}>{act.descripcion}</div>}
+                        </td>
+                        <td>{act.brigadas?.nombre}</td>
+                        <td style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{act.cantidad_regalos}</td>
+                        <td style={{ fontWeight: "bold", fontSize: "1.2rem", color: "var(--primaryColor)" }}>{act.total_ninos}</td>
+                        <td>
+                          <button className={styles.btnSecondary} onClick={() => openParticipantesModal(act.id)}>
+                            + Sumar Niños
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  );
+                })()
               }
             </tbody>
           </table>
         </div>
+
+        {(() => {
+          const filtered = filtroBrigada === "todas"
+            ? actividades
+            : actividades.filter(act => act.brigada_id === filtroBrigada);
+          const totalPages = Math.ceil(filtered.length / itemsPerPage);
+          if (totalPages <= 1) return null;
+          return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1.5rem" }}>
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+              >
+                Anterior
+              </button>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {totalPages}</span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
+              >
+                Siguiente
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Modal Nueva Actividad */}

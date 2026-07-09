@@ -79,7 +79,26 @@ export async function createExpedienteCompleto(
   diagnosticos: string[],
   medicamentos: Partial<InsertMedicamentoConsulta>[]
 ) {
-  // 1. Create Paciente
+  // 1. Auto-generate PAC-B{num}{corr} patient code
+  if (paciente.brigada_id) {
+    const { data: brigada } = await supabase
+      .from("brigadas")
+      .select("codigo")
+      .eq("id", paciente.brigada_id)
+      .single();
+    
+    const parsedNum = brigada?.codigo?.replace(/\D/g, "") || "1";
+    const numInt = parseInt(parsedNum, 10) || 1;
+
+    const { count } = await supabase
+      .from("pacientes")
+      .select("*", { count: "exact", head: true })
+      .eq("brigada_id", paciente.brigada_id);
+
+    const correlativo = (count || 0) + 1;
+    paciente.codigo = `PAC-B${numInt}${String(correlativo).padStart(3, "0")}`;
+  }
+
   const { data: newPaciente, error: errPac } = await supabase
     .from("pacientes")
     .insert(paciente)

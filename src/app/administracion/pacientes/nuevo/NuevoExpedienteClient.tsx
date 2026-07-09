@@ -126,8 +126,7 @@ export function NuevoExpedienteClient() {
       setIsSubmitting(true);
       
       const p = { ...paciente };
-      // auto-generar codigo Kendall simple
-      p.codigo = `K-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
+      p.codigo = "TEMP-CODE";
       if (p.edad) p.edad = Number(p.edad);
 
       const s = { ...signos };

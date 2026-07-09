@@ -13,6 +13,12 @@ export function PacientesClient() {
   const [todasLasBrigadas, setTodasLasBrigadas] = useState<any[]>([]);
   const [filtroBrigada, setFiltroBrigada] = useState<string>("todas");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filtroBrigada]);
 
   const fetchData = async () => {
     try {
@@ -129,6 +135,7 @@ export function PacientesClient() {
                 const filtered = filtroBrigada === "todas"
                   ? pacientes
                   : pacientes.filter(p => p.brigada_id === filtroBrigada);
+                const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
                 return filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
@@ -136,7 +143,7 @@ export function PacientesClient() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((p) => (
+                  paginated.map((p) => (
                     <tr key={p.id}>
                       <td style={{ fontWeight: "bold" }}>{p.codigo}</td>
                       <td>{p.paciente}</td>
@@ -155,6 +162,35 @@ export function PacientesClient() {
             </tbody>
           </table>
         </div>
+
+        {(() => {
+          const filtered = filtroBrigada === "todas"
+            ? pacientes
+            : pacientes.filter(p => p.brigada_id === filtroBrigada);
+          const totalPages = Math.ceil(filtered.length / itemsPerPage);
+          if (totalPages <= 1) return null;
+          return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1.5rem" }}>
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+              >
+                Anterior
+              </button>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {totalPages}</span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
+              >
+                Siguiente
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

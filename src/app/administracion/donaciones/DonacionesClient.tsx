@@ -12,6 +12,17 @@ export function DonacionesClient({ userId }: { userId: string }) {
   const [entregas, setEntregas] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"donaciones" | "entregas">("donaciones");
+  const [filtroBrigada, setFiltroBrigada] = useState<string>("todas");
+  const [brigadasActivas, setBrigadasActivas] = useState<any[]>([]);
+  const [todasLasBrigadas, setTodasLasBrigadas] = useState<any[]>([]);
+  const [currentPageDonaciones, setCurrentPageDonaciones] = useState(1);
+  const [currentPageEntregas, setCurrentPageEntregas] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPageDonaciones(1);
+    setCurrentPageEntregas(1);
+  }, [filtroBrigada, activeTab]);
 
   // Donacion Modal
   const [isDonacionModalOpen, setIsDonacionModalOpen] = useState(false);
@@ -19,9 +30,6 @@ export function DonacionesClient({ userId }: { userId: string }) {
 
   // Entrega Modal
   const [isEntregaModalOpen, setIsEntregaModalOpen] = useState(false);
-  const [brigadasActivas, setBrigadasActivas] = useState<any[]>([]);
-  const [todasLasBrigadas, setTodasLasBrigadas] = useState<any[]>([]);
-  const [filtroBrigada, setFiltroBrigada] = useState<string>("todas");
   const [pacientesElegibles, setPacientesElegibles] = useState<any[]>([]);
   const [entregaForm, setEntregaForm] = useState({ brigada_id: "", paciente_id: "", cantidad_prendas: 1, observaciones: "" });
   const [isFetchingPacientes, setIsFetchingPacientes] = useState(false);
@@ -221,7 +229,7 @@ export function DonacionesClient({ userId }: { userId: string }) {
               <tbody>
                 {isLoading ? (<tr><td colSpan={5} style={{textAlign: "center"}}>Cargando...</td></tr>) :
                  donaciones.length === 0 ? (<tr><td colSpan={5} style={{textAlign: "center", color:"var(--gray)"}}>No hay donaciones registradas</td></tr>) :
-                 donaciones.map(d => (
+                 donaciones.slice((currentPageDonaciones - 1) * itemsPerPage, currentPageDonaciones * itemsPerPage).map(d => (
                   <tr key={d.id}>
                     <td style={{fontWeight: "bold"}}>{d.codigo}</td>
                     <td>{new Date(d.fecha_donacion).toLocaleDateString()}</td>
@@ -251,10 +259,11 @@ export function DonacionesClient({ userId }: { userId: string }) {
                    const filtered = filtroBrigada === "todas"
                      ? entregas
                      : entregas.filter(e => e.brigada_id === filtroBrigada);
+                   const paginated = filtered.slice((currentPageEntregas - 1) * itemsPerPage, currentPageEntregas * itemsPerPage);
                    return filtered.length === 0 ? (
                      <tr><td colSpan={6} style={{textAlign: "center", color:"var(--gray)"}}>No hay entregas registradas en esta brigada</td></tr>
                    ) : (
-                     filtered.map(e => (
+                     paginated.map(e => (
                        <tr key={e.id}>
                          <td>{new Date(e.fecha_entrega).toLocaleDateString()}</td>
                          <td>{e.brigadas?.nombre}</td>
@@ -271,6 +280,39 @@ export function DonacionesClient({ userId }: { userId: string }) {
             </table>
           )}
         </div>
+
+        {(() => {
+          const list = activeTab === "donaciones" ? donaciones : entregas;
+          const filtered = activeTab === "donaciones"
+            ? list
+            : list.filter(item => filtroBrigada === "todas" || item.brigada_id === filtroBrigada);
+          const totalPages = Math.ceil(filtered.length / itemsPerPage);
+          if (totalPages <= 1) return null;
+          const curPage = activeTab === "donaciones" ? currentPageDonaciones : currentPageEntregas;
+          const setCurPage = activeTab === "donaciones" ? setCurrentPageDonaciones : setCurrentPageEntregas;
+
+          return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1.5rem" }}>
+              <button 
+                disabled={curPage === 1} 
+                onClick={() => setCurPage(prev => Math.max(prev - 1, 1))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: curPage === 1 ? "not-allowed" : "pointer", opacity: curPage === 1 ? 0.5 : 1 }}
+              >
+                Anterior
+              </button>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {curPage} de {totalPages}</span>
+              <button 
+                disabled={curPage === totalPages} 
+                onClick={() => setCurPage(prev => Math.min(prev + 1, totalPages))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: curPage === totalPages ? "not-allowed" : "pointer", opacity: curPage === totalPages ? 0.5 : 1 }}
+              >
+                Siguiente
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Modal Donacion */}

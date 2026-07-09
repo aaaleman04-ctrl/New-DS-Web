@@ -19,13 +19,13 @@ type Donante = {
 };
 
 const tipoLabel: Record<string, string> = {
-  Empresa: "🏢 Empresa",
-  "Persona Natural": "👤 Persona Natural",
-  ONG: "🤝 ONG",
-  Institución: "🏛️ Institución",
+  Empresa: " Empresa",
+  "Persona Natural": " Persona Natural",
+  ONG: " ONG",
+  Institución: " Institución",
 };
 
-const medalEmoji = ["🥇", "🥈", "🥉"];
+const medalEmoji = ["", "", ""];
 const rankClasses = [styles.rankGold, styles.rankSilver, styles.rankBronze];
 
 function formatHNL(value: number) {
@@ -81,6 +81,12 @@ export default function TopDonantes() {
   const [anioFiltro, setAnioFiltro] = useState<string>("todos");
   const [rawDonantes, setRawDonantes] = useState<Donante[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [anioFiltro]);
 
   useEffect(() => {
     async function fetchDonantes() {
@@ -231,31 +237,6 @@ export default function TopDonantes() {
               Muro de Honor — Benefactores que hacen posible nuestra misión de ayuda.
             </p>
           </div>
-        </div>
-        <div className={styles.reportHeaderActions}>
-          <div className={styles.filterGroup} style={{ minWidth: "auto" }}>
-            <select
-              id="periodo-donantes"
-              value={anioFiltro}
-              onChange={(e) => setAnioFiltro(e.target.value)}
-              style={{ fontSize: "1.4rem", padding: "0.8rem 1.2rem" }}
-            >
-              <option value="todos">Todos los años</option>
-              {aniosDisponibles.map((p) => (
-                <option key={p} value={p}>
-                  Año {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="button"
-            className={styles.btnActionSecondary}
-            onClick={() => window.print()}
-            style={{ fontSize: "1.4rem", padding: "0.8rem 1.2rem" }}
-          >
-            Imprimir
-          </button>
         </div>
       </div>
 
@@ -463,138 +444,141 @@ export default function TopDonantes() {
                   </td>
                 </tr>
               ) : (
-                donantesOrdenados.map((donante, idx) => {
-                  const porcentaje = Math.round((donante.total / maxMonto) * 100);
-                  const isTop3 = idx < 3;
+                donantesOrdenados
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((donante, relativeIdx) => {
+                    const absoluteIdx = (currentPage - 1) * itemsPerPage + relativeIdx;
+                    const porcentaje = Math.round((donante.total / maxMonto) * 100);
+                    const isTop3 = absoluteIdx < 3;
 
-                  return (
-                    <tr key={donante.id}>
-                      {/* Rank */}
-                      <td>
-                        <div className={styles.rankCell}>
-                          <span
-                            className={`${styles.rankNumber} ${
-                              isTop3 ? rankClasses[idx] : styles.rankDefault
-                            }`}
-                          >
-                            {isTop3 ? medalEmoji[idx] : idx + 1}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Donante info */}
-                      <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "1rem",
-                          }}
-                        >
-                          <div
-                            className={styles.donorAvatar}
-                            style={
-                              isTop3
-                                ? {
-                                    background:
-                                      idx === 0
-                                        ? "linear-gradient(135deg,#ffd700,#f59e0b)"
-                                        : idx === 1
-                                          ? "linear-gradient(135deg,#e2e8f0,#94a3b8)"
-                                          : "linear-gradient(135deg,#cd7c2f,#92400e)",
-                                    color:
-                                      idx === 0
-                                        ? "#78350f"
-                                        : idx === 1
-                                          ? "#1e293b"
-                                          : "#fef3c7",
-                                  }
-                                : undefined
-                            }
-                          >
-                            {getInitials(donante.nombre)}
-                          </div>
-                          <div className={styles.donorInfo}>
-                            <span className={styles.donorName}>
-                              {donante.nombre}
+                    return (
+                      <tr key={donante.id}>
+                        {/* Rank */}
+                        <td>
+                          <div className={styles.rankCell}>
+                            <span
+                              className={`${styles.rankNumber} ${
+                                isTop3 ? rankClasses[absoluteIdx] : styles.rankDefault
+                              }`}
+                            >
+                              {isTop3 ? medalEmoji[absoluteIdx] : absoluteIdx + 1}
                             </span>
-                            {donante.esRecurrente && (
-                              <span
-                                style={{
-                                  fontSize: "1.15rem",
-                                  color: "#16a34a",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                ↻ Donante recurrente
-                              </span>
-                            )}
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Tipo */}
-                      <td>
-                        <span className={styles.donorType}>
-                          {tipoLabel[donante.tipo]}
-                        </span>
-                      </td>
-
-                      {/* Ciudad */}
-                      <td style={{ fontSize: "1.35rem", color: "var(--gray)" }}>
-                        {donante.ciudad}
-                      </td>
-
-                      {/* Donaciones */}
-                      <td style={{ textAlign: "center", fontWeight: 600 }}>
-                        {donante.donaciones}
-                      </td>
-
-                      {/* Última donación */}
-                      <td style={{ fontSize: "1.35rem", color: "var(--gray)" }}>
-                        {donante.ultimaDonacion}
-                      </td>
-
-                      {/* Total */}
-                      <td
-                        className={`${styles.totalAmount} ${isTop3 ? styles.totalAmountTop : ""}`}
-                        style={{ textAlign: "right" }}
-                      >
-                        <div>{donante.total / 100} prendas</div>
-                        <div style={{ fontSize: "1.1rem", color: "var(--gray)", fontWeight: "normal" }}>
-                          ({formatHNL(donante.total)} est.)
-                        </div>
-                      </td>
-
-                      {/* Progress */}
-                      <td style={{ minWidth: "120px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.8rem",
-                          }}
-                        >
-                          <div className={styles.progressBar} style={{ flex: 1 }}>
-                            <div
-                              className={`${styles.progressFill} ${idx === 0 ? styles.progressFillGold : ""}`}
-                              style={{ width: `${porcentaje}%` }}
-                            />
-                          </div>
-                          <span
+                        {/* Donante info */}
+                        <td>
+                          <div
                             style={{
-                              fontSize: "1.2rem",
-                              color: "var(--gray)",
-                              minWidth: "3.5rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "1rem",
                             }}
                           >
-                            {porcentaje}%
+                            <div
+                              className={styles.donorAvatar}
+                              style={
+                                isTop3
+                                  ? {
+                                      background:
+                                        absoluteIdx === 0
+                                          ? "linear-gradient(135deg,#ffd700,#f59e0b)"
+                                          : absoluteIdx === 1
+                                            ? "linear-gradient(135deg,#e2e8f0,#94a3b8)"
+                                            : "linear-gradient(135deg,#cd7c2f,#92400e)",
+                                      color:
+                                        absoluteIdx === 0
+                                          ? "#78350f"
+                                          : absoluteIdx === 1
+                                            ? "#1e293b"
+                                            : "#fef3c7",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {getInitials(donante.nombre)}
+                            </div>
+                            <div className={styles.donorInfo}>
+                              <span className={styles.donorName}>
+                                {donante.nombre}
+                              </span>
+                              {donante.esRecurrente && (
+                                <span
+                                  style={{
+                                    fontSize: "1.15rem",
+                                    color: "#16a34a",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  ↻ Donante recurrente
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Tipo */}
+                        <td>
+                          <span className={styles.donorType}>
+                            {tipoLabel[donante.tipo]}
                           </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        </td>
+
+                        {/* Ciudad */}
+                        <td style={{ fontSize: "1.35rem", color: "var(--gray)" }}>
+                          {donante.ciudad}
+                        </td>
+
+                        {/* Donaciones */}
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>
+                          {donante.donaciones}
+                        </td>
+
+                        {/* Última donación */}
+                        <td style={{ fontSize: "1.35rem", color: "var(--gray)" }}>
+                          {donante.ultimaDonacion}
+                        </td>
+
+                        {/* Total */}
+                        <td
+                          className={`${styles.totalAmount} ${isTop3 ? styles.totalAmountTop : ""}`}
+                          style={{ textAlign: "right" }}
+                        >
+                          <div>{donante.total / 100} prendas</div>
+                          <div style={{ fontSize: "1.1rem", color: "var(--gray)", fontWeight: "normal" }}>
+                            ({formatHNL(donante.total)} est.)
+                          </div>
+                        </td>
+
+                        {/* Progress */}
+                        <td style={{ minWidth: "120px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.8rem",
+                            }}
+                          >
+                            <div className={styles.progressBar} style={{ flex: 1 }}>
+                              <div
+                                className={`${styles.progressFill} ${absoluteIdx === 0 ? styles.progressFillGold : ""}`}
+                                style={{ width: `${porcentaje}%` }}
+                              />
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "1.2rem",
+                                color: "var(--gray)",
+                                minWidth: "3.5rem",
+                              }}
+                            >
+                              {porcentaje}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
               )}
 
               {/* Totales */}
@@ -631,6 +615,27 @@ export default function TopDonantes() {
             </tbody>
           </table>
         </div>
+        {Math.ceil(donantesOrdenados.length / itemsPerPage) > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1rem" }} className="no-print">
+            <button 
+              disabled={currentPage === 1} 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className={styles.btnActionSecondary}
+              style={{ padding: "0.6rem 1.2rem", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+            >
+              Anterior
+            </button>
+            <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {Math.ceil(donantesOrdenados.length / itemsPerPage)}</span>
+            <button 
+              disabled={currentPage === Math.ceil(donantesOrdenados.length / itemsPerPage)} 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(donantesOrdenados.length / itemsPerPage)))}
+              className={styles.btnActionSecondary}
+              style={{ padding: "0.6rem 1.2rem", cursor: currentPage === Math.ceil(donantesOrdenados.length / itemsPerPage) ? "not-allowed" : "pointer", opacity: currentPage === Math.ceil(donantesOrdenados.length / itemsPerPage) ? 0.5 : 1 }}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Nota al pie */}

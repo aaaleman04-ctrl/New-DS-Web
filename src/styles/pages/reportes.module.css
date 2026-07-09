@@ -1277,6 +1277,13 @@
     margin: 12mm 15mm;
   }
 
+  /* Evitar que las imágenes/logos se estiren al 100% de ancho en la hoja */
+  :global(img) {
+    width: auto !important;
+    max-width: 100% !important;
+  }
+
+
   /* Ocultar elementos de navegación y de control de la app web */
   .categoryTabs,
   .reportSelectorWrapper,
@@ -1387,7 +1394,56 @@
     margin-bottom: 2rem !important;
     page-break-inside: avoid;
   }
+
+  .screenView {
+    display: none !important;
+  }
+
+  .printView {
+    display: block !important;
+    width: 100% !important;
+    background: white !important;
+    color: #000000 !important;
+  }
+
+  .printTable {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+    color: #000000 !important;
+    margin-top: 1.5rem !important;
+  }
+
+  .printTable th {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    padding: 6px 8px !important;
+    text-align: left !important;
+  }
+
+  .printTable td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    font-size: 9pt !important;
+    padding: 6px 8px !important;
+  }
+
+  .printTable tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
+
+.screenView {
+  display: block;
+}
+
+.printView {
+  display: none;
+}
+
 
 /* ── Responsividad ── */
 @media (max-width: 900px) {

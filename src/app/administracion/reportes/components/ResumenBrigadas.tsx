@@ -155,167 +155,137 @@ export default function ResumenBrigadas() {
     );
   }, []);
 
+  // Prepare sorted data for print view (chronologically by date ascending)
+  const printData = [...datos].sort((a, b) => a.fecha.localeCompare(b.fecha));
+
   return (
     <div>
-      {/* Encabezado Oficial para Impresión */}
-      <div className={styles.headerPrint}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1.5rem",
-            marginBottom: "1rem",
-          }}
-        >
-          <Image
-            src="/DS-LOGO.png"
-            alt="Logo Dibujando Sonrisas"
-            width={40}
-            height={40}
-            priority
-          />
-          <h1 className={styles.headerPrintTitle} style={{ margin: 0 }}>
-            Fundación Dibujando Sonrisas
-          </h1>
-        </div>
-        <h2 className={styles.headerPrintSubtitle}>
-          RESUMEN DE BRIGADAS REALIZADAS
-        </h2>
-        <div className={styles.headerPrintMeta}>
-          <span>
-            <strong>Generado por:</strong> {userRole}
-          </span>
-          <span>
-            <strong>Fecha:</strong> {fechaActualCompleta}
-          </span>
-        </div>
-      </div>
-
-      {/* Encabezado */}
-      <div className={styles.reportHeader}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <div className={styles.reportHeaderText}>
-            <h3>Resumen de Brigadas Realizadas</h3>
-            <p>
-              Informe consolidado de brigadas médicas de atención, especialistas
-              en campo e impacto social.
-            </p>
+      {/* ── VISTA WEB (INTERACTIVA) ── */}
+      <div className={styles.screenView}>
+        {/* Encabezado */}
+        <div className={styles.reportHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            <div className={styles.reportHeaderText}>
+              <h3>Resumen de Brigadas Realizadas</h3>
+              <p>
+                Informe consolidado de brigadas médicas de atención, especialistas
+                en campo e impacto social.
+              </p>
+            </div>
+          </div>
+          <div className={styles.reportHeaderActions}>
+            <button
+              type="button"
+              className={styles.btnActionSecondary}
+              onClick={() => window.print()}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
+                />
+              </svg>
+              Imprimir
+            </button>
           </div>
         </div>
-        <div className={styles.reportHeaderActions}>
-          <button
-            type="button"
-            className={styles.btnActionSecondary}
-            onClick={() => window.print()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
+
+        {/* Filtros */}
+        <div className={styles.reportFilters}>
+          <div className={styles.filterGroup}>
+            <label htmlFor="brigadas-anio">Periodo Anual</label>
+            <select
+              id="brigadas-anio"
+              value={anio}
+              onChange={(e) => setAnio(e.target.value)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
-              />
-            </svg>
-            Imprimir
-          </button>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      <div className={styles.reportFilters}>
-        <div className={styles.filterGroup}>
-          <label htmlFor="brigadas-anio">Periodo Anual</label>
-          <select
-            id="brigadas-anio"
-            value={anio}
-            onChange={(e) => setAnio(e.target.value)}
+              <option value="todos">Todos los años</option>
+              {aniosDisponibles.map((a) => (
+                <option key={a} value={a}>
+                  Año {a}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p
+            style={{
+              margin: "auto 0 0",
+              fontSize: "1.35rem",
+              color: "var(--gray)",
+              fontStyle: "italic",
+            }}
           >
-            <option value="todos">Todos los años</option>
-            {aniosDisponibles.map((a) => (
-              <option key={a} value={a}>
-                Año {a}
-              </option>
-            ))}
-          </select>
+            Datos de atención acumulados de la base de datos de brigadas.
+          </p>
         </div>
-        <p
-          style={{
-            margin: "auto 0 0",
-            fontSize: "1.35rem",
-            color: "var(--gray)",
-            fontStyle: "italic",
-          }}
-        >
-          Datos de atención acumulados de la base de datos de brigadas.
-        </p>
-      </div>
 
-      {/* KPIs */}
-      <div className={styles.kpiGrid}>
-        <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
-          <p className={styles.kpiLabel}>Brigadas Realizadas</p>
-          <p className={styles.kpiValue}>{loading ? "..." : datos.length}</p>
-          <p className={styles.kpiChange}>Eventos de atención completados</p>
+        {/* KPIs */}
+        <div className={styles.kpiGrid}>
+          <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
+            <p className={styles.kpiLabel}>Brigadas Realizadas</p>
+            <p className={styles.kpiValue}>{loading ? "..." : datos.length}</p>
+            <p className={styles.kpiChange}>Eventos de atención completados</p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
+            <p className={styles.kpiLabel}>Total Pacientes Atendidos</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalPacientes.toLocaleString()}
+            </p>
+            <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
+              Atenciones clínicas & odontológicas
+            </p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
+            <p className={styles.kpiLabel}>Especialistas Aportados</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalMedicos + totalOdontologos}
+            </p>
+            <p className={styles.kpiChange}>
+              {totalMedicos} Médicos | {totalOdontologos} Odontólogos
+            </p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
+            <p className={styles.kpiLabel}>Recetas Surtidas</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalRecetas.toLocaleString()}
+            </p>
+            <p className={styles.kpiChange}>Medicamentos entregados sin costo</p>
+          </div>
         </div>
-        <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
-          <p className={styles.kpiLabel}>Total Pacientes Atendidos</p>
-          <p className={styles.kpiValue}>
-            {loading ? "..." : totalPacientes.toLocaleString()}
-          </p>
-          <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
-            Atenciones clínicas & odontológicas
-          </p>
-        </div>
-        <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
-          <p className={styles.kpiLabel}>Especialistas Aportados</p>
-          <p className={styles.kpiValue}>
-            {loading ? "..." : totalMedicos + totalOdontologos}
-          </p>
-          <p className={styles.kpiChange}>
-            {totalMedicos} Médicos | {totalOdontologos} Odontólogos
-          </p>
-        </div>
-        <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
-          <p className={styles.kpiLabel}>Recetas Surtidas</p>
-          <p className={styles.kpiValue}>
-            {loading ? "..." : totalRecetas.toLocaleString()}
-          </p>
-          <p className={styles.kpiChange}>Medicamentos entregados sin costo</p>
-        </div>
-      </div>
 
-      {/* Gráfico y Tabla */}
-      <div className={styles.financeSection} style={{ padding: "2.4rem" }}>
-        <h4
-          style={{
-            marginBottom: "2rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.8rem",
-          }}
-        >
-          Pacientes Atendidos por Brigada
-        </h4>
+        {/* Gráfico y Tabla */}
+        <div className={styles.financeSection} style={{ padding: "2.4rem" }}>
+          <h4
+            style={{
+              marginBottom: "2rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.8rem",
+            }}
+          >
+            Pacientes Atendidos por Brigada
+          </h4>
 
-        {/* Gráfico SVG de Barras Interactivo */}
-        <div
-          style={{
-            height: "240px",
-            width: "100%",
-            maxWidth: "800px",
-            margin: "0 auto 3.2rem",
-          }}
-        >
-          {loading ? (
-            <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
-              Cargando gráfico...
-            </div>
+          {/* Gráfico SVG de Barras Interactivo */}
+          <div
+            style={{
+              height: "240px",
+              width: "100%",
+              maxWidth: "800px",
+              margin: "0 auto 3.2rem",
+            }}
+          >
+            {loading ? (
+              <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
+                Cargando gráfico...
+              </div>
           ) : datos.length === 0 ? (
             <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
               No hay brigadas registradas para este periodo.
@@ -359,6 +329,7 @@ export default function ResumenBrigadas() {
           <table className={styles.financeTable}>
             <thead>
               <tr>
+                <th style={{ width: "3rem" }}>#</th>
                 <th>Código</th>
                 <th>Nombre de la Brigada</th>
                 <th>Fecha de Ejecución</th>
@@ -372,19 +343,22 @@ export default function ResumenBrigadas() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                  <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
                     Cargando listado de brigadas...
                   </td>
                 </tr>
               ) : datos.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                  <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
                     No se encontraron brigadas registradas.
                   </td>
                 </tr>
               ) : (
-                datos.map((item) => (
+                datos.map((item, idx) => (
                   <tr key={item.id}>
+                    <td style={{ color: "var(--grayLight)", fontWeight: 600 }}>
+                      {idx + 1}
+                    </td>
                     <td style={{ fontWeight: 600, color: "var(--gray)" }}>
                       {item.id}
                     </td>
@@ -422,7 +396,7 @@ export default function ResumenBrigadas() {
               )}
               {!loading && datos.length > 0 && (
                 <tr className={styles.financeTotalsRow}>
-                  <td colSpan={4}>TOTAL ACUMULADO</td>
+                  <td colSpan={5}>TOTAL ACUMULADO</td>
                   <td style={{ textAlign: "center" }}>{totalPacientes}</td>
                   <td style={{ textAlign: "center" }}>{totalMedicos}</td>
                   <td style={{ textAlign: "center" }}>{totalOdontologos}</td>
@@ -431,6 +405,110 @@ export default function ResumenBrigadas() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      <div className={styles.printView}>
+        {/* Encabezado Oficial Institucional */}
+        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
+            <Image
+              src="/DS-LOGO.png"
+              alt="Logo Dibujando Sonrisas"
+              width={35}
+              height={35}
+              style={{ objectFit: "contain" }}
+            />
+            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              Fundación Dibujando Sonrisas
+            </h1>
+          </div>
+          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            RESUMEN DE BRIGADAS REALIZADAS
+          </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
+            <span><strong>Solicitado por:</strong> {userRole}</span>
+            <span><strong>Periodo Anual:</strong> {anio === "todos" ? "Todos los años" : anio}</span>
+            <span><strong>Ordenamiento:</strong> Cronológico Ascendente</span>
+            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
+          </div>
+        </div>
+
+        {/* Resumen de totales para impresión */}
+        <div style={{ display: "flex", justifyContent: "space-around", border: "1px solid #000000", padding: "1rem", marginBottom: "1.5rem", fontSize: "10pt", background: "#f8fafc" }}>
+          <span><strong>Total Brigadas:</strong> {printData.length}</span>
+          <span><strong>Total Atenciones:</strong> {totalPacientes}</span>
+          <span><strong>Total Médicos:</strong> {totalMedicos}</span>
+          <span><strong>Total Odontólogos:</strong> {totalOdontologos}</span>
+          <span><strong>Total Recetas:</strong> {totalRecetas}</span>
+        </div>
+
+        <table className={styles.printTable}>
+          <thead>
+            <tr>
+              <th style={{ width: "30px" }}>#</th>
+              <th style={{ width: "80px" }}>Código</th>
+              <th>Nombre de la Brigada</th>
+              <th>Fecha de Ejecución</th>
+              <th>Ubicación / Comunidad</th>
+              <th style={{ textAlign: "center" }}>Pacientes</th>
+              <th style={{ textAlign: "center" }}>Médicos</th>
+              <th style={{ textAlign: "center" }}>Odontólogos</th>
+              <th style={{ textAlign: "center" }}>Recetas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                  Cargando listado de brigadas...
+                </td>
+              </tr>
+            ) : printData.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                  No se encontraron brigadas registradas para el periodo seleccionado.
+                </td>
+              </tr>
+            ) : (
+              printData.map((item, idx) => (
+                <tr key={item.id}>
+                  <td>{idx + 1}</td>
+                  <td style={{ fontWeight: "bold" }}>{item.id}</td>
+                  <td style={{ fontWeight: "bold" }}>{item.nombre}</td>
+                  <td>
+                    {new Date(item.fecha).toLocaleDateString("es-HN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </td>
+                  <td>{item.comunidad} ({item.departamento})</td>
+                  <td style={{ textAlign: "center", fontWeight: "bold" }}>{item.pacientesAtendidos}</td>
+                  <td style={{ textAlign: "center" }}>{item.medicosParticipantes}</td>
+                  <td style={{ textAlign: "center" }}>{item.odontologosParticipantes}</td>
+                  <td style={{ textAlign: "center", fontWeight: "bold" }}>{item.recetasEntregadas}</td>
+                </tr>
+              ))
+            )}
+            {!loading && printData.length > 0 && (
+              <tr style={{ fontWeight: "bold", borderTop: "2px solid #000000", background: "#f1f5f9" }}>
+                <td colSpan={5}>TOTAL ACUMULADO</td>
+                <td style={{ textAlign: "center" }}>{totalPacientes}</td>
+                <td style={{ textAlign: "center" }}>{totalMedicos}</td>
+                <td style={{ textAlign: "center" }}>{totalOdontologos}</td>
+                <td style={{ textAlign: "center" }}>{totalRecetas}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+
+        <div style={{ marginTop: "3rem", borderTop: "1px solid #000000", paddingTop: "1rem", fontSize: "8pt", color: "#555555", display: "flex", justifyContent: "space-between" }}>
+          <span>Reporte de impacto y cobertura — Fundación Dibujando Sonrisas</span>
+          <span>Página 1 de 1</span>
         </div>
       </div>
     </div>

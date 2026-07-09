@@ -23,6 +23,12 @@ export default function StockMinimo() {
   const [estadoFiltro, setEstadoFiltro] = useState<string>("todos");
   const [rawStock, setRawStock] = useState<StockMinimoData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoriaFiltro, estadoFiltro]);
 
   useEffect(() => {
     async function fetchStockMinimo() {
@@ -173,28 +179,6 @@ export default function StockMinimo() {
             </p>
           </div>
         </div>
-        <div className={styles.reportHeaderActions}>
-          <button
-            type="button"
-            className={styles.btnActionSecondary}
-            onClick={() => window.print()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
-              />
-            </svg>
-            Imprimir
-          </button>
-        </div>
       </div>
 
       {/* Filtros */}
@@ -223,11 +207,11 @@ export default function StockMinimo() {
             onChange={(e) => setEstadoFiltro(e.target.value)}
           >
             <option value="todos">Todos los niveles</option>
-            <option value="critico">🔴 Crítico (Bajo Mínimo)</option>
+            <option value="critico"> Crítico (Bajo Mínimo)</option>
             <option value="advertencia">
-              🟡 Advertencia (Cerca del Límite)
+               Advertencia (Cerca del Límite)
             </option>
-            <option value="optimo">🟢 Óptimo (Correcto)</option>
+            <option value="optimo"> Óptimo (Correcto)</option>
           </select>
         </div>
 
@@ -328,93 +312,117 @@ export default function StockMinimo() {
                   </td>
                 </tr>
               ) : (
-                inventarioFiltrado.map((item) => {
-                  const nivelAncho = Math.min(item.porcentaje, 100);
-                  let colorBarra = "var(--primaryColor)";
-                  if (item.estado === "critico") colorBarra = "#ef4444";
-                  else if (item.estado === "advertencia")
-                    colorBarra = "#f59e0b";
-                  else colorBarra = "#10b981";
+                inventarioFiltrado
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((item) => {
+                    const nivelAncho = Math.min(item.porcentaje, 100);
+                    let colorBarra = "var(--primaryColor)";
+                    if (item.estado === "critico") colorBarra = "#ef4444";
+                    else if (item.estado === "advertencia")
+                      colorBarra = "#f59e0b";
+                    else colorBarra = "#10b981";
 
-                  return (
-                    <tr key={item.id}>
-                      <td style={{ fontWeight: 600, color: "var(--gray)" }}>
-                        {item.id}
-                      </td>
-                      <td style={{ fontWeight: 700 }}>{item.nombre}</td>
-                      <td>{item.categoria}</td>
-                      <td style={{ textAlign: "right", fontWeight: 600 }}>
-                        {item.stockMinimo}
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          fontWeight: 700,
-                          color:
-                            item.stockActual < item.stockMinimo
-                              ? "#dc2626"
-                              : "inherit",
-                        }}
-                      >
-                        {item.stockActual}
-                      </td>
-                      <td>{item.unidad}</td>
-                      <td>{item.ubicacion}</td>
-                      {/* Barra de progreso visual */}
-                      <td>
-                        <div
+                    return (
+                      <tr key={item.id}>
+                        <td style={{ fontWeight: 600, color: "var(--gray)" }}>
+                          {item.id}
+                        </td>
+                        <td style={{ fontWeight: 700 }}>{item.nombre}</td>
+                        <td>{item.categoria}</td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {item.stockMinimo}
+                        </td>
+                        <td
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.8rem",
+                            textAlign: "right",
+                            fontWeight: 700,
+                            color:
+                              item.stockActual < item.stockMinimo
+                                ? "#dc2626"
+                                : "inherit",
                           }}
                         >
+                          {item.stockActual}
+                        </td>
+                        <td>{item.unidad}</td>
+                        <td>{item.ubicacion}</td>
+                        {/* Barra de progreso visual */}
+                        <td>
                           <div
                             style={{
-                              height: "0.6rem",
-                              backgroundColor: "var(--border-color)",
-                              borderRadius: "999px",
-                              overflow: "hidden",
-                              flex: 1,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.8rem",
                             }}
                           >
                             <div
                               style={{
-                                height: "100%",
+                                height: "0.6rem",
+                                backgroundColor: "var(--border-color)",
                                 borderRadius: "999px",
-                                backgroundColor: colorBarra,
-                                width: `${nivelAncho}%`,
-                                transition: "width 0.4s ease",
+                                overflow: "hidden",
+                                flex: 1,
                               }}
-                            />
+                            >
+                              <div
+                                style={{
+                                  height: "100%",
+                                  borderRadius: "999px",
+                                  backgroundColor: colorBarra,
+                                  width: `${nivelAncho}%`,
+                                  transition: "width 0.4s ease",
+                                }}
+                              />
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "1.15rem",
+                                fontWeight: 700,
+                                color: "var(--gray)",
+                                minWidth: "3rem",
+                                textAlign: "right",
+                              }}
+                            >
+                              {item.porcentaje}%
+                            </span>
                           </div>
+                        </td>
+                        <td>
                           <span
-                            style={{
-                              fontSize: "1.15rem",
-                              fontWeight: 700,
-                              color: "var(--gray)",
-                              minWidth: "3rem",
-                              textAlign: "right",
-                            }}
+                            className={`${styles.badgeStatus} ${item.statusClass}`}
                           >
-                            {item.porcentaje}%
+                            {item.estadoLabel}
                           </span>
-                        </div>
-                      </td>
-                      <td>
-                        <span
-                          className={`${styles.badgeStatus} ${item.statusClass}`}
-                        >
-                          {item.estadoLabel}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
+                        </td>
+                      </tr>
+                    );
+                  })
               )}
             </tbody>
           </table>
         </div>
+
+        {Math.ceil(inventarioFiltrado.length / itemsPerPage) > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1rem" }} className="no-print">
+            <button 
+              disabled={currentPage === 1} 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className={styles.btnActionSecondary}
+              style={{ padding: "0.6rem 1.2rem", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
+            >
+              Anterior
+            </button>
+            <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {Math.ceil(inventarioFiltrado.length / itemsPerPage)}</span>
+            <button 
+              disabled={currentPage === Math.ceil(inventarioFiltrado.length / itemsPerPage)} 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(inventarioFiltrado.length / itemsPerPage)))}
+              className={styles.btnActionSecondary}
+              style={{ padding: "0.6rem 1.2rem", cursor: currentPage === Math.ceil(inventarioFiltrado.length / itemsPerPage) ? "not-allowed" : "pointer", opacity: currentPage === Math.ceil(inventarioFiltrado.length / itemsPerPage) ? 0.5 : 1 }}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
 
         <div className={styles.printableFooter}>
           <p>

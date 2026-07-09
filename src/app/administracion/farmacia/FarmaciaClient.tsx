@@ -13,6 +13,14 @@ export function FarmaciaClient({ userId }: { userId: string }) {
   const [filtroBrigada, setFiltroBrigada] = useState<string>("todas");
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"pendientes" | "historial">("pendientes");
+  const [currentPagePendientes, setCurrentPagePendientes] = useState(1);
+  const [currentPageHistorial, setCurrentPageHistorial] = useState(1);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPagePendientes(1);
+    setCurrentPageHistorial(1);
+  }, [filtroBrigada, activeTab]);
   
   const entregadoPorId = userId;
 
@@ -276,10 +284,11 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                   <tr>
                     <td colSpan={4} style={{ textAlign: "center", padding: "2rem" }}>Cargando...</td>
                   </tr>
-                ) : (() => {
+              ) : (() => {
                   const filtered = filtroBrigada === "todas"
                     ? pendientes
                     : pendientes.filter(p => p.brigada_id === filtroBrigada);
+                  const paginated = filtered.slice((currentPagePendientes - 1) * itemsPerPage, currentPagePendientes * itemsPerPage);
                   return filtered.length === 0 ? (
                     <tr>
                       <td colSpan={4} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
@@ -287,7 +296,7 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((p) => (
+                    paginated.map((p) => (
                       <tr key={p.id}>
                         <td>{new Date(p.created_at).toLocaleDateString()}</td>
                         <td style={{ fontWeight: "bold" }}>{p.pacientes?.nombres} {p.pacientes?.apellidos}</td>
@@ -334,10 +343,11 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                   <tr>
                     <td colSpan={7} style={{ textAlign: "center", padding: "2rem" }}>Cargando...</td>
                   </tr>
-                ) : (() => {
+              ) : (() => {
                   const filtered = filtroBrigada === "todas"
                     ? entregas
                     : entregas.filter(e => e.brigada_id === filtroBrigada);
+                  const paginated = filtered.slice((currentPageHistorial - 1) * itemsPerPage, currentPageHistorial * itemsPerPage);
                   return filtered.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
@@ -345,7 +355,7 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((e) => (
+                    paginated.map((e) => (
                       <tr key={e.id}>
                         <td>{new Date(e.fecha_entrega).toLocaleDateString()}</td>
                         <td style={{ fontWeight: "bold" }}>{e.paciente}</td>
@@ -362,6 +372,39 @@ export function FarmaciaClient({ userId }: { userId: string }) {
             </table>
           )}
         </div>
+        
+        {(() => {
+          const list = activeTab === "pendientes" ? pendientes : entregas;
+          const filtered = filtroBrigada === "todas"
+            ? list
+            : list.filter(item => item.brigada_id === filtroBrigada);
+          const totalPages = Math.ceil(filtered.length / itemsPerPage);
+          if (totalPages <= 1) return null;
+          const curPage = activeTab === "pendientes" ? currentPagePendientes : currentPageHistorial;
+          const setCurPage = activeTab === "pendientes" ? setCurrentPagePendientes : setCurrentPageHistorial;
+
+          return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1.5rem" }}>
+              <button 
+                disabled={curPage === 1} 
+                onClick={() => setCurPage(prev => Math.max(prev - 1, 1))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: curPage === 1 ? "not-allowed" : "pointer", opacity: curPage === 1 ? 0.5 : 1 }}
+              >
+                Anterior
+              </button>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {curPage} de {totalPages}</span>
+              <button 
+                disabled={curPage === totalPages} 
+                onClick={() => setCurPage(prev => Math.min(prev + 1, totalPages))}
+                className={styles.btnSecondary}
+                style={{ padding: "0.6rem 1.2rem", cursor: curPage === totalPages ? "not-allowed" : "pointer", opacity: curPage === totalPages ? 0.5 : 1 }}
+              >
+                Siguiente
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
