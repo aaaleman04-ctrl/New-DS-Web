@@ -1,48 +1,70 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { insertVoluntario } from "../../lib/db/voluntarios";
+import React, { useState } from "react";
+import { supabase } from "../../lib/supabase";
 import styles from "../../styles/pages/volunteer.module.css";
 
-export default function VolunteerForm() {
+type VolunteerFormProps = {
+  activeBrigadaId: string;
+};
+
+const AREAS_INTERES = [
+  "Registro",
+  "Preclínica",
+  "Consulta Médica",
+  "Consulta Odontológica",
+  "Farmacia",
+  "Postclínica",
+  "Donaciones / Ropa",
+  "Actividades Infantiles",
+  "Logística",
+  "Coordinación",
+];
+
+export default function VolunteerForm({ activeBrigadaId }: VolunteerFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [areaInteres, setAreaInteres] = useState("Registro");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const form = e.currentTarget;
-    const data = {
-      nombre: (
-        form.elements.namedItem("nombre") as HTMLInputElement
-      ).value.trim(),
-      apellido: (
-        form.elements.namedItem("apellido") as HTMLInputElement
-      ).value.trim(),
-      rol: (form.elements.namedItem("rol") as HTMLInputElement).value.trim(),
-      telefono: (
-        form.elements.namedItem("telefono") as HTMLInputElement
-      ).value.trim(),
-      mensaje:
-        (
-          form.elements.namedItem("mensaje") as HTMLTextAreaElement
-        ).value.trim() || null,
-    };
+    try {
+      const { error: sbError } = await supabase
+        .from("inscripciones_voluntarios")
+        .insert({
+          brigada_id: activeBrigadaId,
+          nombre_completo: nombreCompleto.trim(),
+          correo: correo.trim().toLowerCase(),
+          telefono: telefono.trim(),
+          area_interes: areaInteres,
+          estado: "pendiente",
+        });
 
-    const { error: sbError } = await insertVoluntario(data);
+      if (sbError) {
+        console.error("Error inserting registration:", sbError);
+        throw new Error(sbError.message || "Error al enviar solicitud.");
+      }
 
-    if (sbError) {
-      console.error("Error Supabase:", sbError);
-      setError(
-        "Hubo un error al enviar tu solicitud. Por favor intenta de nuevo."
-      );
-      setLoading(false);
-    } else {
       setSuccess(true);
-      form.reset();
+      setNombreCompleto("");
+      setCorreo("");
+      setTelefono("");
+      setAreaInteres("Registro");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Hubo un error al enviar tu solicitud. Intenta de nuevo."
+      );
+    } finally {
       setLoading(false);
     }
   }
@@ -51,8 +73,9 @@ export default function VolunteerForm() {
     return (
       <div className={styles.form}>
         <p className={styles.successMsg}>
-          ✅ ¡Solicitud enviada correctamente! Nos pondremos en contacto contigo
-          pronto.
+          ✅ ¡Tu solicitud de inscripción ha sido enviada correctamente! Un
+          coordinador de Dibujando Sonrisas revisará tus datos y se pondrá en
+          contacto contigo pronto.
         </p>
       </div>
     );
@@ -62,69 +85,79 @@ export default function VolunteerForm() {
     <form className={styles.form} id="formulario" onSubmit={handleSubmit}>
       <fieldset style={{ border: "none", padding: 0 }}>
         <div className={styles.formGrid}>
+          {/* Nombre Completo */}
           <div className={styles.campo}>
-            <label htmlFor="nombre">Nombre</label>
+            <label htmlFor="nombre_completo">Nombre Completo *</label>
             <input
               className={styles.input}
-              id="nombre"
-              name="nombre"
+              id="nombre_completo"
+              name="nombre_completo"
               type="text"
-              placeholder="María"
+              placeholder="María García Rodríguez"
+              value={nombreCompleto}
+              onChange={(e) => setNombreCompleto(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
+          {/* Correo Electrónico */}
           <div className={styles.campo}>
-            <label htmlFor="apellido">Apellido</label>
+            <label htmlFor="correo">Correo Electrónico *</label>
             <input
               className={styles.input}
-              id="apellido"
-              name="apellido"
-              type="text"
-              placeholder="García"
+              id="correo"
+              name="correo"
+              type="email"
+              placeholder="maria@ejemplo.com"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
+          {/* Número de Teléfono */}
           <div className={styles.campo}>
-            <label htmlFor="rol">Rol de Interés</label>
-            <input
-              className={styles.input}
-              id="rol"
-              name="rol"
-              type="text"
-              placeholder="Médico / Odontólogo / Logística..."
-              required
-            />
-          </div>
-
-          <div className={styles.campo}>
-            <label htmlFor="telefono">Número de Teléfono</label>
+            <label htmlFor="telefono">Número de Teléfono *</label>
             <input
               className={styles.input}
               id="telefono"
               name="telefono"
               type="tel"
               placeholder="+504 9999-9999"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
-          <div className={styles.campoFull}>
-            <label htmlFor="mensaje">Mensaje (Opcional)</label>
-            <textarea
-              className={`${styles.input} ${styles.textarea}`}
-              id="mensaje"
-              name="mensaje"
-              placeholder="Cuéntanos un poco de ti y por qué quieres ser voluntario..."
-              rows={4}
-            />
+          {/* Área de Interés */}
+          <div className={styles.campo}>
+            <label htmlFor="area_interes">Área de Interés *</label>
+            <select
+              className={styles.input}
+              id="area_interes"
+              name="area_interes"
+              value={areaInteres}
+              onChange={(e) => setAreaInteres(e.target.value)}
+              required
+              disabled={loading}
+              style={{ height: "4.8rem", width: "100%", padding: "0 1.2rem" }}
+            >
+              {AREAS_INTERES.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         {error && (
-          <p style={{ color: "red", fontSize: "1.4rem", marginTop: "1rem" }}>
-            {error}
+          <p style={{ color: "red", fontSize: "1.4rem", marginTop: "1rem", textAlign: "left" }}>
+            ❌ {error}
           </p>
         )}
 
@@ -135,7 +168,7 @@ export default function VolunteerForm() {
             id="btnVoluntario"
             disabled={loading}
           >
-            {loading ? "Enviando..." : "Enviar Solicitud"}
+            {loading ? "Enviando..." : "Inscribirme en esta Brigada"}
           </button>
         </div>
       </fieldset>

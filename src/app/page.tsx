@@ -113,8 +113,7 @@ export default function Home() {
             <div
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
-            >
-            </div>
+            ></div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;Dibujando Sonrisas cambió la vida de mi familia&#34;</h4>
               <p>— María Rodríguez</p>
@@ -125,8 +124,7 @@ export default function Home() {
             <div
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
-            >
-            </div>
+            ></div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;La atención que recibimos fue un regalo de Dios&#34;</h4>
               <p>— Carlos López</p>
@@ -137,8 +135,7 @@ export default function Home() {
             <div
               className={styles.testimonialImgPlaceholder}
               aria-hidden="true"
-            >
-            </div>
+            ></div>
             <div className={styles.testimonialCardBody}>
               <h4>&#34;Su dedicación y amor nos inspira profundamente&#34;</h4>
               <p>— Sofía Martínez</p>

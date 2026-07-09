@@ -1,13 +1,10 @@
-import ModulePlaceholder from "../components/ModulePlaceholder";
 import { requireRouteAccess } from "@/lib/auth/session";
+import ReportesClient from "./ReportesClient";
+
+export const dynamic = "force-dynamic";
 
 export default async function ReportesPage() {
   await requireRouteAccess("/administracion/reportes");
 
-  return (
-    <ModulePlaceholder
-      title="Reportes y Estadísticas"
-      description="Resúmenes, gráficos y reportes de actividad de la fundación."
-    />
-  );
+  return <ReportesClient />;
 }

@@ -25,32 +25,24 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 const ROLE_PERMISSIONS: Record<AppRole, readonly Permission[]> = {
   admin: Object.values(PERMISSIONS),
-  staff: [
+  coordinador: [
     PERMISSIONS.PANEL_ACCESS,
     PERMISSIONS.BRIGADAS_READ,
+    PERMISSIONS.BRIGADAS_CREATE,
+    PERMISSIONS.BRIGADAS_UPDATE,
+    PERMISSIONS.BRIGADAS_DELETE,
     PERMISSIONS.VOLUNTARIOS_READ,
     PERMISSIONS.CONTACTO_READ,
     PERMISSIONS.MEDICAMENTOS_READ,
+    PERMISSIONS.INVENTORY_MANAGE,
     PERMISSIONS.PACIENTES_READ,
+    PERMISSIONS.PACIENTES_REGISTER,
+    PERMISSIONS.DONATIONS_MANAGE,
     PERMISSIONS.ACTIVITIES_READ,
+    PERMISSIONS.SALES_MANAGE,
     PERMISSIONS.STATS_VIEW_ALL,
   ],
-  medico: [
-    PERMISSIONS.PANEL_ACCESS,
-    PERMISSIONS.BRIGADAS_READ,
-    PERMISSIONS.MEDICAMENTOS_READ,
-    PERMISSIONS.PACIENTES_READ,
-    PERMISSIONS.PACIENTES_REGISTER,
-    PERMISSIONS.STATS_VIEW_OWN,
-  ],
-  odontologo: [
-    PERMISSIONS.PANEL_ACCESS,
-    PERMISSIONS.BRIGADAS_READ,
-    PERMISSIONS.MEDICAMENTOS_READ,
-    PERMISSIONS.PACIENTES_READ,
-    PERMISSIONS.PACIENTES_REGISTER,
-    PERMISSIONS.STATS_VIEW_OWN,
-  ],
+  voluntario: [PERMISSIONS.PANEL_ACCESS, PERMISSIONS.STATS_VIEW_OWN],
 };
 
 export function getPermissionsForRole(role: AppRole): readonly Permission[] {
@@ -82,6 +74,7 @@ export function hasAllPermissions(
 /** Permiso mínimo para ver un módulo en el sidebar */
 export const MODULE_PERMISSIONS: Record<string, Permission | Permission[]> = {
   "/administracion": PERMISSIONS.PANEL_ACCESS,
+  "/administracion/perfil": PERMISSIONS.PANEL_ACCESS,
   "/administracion/usuarios": PERMISSIONS.USERS_MANAGE,
   "/administracion/brigadas": PERMISSIONS.BRIGADAS_READ,
   "/administracion/voluntarios": PERMISSIONS.VOLUNTARIOS_READ,
@@ -99,7 +92,8 @@ export const MODULE_PERMISSIONS: Record<string, Permission | Permission[]> = {
 
 export function canAccessRoute(
   role: AppRole | null | undefined,
-  pathname: string
+  pathname: string,
+  specialtyName?: string | null
 ): boolean {
   const entry = Object.entries(MODULE_PERMISSIONS).find(([route]) =>
     route === "/administracion"
@@ -110,8 +104,26 @@ export function canAccessRoute(
   if (!entry) return hasPermission(role, PERMISSIONS.PANEL_ACCESS);
 
   const [, required] = entry;
-  if (Array.isArray(required)) {
-    return hasAnyPermission(role, required);
+  
+  // Calculate user's effective permissions based on role + specialty
+  const permissions = [...getPermissionsForRole(role || "voluntario")];
+  
+  if (role === "voluntario" && specialtyName) {
+    if (
+      specialtyName === "Médico General" ||
+      specialtyName === "Odontólogo" ||
+      specialtyName === "Enfermería"
+    ) {
+      permissions.push(
+        PERMISSIONS.PACIENTES_READ,
+        PERMISSIONS.PACIENTES_REGISTER,
+        PERMISSIONS.MEDICAMENTOS_READ
+      );
+    } else if (specialtyName === "Farmacia") {
+      permissions.push(PERMISSIONS.MEDICAMENTOS_READ);
+    }
   }
-  return hasPermission(role, required);
+
+  const requiredArray = Array.isArray(required) ? required : [required];
+  return requiredArray.some((p) => permissions.includes(p));
 }

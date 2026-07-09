@@ -4,6 +4,8 @@ import styles from "@/styles/pages/admin.module.css";
 import { getAuthContext } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
+import UserAvatar from "./components/UserAvatar";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const metadata = {
   title: "Dashboard | Dibujando Sonrisas",
@@ -21,8 +23,23 @@ export default async function AdminLayout({
     redirect("/auth/sin-acceso");
   }
 
+  let specialtyName: string | null = null;
+  if (ctx.profile.especialidad_id) {
+    const supabase = await createSupabaseServerClient();
+    const { data: specialty } = await supabase
+      .from("especialidades")
+      .select("nombre")
+      .eq("id", ctx.profile.especialidad_id)
+      .maybeSingle();
+    if (specialty?.nombre) {
+      specialtyName = specialty.nombre;
+    }
+  }
+
+  const displayName = ctx.profile.nombre_completo || ctx.user.email;
+
   return (
-    <PermissionsProvider role={ctx.role}>
+    <PermissionsProvider role={ctx.role} specialtyName={specialtyName}>
       <div className={styles.adminLayout}>
         <SideBar />
 
@@ -31,12 +48,17 @@ export default async function AdminLayout({
             <h1 className={styles.pageTitle}>Administración</h1>
             <div className={styles.topbarUser}>
               <div className={styles.topbarUserInfo}>
-                <span>{ctx.user.email}</span>
-                <span className={styles.roleBadge}>{ROLE_LABELS[ctx.role]}</span>
+                <span>{displayName}</span>
+                <span className={styles.roleBadge}>
+                  {ROLE_LABELS[ctx.role]}
+                </span>
               </div>
-              <div className={styles.topbarAvatar}>
-                {ctx.user.email?.charAt(0).toUpperCase() || "A"}
-              </div>
+              <UserAvatar
+                avatarUrl={ctx.profile.avatar_url}
+                nombres={ctx.profile.nombre_completo}
+                email={ctx.user.email}
+                size={36}
+              />
             </div>
           </header>
 

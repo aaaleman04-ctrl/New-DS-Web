@@ -1,20 +1,37 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "../supabase";
 
+export type EstadoBrigada =
+  | "inscripciones_abiertas"
+  | "inscripciones_cerradas"
+  | "finalizada"
+  | "cancelada";
+
 export interface Brigada {
   id: string;
-  numero: string;
+  codigo: string;
   nombre: string;
   descripcion?: string | null;
-  fecha?: string | null;
-  lugar?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-  orden?: number | null;
+  lugar: string;
+  municipio: string;
+  departamento: string;
+  fecha_brigada: string;
+  fecha_inicio_inscripcion: string;
+  fecha_fin_inscripcion: string;
+  estado: EstadoBrigada;
+  capacidad_voluntarios?: number | null;
+  imagen_banner?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  created_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export type BrigadaInsert = Omit<Brigada, "id"> & { id?: string };
-export type BrigadaUpdate = Partial<Omit<Brigada, "id">>;
+export type BrigadaInsert = Omit<Brigada, "id" | "created_at" | "updated_at"> & {
+  id?: string;
+};
+export type BrigadaUpdate = Partial<Omit<Brigada, "id" | "created_at" | "updated_at">>;
 
 export async function getBrigadas(
   client: SupabaseClient = supabase
@@ -22,7 +39,7 @@ export async function getBrigadas(
   const { data, error } = await client
     .from("brigadas")
     .select("*")
-    .order("orden", { ascending: true });
+    .order("fecha_brigada", { ascending: false });
 
   return { data: data ?? null, error: error?.message ?? null };
 }
@@ -63,7 +80,10 @@ export async function deleteBrigada(
   return { error: error?.message ?? null };
 }
 
-export function slugifyBrigadaId(numero: string): string {
-  const num = numero.trim();
-  return `Brigada-${num || Date.now()}`;
+export function slugifyBrigadaId(codigo: string): string {
+  const clean = codigo
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, "-");
+  return `Brigada-${clean || Date.now()}`;
 }

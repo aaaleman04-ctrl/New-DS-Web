@@ -10,10 +10,10 @@ import styles from "@/styles/pages/admin.module.css";
 
 export default function SideBar() {
   const pathname = usePathname();
-  const { role } = usePermissions();
+  const { role, specialtyName } = usePermissions();
 
   const visibleModules = adminModules.filter((link) =>
-    canAccessRoute(role, link.href)
+    canAccessRoute(role, link.href, specialtyName)
   );
 
   return (

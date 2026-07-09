@@ -143,7 +143,11 @@ export default function LoginForm() {
             </Link>
           </div>
 
-          <button type="submit" className={styles.submitBtn} disabled={isPending}>
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={isPending}
+          >
             {isPending ? (
               <>
                 <span className={styles.spinner} aria-hidden="true" />

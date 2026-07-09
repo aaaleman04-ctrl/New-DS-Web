@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: {template:"%s | Dibujando Sonrisas", default:"Dibujando Sonrisas"},
+  title: { template: "%s | Dibujando Sonrisas", default: "Dibujando Sonrisas" },
   description:
     "Dibujando Sonrisas — Brigadas médico-odontológicas en Honduras. Llevando salud, amor y esperanza a las comunidades más vulnerables.",
 };

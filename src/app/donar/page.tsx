@@ -70,9 +70,7 @@ export default function Donar() {
       <main>
         <section className={styles.comingSoon} aria-labelledby="donate-heading">
           <div className={styles.content}>
-            <div className={styles.icon} aria-hidden="true">
-              
-            </div>
+            <div className={styles.icon} aria-hidden="true"></div>
 
             <h1 id="donate-heading">¡Tu apoyo hace la diferencia!</h1>
             <p>

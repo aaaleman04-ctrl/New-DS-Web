@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import VolunteerForm from "./VolunteerForm";
+import PublicBrigadaBanner from "../administracion/brigadas/components/PublicBrigadaBanner";
 import styles from "../../styles/pages/volunteer.module.css";
 
 export const metadata: Metadata = {
@@ -11,7 +13,19 @@ export const metadata: Metadata = {
     "Únete como voluntario a las brigadas médico-odontológicas de Dibujando Sonrisas en Honduras. Aplica en línea y marca una diferencia real.",
 };
 
-export default function Voluntariado() {
+export default async function Voluntariado() {
+  const supabase = await createSupabaseServerClient();
+  
+  // Query Supabase to find if there is a brigade with open registrations
+  const { data: activeBrigada } = await supabase
+    .from("brigadas")
+    .select("*")
+    .eq("estado", "inscripciones_abiertas")
+    .limit(1)
+    .maybeSingle();
+
+  const isClosed = !activeBrigada;
+
   return (
     <>
       <Header />
@@ -24,9 +38,18 @@ export default function Voluntariado() {
           médicas y marca una diferencia real en Honduras.
         </p>
         <div className={styles.heroButtons}>
-          <a href="#formulario" className={styles.btnPrimary}>
-            Ser Voluntario
-          </a>
+          {!isClosed ? (
+            <a href="#formulario" className={styles.btnPrimary}>
+              Ser Voluntario
+            </a>
+          ) : (
+            <span
+              className={styles.btnPrimary}
+              style={{ opacity: 0.6, cursor: "not-allowed" }}
+            >
+              Inscripciones Cerradas
+            </span>
+          )}
           <Link href="/donar" className={styles.btnOutlined}>
             Donar Ahora
           </Link>
@@ -36,6 +59,13 @@ export default function Voluntariado() {
       {/* ── MAIN ── */}
       <main className={styles.volunteerMain}>
         <div className={styles.innerContainer}>
+          {/* ── BANNER DINÁMICO DE PRÓXIMA BRIGADA (TAREA 10) ── */}
+          {!isClosed && activeBrigada && (
+            <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
+              <PublicBrigadaBanner brigada={activeBrigada as any} />
+            </div>
+          )}
+
           {/* ── ¿POR QUÉ SER VOLUNTARIO? ── */}
           <section className={styles.whySection} aria-labelledby="why-heading">
             <h2 id="why-heading">¿Por Qué Ser Voluntario con Nosotros?</h2>
@@ -287,18 +317,25 @@ export default function Voluntariado() {
             </div>
           </section>
 
-          {/* ── FORMULARIO ── */}
+          {/* ── FORMULARIO O MENSAJE DE CIERRE ── */}
           <section
             className={styles.formSection}
             aria-labelledby="form-heading"
+            id="formulario"
           >
-            <h2 id="form-heading">¿Listo para Unirte?</h2>
+            <h2 id="form-heading">
+              {!isClosed ? "¿Listo para Unirte?" : "Inscripciones Cerradas"}
+            </h2>
             <div>
               <p>
-                Llena el formulario y nos pondremos en contacto contigo pronto.
+                {!isClosed
+                  ? "Llena el formulario y nos pondremos en contacto contigo pronto."
+                  : "Actualmente no contamos con brigadas activas para inscripciones abiertas de voluntarios. Por favor mantente al tanto de nuestros canales oficiales para futuras convocatorias."}
               </p>
             </div>
-            <VolunteerForm />
+            {!isClosed && activeBrigada && (
+              <VolunteerForm activeBrigadaId={activeBrigada.id} />
+            )}
           </section>
         </div>
       </main>

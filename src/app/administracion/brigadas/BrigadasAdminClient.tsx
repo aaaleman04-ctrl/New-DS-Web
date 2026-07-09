@@ -1,511 +1,528 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import type { Brigada } from "@/lib/db/brigadas";
+import React, { useState, useMemo, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { Brigada, EstadoBrigada } from "@/lib/db/brigadas";
 import {
-  createBrigadaAction,
-  deleteBrigadaAction,
-  updateBrigadaAction,
-  type BrigadaActionState,
+  crearBrigada,
+  editarBrigada,
+  eliminarBrigada,
+  registrarGasto,
+  actualizarPresupuesto,
+  aceptarInscripcion,
+  rechazarInscripcion,
+  asignarVoluntario,
 } from "./actions";
-import Can from "../components/Can";
-import { PERMISSIONS } from "@/lib/auth/permissions";
+import BrigadasTable from "./components/BrigadasTable";
+import BrigadaForm from "./components/BrigadaForm";
+import PresupuestoCard from "./components/PresupuestoCard";
+import GastosTable, { GastoRow } from "./components/GastosTable";
+import InscripcionesTable, { InscripcionRow } from "./components/InscripcionesTable";
+import AsignacionesTable, { PerfilRow } from "./components/AsignacionesTable";
+import GaleriaUploader from "./components/GaleriaUploader";
+import GaleriaPreview, { BrigadaImagenRow } from "./components/GaleriaPreview";
 import styles from "@/styles/pages/admin.module.css";
 
-type ModalMode = "create" | "edit" | null;
+type TabName = "finanzas" | "inscripciones" | "asignaciones" | "galeria";
 
-function Toast({
-  message,
-  type,
-  onClose,
-}: {
-  message: string;
-  type: "success" | "error";
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 4500);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      className={`${styles.toast} ${type === "success" ? styles.toastSuccess : styles.toastError}`}
-      role="status"
-    >
-      {message}
-    </div>
-  );
-}
-
-function BrigadaFormModal({
-  mode,
-  brigada,
-  onClose,
-  onSuccess,
-}: {
-  mode: "create" | "edit";
-  brigada?: Brigada;
-  onClose: () => void;
-  onSuccess: (message: string) => void;
-}) {
-  const action = mode === "create" ? createBrigadaAction : updateBrigadaAction;
-  const [state, formAction, pending] = useActionState<
-    BrigadaActionState,
-    FormData
-  >(action, null);
-
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (state?.success && state.message) {
-      onSuccess(state.message);
-      onClose();
-    }
-  }, [state, onSuccess, onClose]);
-
-  function addFiles(newFiles: FileList | File[]) {
-    const arr = Array.from(newFiles).filter(
-      (f) => f.type.startsWith("image/") && f.size > 0
-    );
-    setSelectedFiles((prev) => [...prev, ...arr]);
-  }
-
-  function removeFile(index: number) {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files.length > 0) {
-      addFiles(e.dataTransfer.files);
-    }
-  }
-
-  function handleFormAction(formData: FormData) {
-    // Append selected files to formData
-    for (const file of selectedFiles) {
-      formData.append("photos", file);
-    }
-    formAction(formData);
-  }
-
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="brigada-modal-title"
-      >
-        <div className={styles.modalHeader}>
-          <h3 id="brigada-modal-title">
-            {mode === "create" ? "Nueva Brigada" : "Editar Brigada"}
-          </h3>
-          <button
-            type="button"
-            className={styles.modalClose}
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form action={handleFormAction} className={styles.adminForm}>
-          {mode === "edit" && brigada && (
-            <input type="hidden" name="id" value={brigada.id} />
-          )}
-
-          <div className={styles.formRow}>
-            <label className={styles.formField}>
-              <span>Número *</span>
-              <input
-                name="numero"
-                defaultValue={brigada?.numero ?? ""}
-                placeholder="Ej: 16"
-                required
-              />
-            </label>
-            <label className={styles.formField}>
-              <span>Orden</span>
-              <input
-                name="orden"
-                type="number"
-                defaultValue={brigada?.orden ?? ""}
-                placeholder="Ej: 16"
-              />
-            </label>
-          </div>
-
-          <label className={styles.formField}>
-            <span>Nombre *</span>
-            <input
-              name="nombre"
-              defaultValue={brigada?.nombre ?? ""}
-              placeholder="Nombre de la brigada"
-              required
-            />
-          </label>
-
-          <label className={styles.formField}>
-            <span>Descripción</span>
-            <textarea
-              name="descripcion"
-              rows={3}
-              defaultValue={brigada?.descripcion ?? ""}
-              placeholder="Breve descripción de la brigada"
-            />
-          </label>
-
-          <div className={styles.formRow}>
-            <label className={styles.formField}>
-              <span>Año / Fecha</span>
-              <input
-                name="fecha"
-                defaultValue={brigada?.fecha ?? ""}
-                placeholder="Ej: 2026"
-              />
-            </label>
-            <label className={styles.formField}>
-              <span>Ubicación</span>
-              <input
-                name="lugar"
-                defaultValue={brigada?.lugar ?? ""}
-                placeholder="Comunidad o lugar"
-              />
-            </label>
-          </div>
-
-          <div className={styles.formRow}>
-            <label className={styles.formField}>
-              <span>Latitud</span>
-              <input
-                name="lat"
-                type="number"
-                step="any"
-                defaultValue={brigada?.lat ?? ""}
-                placeholder="Ej: 14.0723"
-              />
-            </label>
-            <label className={styles.formField}>
-              <span>Longitud</span>
-              <input
-                name="lng"
-                type="number"
-                step="any"
-                defaultValue={brigada?.lng ?? ""}
-                placeholder="Ej: -87.1921"
-              />
-            </label>
-          </div>
-
-          {/* ── Dropzone de fotos ── */}
-          <div className={styles.formField}>
-            <span>Fotos de la brigada</span>
-            <div
-              className={`${styles.dropzone} ${dragOver ? styles.dropzoneDragOver : ""}`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className={styles.dropzoneIcon}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </div>
-              <p className={styles.dropzoneText}>
-                <strong>Haz clic o arrastra</strong> imágenes aquí
-                <br />
-                JPG, PNG, WEBP
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                className={styles.dropzoneInput}
-                onChange={(e) => {
-                  if (e.target.files) addFiles(e.target.files);
-                  e.target.value = "";
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-
-            {selectedFiles.length > 0 && (
-              <>
-                <div className={styles.photoPreviewGrid}>
-                  {selectedFiles.map((file, i) => (
-                    <div key={`${file.name}-${i}`} className={styles.photoPreviewItem}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={file.name}
-                      />
-                      <button
-                        type="button"
-                        className={styles.photoPreviewRemove}
-                        onClick={() => removeFile(i)}
-                        aria-label={`Quitar ${file.name}`}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <p className={styles.photoCount}>
-                  {selectedFiles.length}{" "}
-                  {selectedFiles.length === 1 ? "foto seleccionada" : "fotos seleccionadas"}
-                </p>
-              </>
-            )}
-          </div>
-
-          {mode === "edit" && brigada && (
-            <p className={styles.formHint}>
-              ID interno (para fotos en Storage): <code>{brigada.id}</code>
-            </p>
-          )}
-
-          {state?.error && (
-            <p className={styles.formError} role="alert">
-              {state.error}
-            </p>
-          )}
-
-          <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.btnSecondary}
-              onClick={onClose}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className={styles.btnPrimary}
-              disabled={pending}
-            >
-              {pending
-                ? "Guardando..."
-                : mode === "create"
-                  ? "Crear brigada"
-                  : "Guardar cambios"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+type BrigadasAdminClientProps = {
+  initialBrigadas: Brigada[];
+  initialBudgets: { id: string; brigada_id: string; presupuesto_estimado: number }[];
+  initialExpenses: GastoRow[];
+  initialRegistrations: InscripcionRow[];
+  initialAssignments: { id: string; brigada_id: string; perfil_id: string; area_asignada: string }[];
+  initialProfiles: PerfilRow[];
+  initialImages: BrigadaImagenRow[];
+  fetchError: string | null;
+};
 
 export default function BrigadasAdminClient({
-  brigadas,
+  initialBrigadas,
+  initialBudgets,
+  initialExpenses,
+  initialRegistrations,
+  initialAssignments,
+  initialProfiles,
+  initialImages,
   fetchError,
-}: {
-  brigadas: Brigada[];
-  fetchError?: string | null;
-}) {
-  const [modalMode, setModalMode] = useState<ModalMode>(null);
+}: BrigadasAdminClientProps) {
+  const router = useRouter();
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialBrigadas.length > 0 ? initialBrigadas[0].id : null
+  );
+  const [activeTab, setActiveTab] = useState<TabName>("finanzas");
+
+  // Modals / Dialog state
+  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [editingBrigada, setEditingBrigada] = useState<Brigada | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Brigada | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+  // Transitions
+  const [isPending, startActionTransition] = useTransition();
+
+  // Toast notifications
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
   } | null>(null);
 
-  function openCreate() {
-    setEditingBrigada(null);
-    setModalMode("create");
-  }
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
-  function openEdit(brigada: Brigada) {
-    setEditingBrigada(brigada);
-    setModalMode("edit");
-  }
+  // Maps / Memoized values for summary calculations
+  const budgetsMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    initialBudgets.forEach((b) => {
+      map[b.brigada_id] = b.presupuesto_estimado || 0;
+    });
+    return map;
+  }, [initialBudgets]);
 
-  function closeModal() {
-    setModalMode(null);
-    setEditingBrigada(null);
-  }
+  const spentMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    initialExpenses.forEach((e) => {
+      map[e.brigada_id] = (map[e.brigada_id] || 0) + (e.monto || 0);
+    });
+    return map;
+  }, [initialExpenses]);
 
-  async function confirmDelete() {
-    if (!deleteTarget) return;
-    setDeleting(true);
+  const registrationsCountMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    initialRegistrations.forEach((r) => {
+      map[r.brigada_id] = (map[r.brigada_id] || 0) + 1;
+    });
+    return map;
+  }, [initialRegistrations]);
 
-    const result = await deleteBrigadaAction(deleteTarget.id);
+  // Find active selected brigade
+  const activeBrigada = useMemo(() => {
+    return initialBrigadas.find((b) => b.id === selectedId) || null;
+  }, [initialBrigadas, selectedId]);
 
-    setDeleting(false);
-    setDeleteTarget(null);
+  const isReadOnly = activeBrigada?.estado === "finalizada";
 
-    if (result?.success && result.message) {
-      setToast({ message: result.message, type: "success" });
-    } else if (result?.error) {
-      setToast({ message: result.error, type: "error" });
+  // Filtered lists for the active selected brigade
+  const activeExpenses = useMemo(() => {
+    if (!selectedId) return [];
+    return initialExpenses.filter((e) => e.brigada_id === selectedId);
+  }, [initialExpenses, selectedId]);
+
+  const activeRegistrations = useMemo(() => {
+    if (!selectedId) return [];
+    return initialRegistrations.filter((r) => r.brigada_id === selectedId);
+  }, [initialRegistrations, selectedId]);
+
+  const activeAssignmentsMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (selectedId) {
+      initialAssignments
+        .filter((a) => a.brigada_id === selectedId)
+        .forEach((a) => {
+          map[a.perfil_id] = a.area_asignada;
+        });
     }
-  }
+    return map;
+  }, [initialAssignments, selectedId]);
+
+  const activeImages = useMemo(() => {
+    if (!selectedId) return [];
+    return initialImages.filter((img) => img.brigada_id === selectedId);
+  }, [initialImages, selectedId]);
+
+  // 1. Create Brigade Submit Handler
+  const handleCreateBrigada = async (data: Parameters<typeof crearBrigada>[0]) => {
+    startActionTransition(async () => {
+      const res = await crearBrigada(data);
+      if (res.error) {
+        showToast(res.error, "error");
+      } else {
+        showToast("Brigada creada y presupuesto inicializado con éxito.", "success");
+        setModalMode(null);
+        if (res.id) setSelectedId(res.id);
+      }
+    });
+  };
+
+  // 2. Edit Brigade Submit Handler
+  const handleEditBrigada = async (data: Parameters<typeof editarBrigada>[1]) => {
+    if (!selectedId) return;
+    startActionTransition(async () => {
+      const res = await editarBrigada(selectedId, data);
+      if (res.error) {
+        showToast(res.error, "error");
+      } else {
+        showToast("Cambios guardados con éxito.", "success");
+        setModalMode(null);
+      }
+    });
+  };
+
+  // 3. Delete Brigade Confirm Handler
+  const handleDeleteBrigada = async () => {
+    if (!deleteTarget) return;
+    startActionTransition(async () => {
+      const res = await eliminarBrigada(deleteTarget.id);
+      if (res.error) {
+        showToast(res.error, "error");
+      } else {
+        showToast("Brigada eliminada con éxito.", "success");
+        setDeleteTarget(null);
+        // Select first available or null
+        const remaining = initialBrigadas.filter((b) => b.id !== deleteTarget.id);
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+      }
+    });
+  };
+
+  // 4. Update Budget Action
+  const handleUpdateBudget = async (newAmount: number) => {
+    if (!selectedId) return;
+    const res = await actualizarPresupuesto(selectedId, newAmount);
+    if (res.error) {
+      showToast(res.error, "error");
+    } else {
+      showToast("Presupuesto inicial actualizado.", "success");
+    }
+  };
+
+  // 5. Gasto Save Action (insert, update, delete)
+  const handleSaveGasto = async (gasto: Omit<GastoRow, "id"> & { id?: string }, isDelete = false) => {
+    const res = await registrarGasto(gasto, isDelete);
+    if (res.error) {
+      showToast(res.error, "error");
+    } else {
+      showToast(
+        isDelete
+          ? "Gasto eliminado con éxito."
+          : gasto.id
+            ? "Gasto actualizado con éxito."
+            : "Gasto registrado con éxito.",
+        "success"
+      );
+    }
+  };
+
+  // 6. Accept Registration
+  const handleAcceptRegistration = async (id: string) => {
+    const res = await aceptarInscripcion(id);
+    if (res.error) {
+      showToast(res.error, "error");
+    } else {
+      showToast("Solicitud aceptada.", "success");
+    }
+  };
+
+  // 7. Reject Registration
+  const handleRejectRegistration = async (id: string) => {
+    const res = await rechazarInscripcion(id);
+    if (res.error) {
+      showToast(res.error, "error");
+    } else {
+      showToast("Solicitud rechazada.", "success");
+    }
+  };
+
+  // 8. Assign Volunteer to Area
+  const handleAssignVolunteer = async (perfilId: string, area: string | null) => {
+    if (!selectedId) return;
+    const res = await asignarVoluntario(selectedId, perfilId, area);
+    if (res.error) {
+      showToast(res.error, "error");
+    } else {
+      showToast(area ? "Área asignada correctamente." : "Asignación removida.", "success");
+    }
+  };
+
+  // Status badges labels/colors
+  const ESTADO_LABELS: Record<EstadoBrigada, string> = {
+    inscripciones_abiertas: "Inscripciones Abiertas",
+    inscripciones_cerradas: "Inscripciones Cerradas",
+    finalizada: "Finalizada (Solo Consulta)",
+    cancelada: "Cancelada",
+  };
+
+  const ESTADO_CLASSES: Record<EstadoBrigada, string> = {
+    inscripciones_abiertas: styles.badgeInfo,
+    inscripciones_cerradas: styles.badgeSecondary,
+    finalizada: styles.badgeDanger,
+    cancelada: styles.badgeSecondary,
+  };
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2.4rem" }}>
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <div
+          className={`${styles.toast} ${toast.type === "success" ? styles.toastSuccess : styles.toastError}`}
+          style={{ zIndex: 1000 }}
+        >
+          {toast.message}
+        </div>
       )}
 
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
-          <h3>Listado de Brigadas ({brigadas.length})</h3>
-          <Can permission={PERMISSIONS.BRIGADAS_CREATE}>
-            <button type="button" className={styles.btnPrimary} onClick={openCreate}>
-              + Nueva Brigada
-            </button>
-          </Can>
+      {fetchError && (
+        <div className={styles.tableError}>
+          <strong>Error de Carga:</strong> {fetchError}
         </div>
+      )}
 
-        {fetchError && (
-          <p className={styles.tableError} role="alert">
-            No se pudieron cargar las brigadas: {fetchError}
-          </p>
-        )}
-
-        <div style={{ overflowX: "auto" }}>
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nombre</th>
-                <th>Fecha</th>
-                <th>Ubicación</th>
-                <th>Orden</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {brigadas.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className={styles.emptyCell}>
-                    No hay brigadas registradas. Crea la primera con el botón
-                    &quot;+ Nueva Brigada&quot;.
-                  </td>
-                </tr>
-              ) : (
-                brigadas.map((b) => (
-                  <tr key={b.id}>
-                    <td>{b.numero}</td>
-                    <td>
-                      <strong>{b.nombre}</strong>
-                      {b.descripcion && (
-                        <p className={styles.tableSubtext}>{b.descripcion}</p>
-                      )}
-                    </td>
-                    <td>{b.fecha || "—"}</td>
-                    <td>{b.lugar || "—"}</td>
-                    <td>{b.orden ?? "—"}</td>
-                    <td>
-                      <div className={styles.tableActions}>
-                        <Can permission={PERMISSIONS.BRIGADAS_UPDATE}>
-                          <button
-                            type="button"
-                            className={styles.linkBtn}
-                            onClick={() => openEdit(b)}
-                          >
-                            Editar
-                          </button>
-                        </Can>
-                        <Can permission={PERMISSIONS.BRIGADAS_DELETE}>
-                          <button
-                            type="button"
-                            className={styles.linkBtnDanger}
-                            onClick={() => setDeleteTarget(b)}
-                          >
-                            Eliminar
-                          </button>
-                        </Can>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* 1. Tabla de listado y filtros */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ fontSize: "1.8rem", fontWeight: "bold" }}>Planificación de Brigadas</h3>
+        <button
+          type="button"
+          className={styles.btnPrimary}
+          onClick={() => {
+            setEditingBrigada(null);
+            setModalMode("create");
+          }}
+        >
+          + Nueva Brigada
+        </button>
       </div>
 
+      <BrigadasTable
+        brigadas={initialBrigadas}
+        budgets={budgetsMap}
+        spent={spentMap}
+        registrationsCount={registrationsCountMap}
+        selectedBrigadaId={selectedId}
+        onSelect={setSelectedId}
+        onEdit={(b) => {
+          setEditingBrigada(b);
+          setModalMode("edit");
+        }}
+        onDelete={setDeleteTarget}
+      />
+
+      {/* 2. Sección de Detalles y Gestión del Evento Seleccionado */}
+      {activeBrigada ? (
+        <div
+          className={styles.tableContainer}
+          style={{ padding: "2.4rem", display: "flex", flexDirection: "column", gap: "2rem", marginTop: "2rem" }}
+        >
+          {/* Header de Gestión */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderBottom: "1px solid var(--border-color)",
+              paddingBottom: "1.6rem",
+              flexWrap: "wrap",
+              gap: "1.2rem",
+            }}
+          >
+            <div>
+              <span
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  color: "var(--primary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Panel de Administración
+              </span>
+              <h2 style={{ fontSize: "2.2rem", fontWeight: "bold", color: "var(--text-color)", marginTop: "0.4rem" }}>
+                {activeBrigada.nombre} ({activeBrigada.codigo})
+              </h2>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+              <span className={`${styles.badge} ${ESTADO_CLASSES[activeBrigada.estado]}`}>
+                {ESTADO_LABELS[activeBrigada.estado]}
+              </span>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => {
+                  setEditingBrigada(activeBrigada);
+                  setModalMode("edit");
+                }}
+                style={{ padding: "0.8rem 1.6rem" }}
+              >
+                Editar Información
+              </button>
+            </div>
+          </div>
+
+          {/* Warning read only */}
+          {isReadOnly && (
+            <div
+              style={{
+                padding: "1.2rem 1.6rem",
+                background: "rgba(239, 68, 68, 0.05)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+                borderRadius: "8px",
+                color: "var(--danger)",
+                fontSize: "1.3rem",
+              }}
+            >
+              🔒 <strong>Brigada Finalizada:</strong> Esta brigada se encuentra en modo de consulta. No se pueden realizar modificaciones en finanzas, voluntarios, galería ni permitir inscripciones.
+            </div>
+          )}
+
+          {/* Tabs Navigation */}
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "2px solid var(--border-color)",
+              gap: "2rem",
+              overflowX: "auto",
+            }}
+          >
+            {(["finanzas", "inscripciones", "asignaciones", "galeria"] as TabName[]).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: "1rem 0.4rem",
+                  border: "none",
+                  background: "none",
+                  fontSize: "1.5rem",
+                  fontWeight: activeTab === tab ? "bold" : "normal",
+                  color: activeTab === tab ? "var(--primary)" : "var(--gray)",
+                  borderBottom: activeTab === tab ? "3px solid var(--primary)" : "3px solid transparent",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  textTransform: "capitalize",
+                }}
+              >
+                {tab === "inscripciones"
+                  ? "Solicitudes"
+                  : tab === "asignaciones"
+                    ? "Asignar Personal"
+                    : tab === "galeria"
+                      ? "Fotografías"
+                      : tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div style={{ marginTop: "1rem" }}>
+            {activeTab === "finanzas" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "2.4rem" }}>
+                <PresupuestoCard
+                  presupuestoEstimado={budgetsMap[activeBrigada.id] ?? 0}
+                  presupuestoEjecutado={spentMap[activeBrigada.id] ?? 0}
+                  onUpdateBudget={handleUpdateBudget}
+                  isReadOnly={isReadOnly}
+                />
+                <GastosTable
+                  brigadaId={activeBrigada.id}
+                  gastos={activeExpenses}
+                  onSaveGasto={handleSaveGasto}
+                  isReadOnly={isReadOnly}
+                />
+              </div>
+            )}
+
+            {activeTab === "inscripciones" && (
+              <InscripcionesTable
+                inscripciones={activeRegistrations}
+                profiles={initialProfiles}
+                assignments={activeAssignmentsMap}
+                onAccept={handleAcceptRegistration}
+                onReject={handleRejectRegistration}
+                onAssign={handleAssignVolunteer}
+                isReadOnly={isReadOnly}
+              />
+            )}
+
+            {activeTab === "asignaciones" && (
+              <AsignacionesTable
+                profiles={initialProfiles}
+                assignments={activeAssignmentsMap}
+                onAssign={handleAssignVolunteer}
+                isReadOnly={isReadOnly}
+              />
+            )}
+
+            {activeTab === "galeria" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "2.4rem" }}>
+                <GaleriaUploader
+                  brigadaId={activeBrigada.id}
+                  brigadaCodigo={activeBrigada.codigo}
+                  existingImages={activeImages}
+                  onUploadSuccess={() => router.refresh()}
+                  isReadOnly={isReadOnly}
+                />
+                <GaleriaPreview
+                  brigadaId={activeBrigada.id}
+                  brigadaCodigo={activeBrigada.codigo}
+                  imagenes={activeImages}
+                  onReload={() => router.refresh()}
+                  isReadOnly={isReadOnly}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: "4rem", textAlign: "center", border: "1px dashed var(--border-color)", borderRadius: "12px" }}>
+          <p style={{ color: "var(--gray)", fontSize: "1.5rem" }}>
+            No hay brigadas registradas. Haz clic en &quot;+ Nueva Brigada&quot; para registrar la primera.
+          </p>
+        </div>
+      )}
+
+      {/* 3. Form Modal */}
       {modalMode && (
-        <BrigadaFormModal
+        <BrigadaForm
           mode={modalMode}
-          brigada={editingBrigada ?? undefined}
-          onClose={closeModal}
-          onSuccess={(message) =>
-            setToast({ message, type: "success" })
-          }
+          brigada={editingBrigada || undefined}
+          initialBudget={editingBrigada ? budgetsMap[editingBrigada.id] ?? 0 : 0}
+          onClose={() => setModalMode(null)}
+          onSubmit={modalMode === "create" ? handleCreateBrigada : handleEditBrigada}
+          isSubmitting={isPending}
         />
       )}
 
+      {/* 4. Delete Confirmation Dialog */}
       {deleteTarget && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => !deleting && setDeleteTarget(null)}
-        >
+        <div className={styles.modalOverlay} onClick={() => !isPending && setDeleteTarget(null)}>
           <div
             className={`${styles.modal} ${styles.modalSm}`}
             onClick={(e) => e.stopPropagation()}
             role="alertdialog"
-            aria-labelledby="delete-title"
+            aria-labelledby="delete-brigada-title"
           >
             <div className={styles.modalHeader}>
-              <h3 id="delete-title">¿Eliminar brigada?</h3>
+              <h3 id="delete-brigada-title">¿Eliminar Brigada?</h3>
             </div>
             <p className={styles.confirmText}>
               ¿Estás seguro de que deseas eliminar la brigada{" "}
               <strong>
-                {deleteTarget.numero} — {deleteTarget.nombre}
+                {deleteTarget.codigo} — {deleteTarget.nombre}
               </strong>
-              ? Esta acción no se puede deshacer.
+              ? Se eliminarán todos los presupuestos, gastos, solicitudes y asignaciones relacionadas. Esta acción
+              no se puede deshacer.
             </p>
             <div className={styles.modalActions}>
               <button
                 type="button"
                 className={styles.btnSecondary}
                 onClick={() => setDeleteTarget(null)}
-                disabled={deleting}
+                disabled={isPending}
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 className={styles.btnDanger}
-                onClick={confirmDelete}
-                disabled={deleting}
+                onClick={handleDeleteBrigada}
+                disabled={isPending}
               >
-                {deleting ? "Eliminando..." : "Sí, eliminar"}
+                {isPending ? "Eliminando..." : "Sí, eliminar"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

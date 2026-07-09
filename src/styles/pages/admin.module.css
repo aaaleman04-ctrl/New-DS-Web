@@ -277,6 +277,21 @@
   color: #ca8a04;
 }
 
+.badgeDanger {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.badgeInfo {
+  background-color: var(--primaryLight);
+  color: var(--primaryColor);
+}
+
+.badgeSecondary {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
 /* ── Página intro ── */
 .pageIntro {
   margin-bottom: 2.4rem;
@@ -799,7 +814,7 @@
     overflow-x: auto;
     padding: 1.6rem;
   }
-  
+
   .navItem {
     white-space: nowrap;
   }
@@ -825,4 +840,25 @@
     right: 1.6rem;
     max-width: none;
   }
+}
+
+/* Quick Actions Widget */
+.quickActionCard {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  padding: 1.2rem 2rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500;
+  color: var(--dark);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.quickActionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }

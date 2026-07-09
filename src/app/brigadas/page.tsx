@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     "Conoce las más de 15 brigadas médico-odontológicas de Dibujando Sonrisas en Honduras — selecciona una brigada para ver sus fotos y su historia.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Brigadas() {
   const { data: brigadas, error } = await getBrigadas();
 
@@ -32,9 +34,8 @@ export default async function Brigadas() {
       >
         <h2 id="brigadas-heading">Elige una Brigada</h2>
         <p className={styles.subtitle}>
-          Hemos realizado{" "}
-          <strong>{brigadas?.length ?? 0}+ brigadas</strong> en distintas
-          comunidades de Honduras. Cada una tiene su historia.
+          Hemos realizado <strong>{brigadas?.length ?? 0}+ brigadas</strong> en
+          distintas comunidades de Honduras. Cada una tiene su historia.
         </p>
 
         {error ? (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Brigada } from "../../lib/db/brigadas";
-import { listBrigadaPhotos } from "../../lib/storage/brigadas";
+import { supabase } from "../../lib/supabase";
 import styles from "../../styles/pages/brigadas.module.css";
 
 interface LightboxState {
@@ -26,6 +26,7 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
   useEffect(() => {
     if (brigadas.length === 0) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveId(brigadas[0].id);
     brigadas.forEach((b: Brigada) => loadPhotos(b));
   }, [brigadas]);
@@ -33,17 +34,32 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
   async function loadPhotos(b: Brigada) {
     setPhotoStatus((prev) => ({ ...prev, [b.id]: "loading" }));
 
-    const { urls, error } = await listBrigadaPhotos(b.id);
+    // Query DB for image records sorted with cover first, then by orden
+    const { data: dbImages, error: dbError } = await supabase
+      .from("brigada_imagenes")
+      .select("*")
+      .eq("brigada_id", b.id)
+      .order("portada", { ascending: false })
+      .order("orden", { ascending: true });
 
-    if (error) {
+    if (dbError) {
+      console.error(`Error loading images for brigade ${b.codigo}:`, dbError.message);
       setPhotoStatus((prev) => ({ ...prev, [b.id]: "error" }));
       return;
     }
 
-    if (urls.length === 0) {
+    if (!dbImages || dbImages.length === 0) {
       setPhotoStatus((prev) => ({ ...prev, [b.id]: "empty" }));
       return;
     }
+
+    // Resolve public URLs based on CODIGO-BRIGADA/filename structure in storage
+    const urls = dbImages.map((img) => {
+      const { data } = supabase.storage
+        .from("brigadas")
+        .getPublicUrl(`${b.codigo}/${img.nombre_archivo}`);
+      return data.publicUrl;
+    });
 
     setPhotos((prev) => ({ ...prev, [b.id]: urls }));
     setPhotoStatus((prev) => ({ ...prev, [b.id]: `${urls.length} fotos` }));
@@ -172,7 +188,7 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
                     className={`${styles.brigadaBtn}${activeId === b.id ? " " + styles.active : ""}`}
                     onClick={() => handleBrigadaClick(b.id)}
                   >
-                    <span className={styles.brigadaNum}>{b.numero}</span>
+                    <span className={styles.brigadaNum}>{b.codigo}</span>
                     <span className={styles.brigadaName}>{b.nombre}</span>
                   </button>
                 ))}
@@ -217,13 +233,13 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
                   <div className={styles.brigadaInfo}>
                     <div className={styles.brigadaInfoText}>
                       <h3>
-                        {b.numero} — {b.nombre}
+                        {b.codigo} — {b.nombre}
                       </h3>
                       {b.descripcion && <p>{b.descripcion}</p>}
                       <div className={styles.brigadaMeta}>
-                        {b.fecha && (
+                        {b.fecha_brigada && (
                           <p className={styles.brigadaMetaItem}>
-                            Año: {b.fecha}
+                            Fecha: {new Date(b.fecha_brigada).toLocaleDateString("es-HN")}
                           </p>
                         )}
                         {b.lugar && (
@@ -242,17 +258,6 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
                         )}
                       </div>
                     </div>
-
-                    {b.lat && b.lng && (
-                      <div className={styles.brigadaMap}>
-                        <iframe
-                          src={`https://maps.google.com/maps?q=${b.lat},${b.lng}&z=14&output=embed`}
-                          title={`Mapa de ${b.nombre}`}
-                          allowFullScreen
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Gallery */}
