@@ -5,6 +5,15 @@ import { Brigada } from "../../lib/db/brigadas";
 import { supabase } from "../../lib/supabase";
 import styles from "../../styles/pages/brigadas.module.css";
 
+function CameraIcon() {
+  return (
+    <svg className={styles.emptyGalleryIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+}
+
 interface LightboxState {
   urls: string[];
   index: number;
@@ -265,10 +274,13 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
                     <h3 className={styles.galleryHeading}>Galería de Fotos</h3>
                     <div className={styles.galleryGrid}>
                       {bPhotos.length === 0 ? (
-                        <p className={styles.noFotos}>
-                          Las fotos de esta brigada estarán disponibles
-                          próximamente.
-                        </p>
+                        <div className={styles.emptyGalleryContainer}>
+                          <CameraIcon />
+                          <h4 className={styles.emptyGalleryTitle}>Galería en Actualización</h4>
+                          <p className={styles.emptyGalleryText}>
+                            Las fotografías de esta brigada están siendo procesadas y estarán disponibles próximamente en la plataforma.
+                          </p>
+                        </div>
                       ) : (
                         bPhotos.map((url, i) => (
                           <picture

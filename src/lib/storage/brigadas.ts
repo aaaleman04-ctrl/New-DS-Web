@@ -1,65 +1,83 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "../supabase";
 
-const BUCKET = "brigadas";
+export const BRIGADAS_STORAGE_BUCKET = "brigadas";
+
+export interface UploadedPhotoResult {
+  fileName: string;
+  storagePath: string;
+  publicUrl: string;
+}
 
 /**
- * Sube fotos al storage de Supabase dentro de la carpeta de la brigada.
- * Genera nombres únicos para evitar colisiones.
+ * Sube fotos al storage de Supabase dentro de la carpeta de la brigada (brigadas/CODIGO-BRIGADA/timestamp-filename).
+ * Retorna las URLs públicas de cada archivo cargado.
  */
 export async function uploadBrigadaPhotos(
-  client: SupabaseClient,
-  brigadaId: string,
+  client: SupabaseClient = supabase,
+  brigadaCodigo: string,
   files: File[]
-): Promise<{ uploaded: number; errors: string[] }> {
+): Promise<{ uploaded: UploadedPhotoResult[]; errors: string[] }> {
   const errors: string[] = [];
-  let uploaded = 0;
+  const uploaded: UploadedPhotoResult[] = [];
 
   for (const file of files) {
-    const ext = file.name.split(".").pop() || "jpg";
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const path = `${brigadaId}/${fileName}`;
+    try {
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const fileName = `${Date.now()}-${sanitizedName}`;
+      const storagePath = `${brigadaCodigo}/${fileName}`;
 
-    const { error } = await client.storage
-      .from(BUCKET)
-      .upload(path, file, { upsert: false });
+      const { error: uploadError } = await client.storage
+        .from(BRIGADAS_STORAGE_BUCKET)
+        .upload(storagePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
 
-    if (error) {
-      errors.push(`${file.name}: ${error.message}`);
-    } else {
-      uploaded++;
+      if (uploadError) {
+        errors.push(`Error al subir ${file.name}: ${uploadError.message}`);
+        continue;
+      }
+
+      const { data } = client.storage
+        .from(BRIGADAS_STORAGE_BUCKET)
+        .getPublicUrl(storagePath);
+
+      uploaded.push({
+        fileName,
+        storagePath,
+        publicUrl: data.publicUrl,
+      });
+    } catch (err) {
+      errors.push(`Error al procesar ${file.name}: ${err instanceof Error ? err.message : "Error desconocido"}`);
     }
   }
 
   return { uploaded, errors };
 }
 
-export async function listBrigadaPhotos(brigadaId: string): Promise<{
-  urls: string[];
-  error: string | null;
-}> {
-  const { data: files, error } = await supabase.storage
-    .from(BUCKET)
-    .list(brigadaId, { sortBy: { column: "name", order: "asc" } });
+/**
+ * Elimina una foto física de Supabase Storage.
+ */
+export async function deleteBrigadaPhotoFromStorage(
+  client: SupabaseClient = supabase,
+  brigadaCodigo: string,
+  fileName: string
+): Promise<{ error: string | null }> {
+  const path = `${brigadaCodigo}/${fileName}`;
+  const { error } = await client.storage.from(BRIGADAS_STORAGE_BUCKET).remove([path]);
+  return { error: error?.message ?? null };
+}
 
-  if (error || !files) {
-    return { urls: [], error: error?.message ?? "Error al listar archivos" };
-  }
-
-  const images = files.filter(
-    (f) => f.name && /\.(jpg|jpeg|png|webp|avif|JPG)$/i.test(f.name)
-  );
-
-  if (images.length === 0) {
-    return { urls: [], error: null };
-  }
-
-  const urls = images.map((f) => {
-    const { data } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(`${brigadaId}/${f.name}`);
-    return data.publicUrl;
-  });
-
-  return { urls, error: null };
+/**
+ * Obtiene la URL pública de una foto guardada en Supabase Storage.
+ */
+export function getBrigadaPhotoPublicUrl(
+  client: SupabaseClient = supabase,
+  brigadaCodigo: string,
+  fileName: string
+): string {
+  const path = `${brigadaCodigo}/${fileName}`;
+  const { data } = client.storage.from(BRIGADAS_STORAGE_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }

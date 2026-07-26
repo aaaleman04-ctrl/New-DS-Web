@@ -415,13 +415,39 @@ export async function asignarVoluntario(
   }
 }
 
-// 9. Subir Imagen (registrar en base de datos)
-export async function subirImagenBrigada(brigadaId: string, nombreArchivo: string, portada = false) {
+// 9. Subir Imagen a Supabase Storage y registrar en BD (Server Action autenticada)
+export async function subirImagenBrigadaStorageAction(formData: FormData) {
   try {
     await assertPermission(PERMISSIONS.BRIGADAS_UPDATE);
     const supabase = await getAuthedSupabase();
 
-    // 1. Get max orden to put this image last
+    const brigadaId = formData.get("brigadaId") as string;
+    const brigadaCodigo = formData.get("brigadaCodigo") as string;
+    const isCover = formData.get("portada") === "true";
+    const file = formData.get("file") as File;
+
+    if (!brigadaId || !brigadaCodigo || !file) {
+      throw new Error("Parámetros faltantes para la subida de imagen.");
+    }
+
+    // 1. Generar ruta y nombre en el bucket
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-]/g, "_");
+    const fileName = `${Date.now()}-${baseName}.jpg`;
+    const storagePath = `${brigadaCodigo}/${fileName}`;
+
+    // 2. Subir archivo a Supabase Storage con cliente autenticado de servidor (bypass RLS de cliente anon)
+    const { error: uploadError } = await supabase.storage
+      .from("brigadas")
+      .upload(storagePath, file, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Error en Storage: ${uploadError.message}`);
+    }
+
+    // 3. Obtener orden máximo para la nueva imagen
     const { data: currentImages } = await supabase
       .from("brigada_imagenes")
       .select("orden")
@@ -431,7 +457,49 @@ export async function subirImagenBrigada(brigadaId: string, nombreArchivo: strin
       ? Math.max(...currentImages.map((img) => img.orden || 0))
       : 0;
 
-    // 2. If this is designated as cover, mark others as non-cover first
+    // 4. Si se seleccionó como portada, desmarcar portadas anteriores
+    if (isCover) {
+      await supabase
+        .from("brigada_imagenes")
+        .update({ portada: false })
+        .eq("brigada_id", brigadaId);
+    }
+
+    // 5. Registrar metadatos en la base de datos
+    const { error: dbError } = await supabase.from("brigada_imagenes").insert({
+      brigada_id: brigadaId,
+      nombre_archivo: fileName,
+      storage_path: storagePath,
+      portada: isCover,
+      orden: maxOrden + 1,
+    });
+
+    if (dbError) {
+      throw new Error(`Error en base de datos: ${dbError.message}`);
+    }
+
+    revalidateBrigadas();
+    return { success: true, fileName };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al subir la imagen." };
+  }
+}
+
+// 9b. Subir Imagen (compatibilidad con metadatos)
+export async function subirImagenBrigada(brigadaId: string, nombreArchivo: string, portada = false) {
+  try {
+    await assertPermission(PERMISSIONS.BRIGADAS_UPDATE);
+    const supabase = await getAuthedSupabase();
+
+    const { data: currentImages } = await supabase
+      .from("brigada_imagenes")
+      .select("orden")
+      .eq("brigada_id", brigadaId);
+
+    const maxOrden = currentImages && currentImages.length > 0
+      ? Math.max(...currentImages.map((img) => img.orden || 0))
+      : 0;
+
     if (portada) {
       await supabase
         .from("brigada_imagenes")
@@ -439,7 +507,6 @@ export async function subirImagenBrigada(brigadaId: string, nombreArchivo: strin
         .eq("brigada_id", brigadaId);
     }
 
-    // 3. Insert record
     const { error } = await supabase.from("brigada_imagenes").insert({
       brigada_id: brigadaId,
       nombre_archivo: nombreArchivo,
@@ -457,20 +524,33 @@ export async function subirImagenBrigada(brigadaId: string, nombreArchivo: strin
   }
 }
 
-// 10. Eliminar Imagen (remover de la base de datos)
-export async function eliminarImagenBrigada(imageId: string) {
+// 10. Eliminar Imagen de Storage y Base de Datos (Server Action autenticada)
+export async function eliminarImagenBrigada(imageId: string, brigadaCodigo?: string, nombreArchivo?: string) {
   try {
     await assertPermission(PERMISSIONS.BRIGADAS_UPDATE);
     const supabase = await getAuthedSupabase();
 
-    const { error } = await supabase.from("brigada_imagenes").delete().eq("id", imageId);
+    // Si se proveen código y nombre de archivo, eliminar también el archivo físico en Storage
+    if (brigadaCodigo && nombreArchivo) {
+      const storagePath = `${brigadaCodigo}/${nombreArchivo}`;
+      const { error: storageError } = await supabase.storage
+        .from("brigadas")
+        .remove([storagePath]);
 
-    if (error) throw new Error(`Error al eliminar la imagen: ${error.message}`);
+      if (storageError) {
+        console.warn("Advertencia al borrar de Storage:", storageError.message);
+      }
+    }
+
+    // Eliminar registro referencial de la BD
+    const { error: dbError } = await supabase.from("brigada_imagenes").delete().eq("id", imageId);
+
+    if (dbError) throw new Error(`Error al eliminar en BD: ${dbError.message}`);
 
     revalidateBrigadas();
     return { success: true };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Error al eliminar imagen de DB." };
+    return { error: e instanceof Error ? e.message : "Error al eliminar la imagen." };
   }
 }
 
