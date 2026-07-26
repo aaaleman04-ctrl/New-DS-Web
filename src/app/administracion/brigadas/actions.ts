@@ -28,9 +28,39 @@ function revalidateBrigadas() {
   revalidatePath("/voluntariado");
 }
 
+// Helper para autogenerar código consecutivo de brigada (Capítulo 15 - Regla de comparación y composición)
+export async function generarCodigoBrigada(): Promise<{ codigo: string; error: string | null }> {
+  try {
+    const supabase = await getAuthedSupabase();
+    const currentYear = new Date().getFullYear();
+    const { data: brigadas } = await supabase.from("brigadas").select("codigo");
+
+    let maxNum = 0;
+    if (brigadas && brigadas.length > 0) {
+      brigadas.forEach((b) => {
+        const matches = b.codigo.match(/\d+/g);
+        if (matches && matches.length > 0) {
+          const lastNum = parseInt(matches[matches.length - 1], 10);
+          if (!isNaN(lastNum) && lastNum > maxNum) {
+            maxNum = lastNum;
+          }
+        }
+      });
+    }
+    const nextNum = maxNum + 1;
+    const codigo = `BRIG-${currentYear}-${String(nextNum).padStart(3, "0")}`;
+    return { codigo, error: null };
+  } catch (e) {
+    return {
+      codigo: `BRIG-${new Date().getFullYear()}-001`,
+      error: e instanceof Error ? e.message : "Error al autogenerar código.",
+    };
+  }
+}
+
 // 1. Crear Brigada
 export async function crearBrigada(data: {
-  codigo: string;
+  codigo?: string;
   nombre: string;
   descripcion?: string | null;
   lugar: string;
@@ -50,12 +80,30 @@ export async function crearBrigada(data: {
     await assertPermission(PERMISSIONS.BRIGADAS_CREATE);
     const supabase = await getAuthedSupabase();
 
+    // Prueba 7: Comparación con datos almacenados (verificar duplicado por nombre)
+    const { data: existingName } = await supabase
+      .from("brigadas")
+      .select("id, nombre")
+      .ilike("nombre", data.nombre.trim())
+      .maybeSingle();
+
+    if (existingName) {
+      throw new Error(`Ya existe una brigada registrada con el nombre "${data.nombre.trim()}".`);
+    }
+
+    // Autogenerar código si no fue provisto
+    let finalCodigo = data.codigo?.trim().toUpperCase();
+    if (!finalCodigo) {
+      const genRes = await generarCodigoBrigada();
+      finalCodigo = genRes.codigo;
+    }
+
     const id = randomUUID();
 
     // 1. Insert brigade
     const { error: bError } = await supabase.from("brigadas").insert({
       id,
-      codigo: data.codigo.trim().toUpperCase(),
+      codigo: finalCodigo,
       nombre: data.nombre.trim(),
       descripcion: data.descripcion?.trim() || null,
       lugar: data.lugar.trim(),
@@ -73,7 +121,7 @@ export async function crearBrigada(data: {
 
     if (bError) {
       if (bError.message.includes("duplicate") || bError.message.includes("unique")) {
-        throw new Error("Ya existe una brigada con ese código.");
+        throw new Error(`Ya existe una brigada con el código "${finalCodigo}".`);
       }
       throw new Error(`Error al crear la brigada: ${bError.message}`);
     }
@@ -89,7 +137,7 @@ export async function crearBrigada(data: {
     }
 
     revalidateBrigadas();
-    return { success: true, id };
+    return { success: true, id, codigo: finalCodigo };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Error desconocido al crear la brigada." };
   }

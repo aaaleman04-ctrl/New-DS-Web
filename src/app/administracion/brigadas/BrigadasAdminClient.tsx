@@ -23,6 +23,34 @@ import GaleriaUploader from "./components/GaleriaUploader";
 import GaleriaPreview, { BrigadaImagenRow } from "./components/GaleriaPreview";
 import styles from "@/styles/pages/admin.module.css";
 
+function LockIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function CheckCircleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  );
+}
+
+function AlertCircleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
 type TabName = "finanzas" | "inscripciones" | "asignaciones" | "galeria";
 
 type BrigadasAdminClientProps = {
@@ -255,15 +283,19 @@ export default function BrigadasAdminClient({
       {toast && (
         <div
           className={`${styles.toast} ${toast.type === "success" ? styles.toastSuccess : styles.toastError}`}
-          style={{ zIndex: 1000 }}
+          style={{ zIndex: 1000, display: "flex", alignItems: "center", gap: "0.8rem" }}
         >
-          {toast.message}
+          {toast.type === "success" ? <CheckCircleIcon /> : <AlertCircleIcon />}
+          <span>{toast.message}</span>
         </div>
       )}
 
       {fetchError && (
-        <div className={styles.tableError}>
-          <strong>Error de Carga:</strong> {fetchError}
+        <div className={styles.tableError} style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+          <AlertCircleIcon />
+          <span>
+            <strong>Error de Carga:</strong> {fetchError}
+          </span>
         </div>
       )}
 
@@ -358,9 +390,15 @@ export default function BrigadasAdminClient({
                 borderRadius: "8px",
                 color: "var(--danger)",
                 fontSize: "1.3rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.8rem",
               }}
             >
-              🔒 <strong>Brigada Finalizada:</strong> Esta brigada se encuentra en modo de consulta. No se pueden realizar modificaciones en finanzas, voluntarios, galería ni permitir inscripciones.
+              <LockIcon />
+              <span>
+                <strong>Brigada Finalizada:</strong> Esta brigada se encuentra en modo de consulta. No se pueden realizar modificaciones en finanzas, voluntarios, galería ni permitir inscripciones.
+              </span>
             </div>
           )}
 
