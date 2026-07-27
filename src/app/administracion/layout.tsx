@@ -1,15 +1,13 @@
-import SideBar from "./components/SideBar";
 import { PermissionsProvider } from "./components/PermissionsProvider";
-import styles from "@/styles/pages/admin.module.css";
+import AdminLayoutClient from "./components/AdminLayoutClient";
 import { getAuthContext } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { redirect } from "next/navigation";
-import UserAvatar from "./components/UserAvatar";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const metadata = {
-  title: "Dashboard | Dibujando Sonrisas",
-  description: "Panel de control para gestionar Dibujando Sonrisas.",
+  title: "Dashboard | Fundación Dibujando Sonrisas",
+  description: "Sistema Web de Gestión Integral — Fundación Dibujando Sonrisas.",
 };
 
 export default async function AdminLayout({
@@ -36,35 +34,19 @@ export default async function AdminLayout({
     }
   }
 
-  const displayName = ctx.profile.nombre_completo || ctx.user.email;
+  const displayName = ctx.profile.nombre_completo || ctx.user.email || "Usuario";
+  const roleLabel = ROLE_LABELS[ctx.role] || ctx.role;
 
   return (
     <PermissionsProvider role={ctx.role} specialtyName={specialtyName}>
-      <div className={styles.adminLayout}>
-        <SideBar />
-
-        <main className={styles.mainContent}>
-          <header className={styles.topbar}>
-            <h1 className={styles.pageTitle}>Administración</h1>
-            <div className={styles.topbarUser}>
-              <div className={styles.topbarUserInfo}>
-                <span>{displayName}</span>
-                <span className={styles.roleBadge}>
-                  {ROLE_LABELS[ctx.role]}
-                </span>
-              </div>
-              <UserAvatar
-                avatarUrl={ctx.profile.avatar_url}
-                nombres={ctx.profile.nombre_completo}
-                email={ctx.user.email}
-                size={36}
-              />
-            </div>
-          </header>
-
-          <div className={styles.contentArea}>{children}</div>
-        </main>
-      </div>
+      <AdminLayoutClient
+        displayName={displayName}
+        roleLabel={roleLabel}
+        avatarUrl={ctx.profile.avatar_url}
+        email={ctx.user.email || ""}
+      >
+        {children}
+      </AdminLayoutClient>
     </PermissionsProvider>
   );
 }

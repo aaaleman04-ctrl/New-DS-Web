@@ -6,6 +6,7 @@ import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 export interface InsumoConsumoData {
   categoria: string;
@@ -158,7 +159,6 @@ export default function ResumenInsumos() {
             fecha: r.fecha_entrega || new Date().toISOString(),
           });
         });
-
         setRawInsumos(rawList);
       } catch (err) {
         console.error("Error fetching insumos data:", err);
@@ -254,56 +254,58 @@ export default function ResumenInsumos() {
     );
   }, []);
 
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte de Entrega de Insumos";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
+
   return (
     <div>
-      {/* Encabezado Oficial para Impresión */}
-      <div className={styles.headerPrint}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1.5rem",
-            marginBottom: "1rem",
-          }}
-        >
-          <Image
-            src="/DS-LOGO.png"
-            alt="Logo Dibujando Sonrisas"
-            width={40}
-            height={40}
-            priority
-          />
-          <h1 className={styles.headerPrintTitle} style={{ margin: 0 }}>
-            Fundación Dibujando Sonrisas
-          </h1>
-        </div>
-        <h2 className={styles.headerPrintSubtitle}>
-          RESUMEN DE ENTREGA DE INSUMOS
-        </h2>
-        <div className={styles.headerPrintMeta}>
-          <span>
-            <strong>Generado por:</strong> {userRole}
-          </span>
-          <span>
-            <strong>Fecha:</strong> {fechaActualCompleta}
-          </span>
-        </div>
-      </div>
-
-      {/* Encabezado */}
-      <div className={styles.reportHeader}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <div className={styles.reportHeaderText}>
-            <h3>Resumen de Entrega de Insumos</h3>
-            <p>
-              Consolidado de insumos médicos, dentales y ayuda
-              humanitaria distribuida a las comunidades.
-            </p>
+      {/* ── VISTA WEB (PAGINADA) ── */}
+      <div className={styles.screenView}>
+        {/* Encabezado */}
+        <div className={styles.reportHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            <div className={styles.reportHeaderText}>
+              <h3>Resumen de Entrega de Insumos</h3>
+              <p>
+                Consolidado de insumos médicos, dentales y ayuda
+                humanitaria distribuida a las comunidades.
+              </p>
+            </div>
+          </div>
+          <div className={styles.reportHeaderActions}>
+            <button
+              type="button"
+              className={styles.btnActionSecondary}
+              onClick={handlePrint}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
+                />
+              </svg>
+              Imprimir
+            </button>
           </div>
         </div>
-
-      </div>
 
       {/* Filtros */}
       <div className={styles.reportFilters}>
@@ -502,6 +504,139 @@ export default function ResumenInsumos() {
             </tbody>
           </table>
         </div>
+      </div>
+      </div>
+      {/* ── FIN VISTA WEB ── */}
+
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
+      <div className={styles.printView}>
+        <PrintReportDocument
+          title="Resumen de Entrega de Insumos"
+          userRole={userRole}
+          metaItems={[
+            { label: "Periodo Anual", value: anioFiltro === "todos" ? "Todos los Años" : `Año ${anioFiltro}` },
+            { label: "Categorías", value: datos.length },
+          ]}
+          summaryCards={[
+            { label: "Total Unidades Entregadas", value: totalInsumos.toLocaleString() },
+            { label: "Valor Social Estimado", value: `L. ${totalValor.toLocaleString()}` },
+          ]}
+          footerNote="Consolidado de ayuda humanitaria e insumos — Fundación Dibujando Sonrisas"
+        >
+          {/* Gráfico de Barras por Categoría en Impresión */}
+          <div
+            style={{
+              pageBreakInside: "avoid",
+              breakInside: "avoid",
+              border: "1px solid #cbd5e1",
+              borderRadius: "6px",
+              padding: "1rem 1.2rem",
+              marginBottom: "1.5rem",
+              background: "#ffffff",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "10.5pt",
+                fontWeight: "bold",
+                color: "#000000",
+                margin: "0 0 0.8rem 0",
+                textTransform: "uppercase",
+                borderBottom: "1px solid #cbd5e1",
+                paddingBottom: "0.4rem",
+                textAlign: "center",
+              }}
+            >
+              Distribución del Valor de Insumos por Categoría
+            </h3>
+
+            <div style={{ height: "180px", width: "100%", maxWidth: "680px", margin: "0 auto" }}>
+              {loading ? (
+                <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
+                  Cargando gráfico...
+                </div>
+              ) : datos.length === 0 ? (
+                <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
+                  No hay entregas registradas para este periodo.
+                </div>
+              ) : (
+                <div className={styles.barChartGrid} style={{ height: "100%", borderBottom: "2px solid #000000", display: "flex", alignItems: "flex-end", justifyContent: "space-around", paddingBottom: "4px" }}>
+                  {datos.map((d, index) => {
+                    const alturaPorcentaje = Math.max(
+                      (d.valorEstimadoHNL / maxValor) * 75,
+                      10
+                    );
+                    return (
+                      <div key={d.categoria} className={styles.barCol} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                        <span style={{ fontSize: "7.5pt", fontWeight: "bold", color: "#1e293b", marginBottom: "2px" }}>
+                          L. {d.valorEstimadoHNL.toLocaleString()}
+                        </span>
+                        <div
+                          style={{
+                            height: `${alturaPorcentaje}%`,
+                            backgroundColor: colores[index % colores.length],
+                            width: "2.2rem",
+                            borderRadius: "3px 3px 0 0",
+                            WebkitPrintColorAdjust: "exact",
+                            printColorAdjust: "exact",
+                          }}
+                        />
+                        <span
+                          style={{ fontSize: "8pt", color: "#000000", fontWeight: 600, marginTop: "4px", textAlign: "center", whiteSpace: "nowrap" }}
+                        >
+                          {d.categoria}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <table className={styles.printTable}>
+            <thead>
+              <tr>
+                <th style={{ width: "4%" }}>#</th>
+                <th style={{ width: "26%" }}>Categoría</th>
+                <th style={{ width: "16%", textAlign: "right" }}>Total Entregado</th>
+                <th style={{ width: "12%" }}>Unidad</th>
+                <th style={{ width: "24%" }}>Ítem Más Entregado</th>
+                <th style={{ width: "18%", textAlign: "right" }}>Valor Estimado (HNL)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando insumos...</td>
+                </tr>
+              ) : datos.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "1.5rem" }}>No hay entregas registradas.</td>
+                </tr>
+              ) : (
+                datos.map((item, idx) => (
+                  <tr key={item.categoria}>
+                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{item.totalEntregado.toLocaleString()}</td>
+                    <td>{item.unidad}</td>
+                    <td>{item.topItem}</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>L. {item.valorEstimadoHNL.toLocaleString()}</td>
+                  </tr>
+                ))
+              )}
+              {!loading && datos.length > 0 && (
+                <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
+                  <td colSpan={2}>TOTALES ACUMULADOS</td>
+                  <td style={{ textAlign: "right" }}>{totalInsumos.toLocaleString()}</td>
+                  <td colSpan={2}>—</td>
+                  <td style={{ textAlign: "right" }}>L. {totalValor.toLocaleString()}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </PrintReportDocument>
       </div>
     </div>
   );

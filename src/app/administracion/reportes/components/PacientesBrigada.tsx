@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import adminStyles from "@/styles/pages/admin.module.css";
 import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 interface Brigada {
   id: string;
@@ -94,7 +93,7 @@ export default function PacientesBrigada() {
           }[] | null;
         }
 
-        const formatted = (data || []).map((p: {
+        let formatted = (data || []).map((p: {
           id: string;
           nombres: string;
           apellidos: string | null;
@@ -139,12 +138,7 @@ export default function PacientesBrigada() {
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
   const nombreBrigada = brigadas.find((b) => b.id === brigadaSeleccionada)?.nombre || "";
-
-  const fechaGeneracion = new Date().toLocaleDateString("es-HN", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  const totalPages = Math.ceil(pacientesFiltrados.length / itemsPerPage);
 
   const [fechaActualCompleta, setFechaActualCompleta] = useState("");
 
@@ -160,6 +154,20 @@ export default function PacientesBrigada() {
       })
     );
   }, []);
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte de Pacientes por Brigada";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
 
   return (
     <div>
@@ -180,7 +188,7 @@ export default function PacientesBrigada() {
             <button
               type="button"
               className={styles.btnActionSecondary}
-              onClick={() => window.print()}
+              onClick={handlePrint}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -255,8 +263,8 @@ export default function PacientesBrigada() {
                   </tr>
                 ) : pacientesFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className={adminStyles.emptyCell}>
-                      No se encontraron pacientes con los filtros aplicados.
+                    <td colSpan={7} className={styles.noData}>
+                      No hay pacientes registrados en esta brigada.
                     </td>
                   </tr>
                 ) : (
@@ -266,40 +274,20 @@ export default function PacientesBrigada() {
                       const absoluteIdx = (currentPage - 1) * itemsPerPage + relativeIdx;
                       return (
                         <tr key={p.id}>
-                          <td
-                            style={{
-                              color: "var(--grayLight)",
-                              fontWeight: 600,
-                              width: "3rem",
-                            }}
-                          >
+                          <td style={{ color: "var(--grayLight)", fontWeight: 600 }}>
                             {absoluteIdx + 1}
                           </td>
-                          <td style={{ fontWeight: 600 }}>{p.nombre}</td>
-                          <td style={{ textAlign: "center" }}>{p.edad}</td>
-                          <td style={{ maxWidth: "160px" }}>{p.comunidad}</td>
+                          <td style={{ fontWeight: 700 }}>{p.nombre}</td>
+                          <td>{p.edad}</td>
+                          <td>{p.comunidad}</td>
+                          <td>{p.motivo}</td>
+                          <td>{p.medico}</td>
                           <td>
-                            <span className={styles.motivoPill}>{p.motivo}</span>
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>{p.medico}</td>
-                          <td>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "0.2rem",
-                              }}
-                            >
-                              {p.medicamentos.length === 0 ? (
-                                <span style={{ color: "var(--grayLight)", fontSize: "1.1rem" }}>Ninguno</span>
-                              ) : (
-                                p.medicamentos.map((med, mIdx) => (
-                                  <span key={mIdx} className={styles.medicamentoPill}>
-                                    {med}
-                                  </span>
-                                ))
-                              )}
-                            </div>
+                            {p.medicamentos.length === 0 ? (
+                              <span style={{ color: "var(--grayLight)" }}>Ninguno</span>
+                            ) : (
+                              p.medicamentos.join(", ")
+                            )}
                           </td>
                         </tr>
                       );
@@ -309,22 +297,24 @@ export default function PacientesBrigada() {
             </table>
           </div>
 
-          {Math.ceil(pacientesFiltrados.length / itemsPerPage) > 1 && (
+          {pacientesFiltrados.length > 0 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1rem" }} className="no-print">
-              <button 
-                disabled={currentPage === 1} 
+              <button
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 className={styles.btnActionSecondary}
                 style={{ padding: "0.6rem 1.2rem", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.5 : 1 }}
               >
                 Anterior
               </button>
-              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {Math.ceil(pacientesFiltrados.length / itemsPerPage)}</span>
-              <button 
-                disabled={currentPage === Math.ceil(pacientesFiltrados.length / itemsPerPage)} 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(pacientesFiltrados.length / itemsPerPage)))}
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 className={styles.btnActionSecondary}
-                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === Math.ceil(pacientesFiltrados.length / itemsPerPage) ? "not-allowed" : "pointer", opacity: currentPage === Math.ceil(pacientesFiltrados.length / itemsPerPage) ? 0.5 : 1 }}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
               >
                 Siguiente
               </button>
@@ -333,84 +323,64 @@ export default function PacientesBrigada() {
         </div>
       </div>
 
-      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
-        {/* Encabezado Oficial Institucional */}
-        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={35}
-              height={35}
-              style={{ objectFit: "contain" }}
-            />
-            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Fundación Dibujando Sonrisas
-            </h1>
-          </div>
-          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            REPORTE DE PACIENTES POR BRIGADA
-          </h2>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
-            <span><strong>Solicitado por:</strong> {userRole}</span>
-            <span><strong>Brigada:</strong> {nombreBrigada}</span>
-            <span><strong>Ordenamiento:</strong> Alfabético Ascendente</span>
-            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
-          </div>
-        </div>
-
-        <table className={styles.printTable}>
-          <thead>
-            <tr>
-              <th style={{ width: "30px" }}>#</th>
-              <th>Nombre del Paciente</th>
-              <th>Edad</th>
-              <th>Comunidad</th>
-              <th>Motivo de Consulta</th>
-              <th>Médico Asignado</th>
-              <th>Medicamentos Recetados</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <PrintReportDocument
+          title="Reporte de Pacientes por Brigada"
+          userRole={userRole}
+          metaItems={[
+            { label: "Brigada", value: nombreBrigada || "Todas" },
+            { label: "Total Pacientes", value: pacientesFiltrados.length },
+          ]}
+          footerNote="Confidencialidad médica — Fundación Dibujando Sonrisas"
+        >
+          <table className={styles.printTable}>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  Cargando pacientes de la brigada...
-                </td>
+                <th style={{ width: "4%" }}>#</th>
+                <th style={{ width: "24%" }}>Nombre del Paciente</th>
+                <th style={{ width: "6%" }}>Edad</th>
+                <th style={{ width: "16%" }}>Comunidad</th>
+                <th style={{ width: "20%" }}>Motivo de Consulta</th>
+                <th style={{ width: "16%" }}>Médico Asignado</th>
+                <th style={{ width: "14%" }}>Medicamentos Recetados</th>
               </tr>
-            ) : pacientesFiltrados.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  No se encontraron pacientes para esta brigada.
-                </td>
-              </tr>
-            ) : (
-              pacientesFiltrados.map((p, idx) => (
-                <tr key={p.id}>
-                  <td>{idx + 1}</td>
-                  <td style={{ fontWeight: "bold" }}>{p.nombre}</td>
-                  <td>{p.edad}</td>
-                  <td>{p.comunidad}</td>
-                  <td>{p.motivo}</td>
-                  <td>{p.medico}</td>
-                  <td>
-                    {p.medicamentos.length === 0 ? (
-                      <span style={{ color: "#777777" }}>Ninguno</span>
-                    ) : (
-                      p.medicamentos.join(", ")
-                    )}
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    Cargando pacientes de la brigada...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        <div style={{ marginTop: "3rem", borderTop: "1px solid #000000", paddingTop: "1rem", fontSize: "8pt", color: "#555555", display: "flex", justifyContent: "space-between" }}>
-          <span>Confidencialidad médica — Fundación Dibujando Sonrisas</span>
-          <span>Página 1 de 1</span>
-        </div>
+              ) : pacientesFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    No se encontraron pacientes para esta brigada.
+                  </td>
+                </tr>
+              ) : (
+                pacientesFiltrados.map((p, idx) => (
+                  <tr key={p.id}>
+                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: "bold" }}>{p.nombre}</td>
+                    <td style={{ textAlign: "center" }}>{p.edad}</td>
+                    <td>{p.comunidad}</td>
+                    <td>{p.motivo}</td>
+                    <td>{p.medico}</td>
+                    <td>
+                      {p.medicamentos.length === 0 ? (
+                        <span style={{ color: "#777777" }}>Ninguno</span>
+                      ) : (
+                        p.medicamentos.join(", ")
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </PrintReportDocument>
       </div>
     </div>
   );
