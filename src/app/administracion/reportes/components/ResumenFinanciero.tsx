@@ -6,6 +6,7 @@ import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 function formatHNL(value: number) {
   return `L. ${value.toLocaleString("es-HN", { minimumFractionDigits: 2 })}`;
@@ -73,7 +74,7 @@ export default function ResumenFinanciero() {
           (acc: number, curr: { cantidad_prendas: number | null }) => acc + (curr.cantidad_prendas || 0),
           0
         );
-        setDonacionesEspecie(totalPrendas * 100); // Valuation: L. 100 per clothing item
+        setDonacionesEspecie(totalPrendas * 100);
       } catch (err) {
         console.error("Error fetching financial data:", err);
       } finally {
@@ -173,6 +174,19 @@ export default function ResumenFinanciero() {
       })
     );
   }, []);
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte Financiero";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
 
   return (
     <div>
@@ -193,7 +207,7 @@ export default function ResumenFinanciero() {
             <button
               type="button"
               className={styles.btnActionSecondary}
-              onClick={() => window.print()}
+              onClick={handlePrint}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -528,190 +542,170 @@ export default function ResumenFinanciero() {
         </div>
       </div>
 
-      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
-        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={35}
-              height={35}
-              style={{ objectFit: "contain" }}
-            />
-            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Fundación Dibujando Sonrisas
-            </h1>
-          </div>
-          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            RESUMEN FINANCIERO GENERAL
-          </h2>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
-            <span><strong>Solicitado por:</strong> {userRole}</span>
-            <span><strong>Periodo de Evaluación:</strong> {anioFiltro === "todos" ? "Todos los años" : `Año ${anioFiltro}`}</span>
-            <span><strong>Ordenamiento:</strong> Cronológico Ascendente</span>
-            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-around", border: "1px solid #000000", padding: "1rem", marginBottom: "2rem", fontSize: "10pt", background: "#f8fafc" }}>
-          <span><strong>Total Ingresos (Ventas):</strong> {formatHNL(totalIngresos)}</span>
-          <span><strong>Total Egresos (Gastos):</strong> {formatHNL(totalEgresos)}</span>
-          <span style={{ fontWeight: "bold" }}><strong>Saldo Neto:</strong> {formatHNL(saldoNeto)} ({saldoNeto >= 0 ? "Superávit" : "Déficit"})</span>
-          <span><strong>Valoración Donaciones Especie:</strong> {formatHNL(donacionesEspecie)}</span>
-        </div>
-
-        {/* Gráfico en Impresión */}
-        <div style={{ pageBreakInside: "avoid", breakInside: "avoid", border: "1px solid #000000", padding: "1.5rem", marginBottom: "2.5rem", background: "#ffffff" }}>
-          <h3 style={{ fontSize: "11pt", fontWeight: "bold", color: "#000000", margin: "0 0 1.2rem 0", textTransform: "uppercase", borderBottom: "1px solid #000000", paddingBottom: "0.4rem", textAlign: "center" }}>
-            Histórico Mensual Comparativo (Bazar vs Gastos)
-          </h3>
-          <div style={{ height: "180px", width: "100%", maxWidth: "600px", margin: "0 auto 1.5rem" }}>
-            {loading ? (
-              <div style={{ textAlign: "center", paddingTop: "30px", fontSize: "10pt" }}>Cargando gráfico...</div>
-            ) : (
-              <div className={styles.barChartGrid} style={{ height: "100%", borderBottom: "2px solid #000000" }}>
-                {mensual.map((m, idx) => {
-                  const alturaIngresos = maxMensual > 0 ? (m.ingresos / maxMensual) * 80 : 0;
-                  const alturaEgresos = maxMensual > 0 ? (m.egresos / maxMensual) * 80 : 0;
-                  return (
-                    <div key={idx} className={styles.barCol} style={{ gap: "4px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          gap: "4px",
-                          height: "100%",
-                        }}
-                      >
+        <PrintReportDocument
+          title="Resumen Financiero General"
+          userRole={userRole}
+          metaItems={[
+            { label: "Año Fiscal", value: anioFiltro === "todos" ? "Todos los Años" : `Año ${anioFiltro}` },
+            { label: "Estado Financiero", value: saldoNeto >= 0 ? "Superávit" : "Déficit" },
+          ]}
+          summaryCards={[
+            { label: "Total Ingresos (Bazar)", value: formatHNL(totalIngresos) },
+            { label: "Total Egresos (Gastos)", value: formatHNL(totalEgresos) },
+            { label: "Saldo Neto", value: formatHNL(saldoNeto) },
+            { label: "Donaciones Especie", value: formatHNL(donacionesEspecie) },
+          ]}
+          footerNote="Reporte de balance contable gerencial — Fundación Dibujando Sonrisas"
+        >
+          {/* Gráfico en Impresión sin cortes */}
+          <div style={{ pageBreakInside: "avoid", breakInside: "avoid", border: "1px solid #94a3b8", borderRadius: "4px", padding: "1.2rem", marginBottom: "2rem", background: "#ffffff" }}>
+            <h3 style={{ fontSize: "10.5pt", fontWeight: "bold", color: "#000000", margin: "0 0 1rem 0", textTransform: "uppercase", borderBottom: "1px solid #cbd5e1", paddingBottom: "0.4rem", textAlign: "center" }}>
+              Histórico Mensual Comparativo (Bazar vs Gastos)
+            </h3>
+            <div style={{ height: "170px", width: "100%", maxWidth: "600px", margin: "0 auto 1rem" }}>
+              {loading ? (
+                <div style={{ textAlign: "center", paddingTop: "30px", fontSize: "9.5pt" }}>Cargando gráfico...</div>
+              ) : (
+                <div className={styles.barChartGrid} style={{ height: "100%", borderBottom: "2px solid #000000" }}>
+                  {mensual.map((m, idx) => {
+                    const alturaIngresos = maxMensual > 0 ? (m.ingresos / maxMensual) * 80 : 0;
+                    const alturaEgresos = maxMensual > 0 ? (m.egresos / maxMensual) * 80 : 0;
+                    return (
+                      <div key={idx} className={styles.barCol} style={{ gap: "4px" }}>
                         <div
-                          className={styles.chartBarElement}
                           style={{
-                            height: `${alturaIngresos}%`,
-                            backgroundColor: "#1abc9c",
-                            width: "1.4rem",
+                            display: "flex",
+                            alignItems: "flex-end",
+                            gap: "4px",
+                            height: "100%",
                           }}
-                        />
-                        <div
-                          className={styles.chartBarElement}
-                          style={{
-                            height: `${alturaEgresos}%`,
-                            backgroundColor: "#3498db",
-                            width: "1.4rem",
-                          }}
-                        />
+                        >
+                          <div
+                            className={styles.chartBarElement}
+                            style={{
+                              height: `${alturaIngresos}%`,
+                              backgroundColor: "#1abc9c",
+                              width: "1.4rem",
+                            }}
+                          />
+                          <div
+                            className={styles.chartBarElement}
+                            style={{
+                              height: `${alturaEgresos}%`,
+                              backgroundColor: "#3498db",
+                              width: "1.4rem",
+                            }}
+                          />
+                        </div>
+                        <span className={styles.barLabel} style={{ fontSize: "8.5pt", color: "#000000", fontWeight: "bold" }}>{m.mes}</span>
                       </div>
-                      <span className={styles.barLabel} style={{ fontSize: "9pt", color: "#000000", fontWeight: "bold" }}>{m.mes}</span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "2rem", fontSize: "9pt", marginTop: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#1abc9c", borderRadius: "2px" }} />
+                <span>Bazar / Ventas (HNL)</span>
               </div>
-            )}
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: "2rem", fontSize: "9.5pt", marginTop: "0.5rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#1abc9c", borderRadius: "2px" }} />
-              <span>Bazar / Ventas (HNL)</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#3498db", borderRadius: "2px" }} />
-              <span>Gastos Brigada (HNL)</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#3498db", borderRadius: "2px" }} />
+                <span>Gastos Brigada (HNL)</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ marginBottom: "3rem" }}>
-          <h3 style={{ fontSize: "11pt", fontWeight: "bold", color: "#000000", borderBottom: "1px solid #000000", paddingBottom: "0.4rem", textTransform: "uppercase" }}>
-            Detalle de Ventas Bazar (Ingresos)
-          </h3>
-          <table className={styles.printTable} style={{ marginTop: "0.5rem" }}>
-            <thead>
-              <tr>
-                <th style={{ width: "30px" }}>#</th>
-                <th>Categoría</th>
-                <th>Descripción de la Venta</th>
-                <th>Fecha</th>
-                <th style={{ textAlign: "right" }}>Monto (HNL)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+          <div style={{ marginBottom: "2rem" }}>
+            <h3 style={{ fontSize: "10.5pt", fontWeight: "bold", color: "#000000", borderBottom: "1px solid #000000", paddingBottom: "0.4rem", textTransform: "uppercase" }}>
+              Detalle de Ventas Bazar (Ingresos)
+            </h3>
+            <table className={styles.printTable} style={{ marginTop: "0.5rem" }}>
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando ventas...</td>
+                  <th style={{ width: "4%" }}>#</th>
+                  <th style={{ width: "26%" }}>Categoría</th>
+                  <th style={{ width: "40%" }}>Descripción de la Venta</th>
+                  <th style={{ width: "15%" }}>Fecha</th>
+                  <th style={{ width: "15%", textAlign: "right" }}>Monto (HNL)</th>
                 </tr>
-              ) : ingresosOrdenados.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>No se encontraron ingresos.</td>
-                </tr>
-              ) : (
-                ingresosOrdenados.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{idx + 1}</td>
-                    <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
-                    <td>{item.descripcion}</td>
-                    <td>{item.fecha}</td>
-                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{formatHNL(item.monto)}</td>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando ventas...</td>
                   </tr>
-                ))
-              )}
-              {!loading && ingresosOrdenados.length > 0 && (
-                <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
-                  <td colSpan={4}>TOTAL INGRESOS</td>
-                  <td style={{ textAlign: "right" }}>{formatHNL(totalIngresos)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ marginBottom: "3rem" }}>
-          <h3 style={{ fontSize: "11pt", fontWeight: "bold", color: "#000000", borderBottom: "1px solid #000000", paddingBottom: "0.4rem", textTransform: "uppercase" }}>
-            Detalle de Gastos Brigada (Egresos)
-          </h3>
-          <table className={styles.printTable} style={{ marginTop: "0.5rem" }}>
-            <thead>
-              <tr>
-                <th style={{ width: "30px" }}>#</th>
-                <th>Categoría</th>
-                <th>Descripción del Gasto</th>
-                <th>Fecha</th>
-                <th style={{ textAlign: "right" }}>Monto (HNL)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando gastos...</td>
-                </tr>
-              ) : egresosOrdenados.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>No se encontraron egresos.</td>
-                </tr>
-              ) : (
-                egresosOrdenados.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{idx + 1}</td>
-                    <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
-                    <td>{item.descripcion}</td>
-                    <td>{item.fecha}</td>
-                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{formatHNL(item.monto)}</td>
+                ) : ingresosOrdenados.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>No se encontraron ingresos.</td>
                   </tr>
-                ))
-              )}
-              {!loading && egresosOrdenados.length > 0 && (
-                <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
-                  <td colSpan={4}>TOTAL EGRESOS</td>
-                  <td style={{ textAlign: "right" }}>{formatHNL(totalEgresos)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  ingresosOrdenados.map((item, idx) => (
+                    <tr key={idx}>
+                      <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                      <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
+                      <td>{item.descripcion}</td>
+                      <td>{item.fecha}</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>{formatHNL(item.monto)}</td>
+                    </tr>
+                  ))
+                )}
+                {!loading && ingresosOrdenados.length > 0 && (
+                  <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
+                    <td colSpan={4}>TOTAL INGRESOS</td>
+                    <td style={{ textAlign: "right" }}>{formatHNL(totalIngresos)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        <div style={{ marginTop: "3rem", borderTop: "1px solid #000000", paddingTop: "1rem", fontSize: "8pt", color: "#555555", display: "flex", justifyContent: "space-between" }}>
-          <span>Reporte de balance contable gerencial — Fundación Dibujando Sonrisas</span>
-          <span>Página 1 de 1</span>
-        </div>
+          <div style={{ marginBottom: "2rem" }}>
+            <h3 style={{ fontSize: "10.5pt", fontWeight: "bold", color: "#000000", borderBottom: "1px solid #000000", paddingBottom: "0.4rem", textTransform: "uppercase" }}>
+              Detalle de Gastos Brigada (Egresos)
+            </h3>
+            <table className={styles.printTable} style={{ marginTop: "0.5rem" }}>
+              <thead>
+                <tr>
+                  <th style={{ width: "4%" }}>#</th>
+                  <th style={{ width: "26%" }}>Categoría</th>
+                  <th style={{ width: "40%" }}>Descripción del Gasto</th>
+                  <th style={{ width: "15%" }}>Fecha</th>
+                  <th style={{ width: "15%", textAlign: "right" }}>Monto (HNL)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando gastos...</td>
+                  </tr>
+                ) : egresosOrdenados.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "1.5rem" }}>No se encontraron egresos.</td>
+                  </tr>
+                ) : (
+                  egresosOrdenados.map((item, idx) => (
+                    <tr key={idx}>
+                      <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                      <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
+                      <td>{item.descripcion}</td>
+                      <td>{item.fecha}</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>{formatHNL(item.monto)}</td>
+                    </tr>
+                  ))
+                )}
+                {!loading && egresosOrdenados.length > 0 && (
+                  <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
+                    <td colSpan={4}>TOTAL EGRESOS</td>
+                    <td style={{ textAlign: "right" }}>{formatHNL(totalEgresos)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </PrintReportDocument>
       </div>
     </div>
   );

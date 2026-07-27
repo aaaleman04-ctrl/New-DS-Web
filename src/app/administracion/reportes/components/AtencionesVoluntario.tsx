@@ -6,6 +6,7 @@ import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 export interface AtencionVoluntarioData {
   id: string; // This is the profile UUID
@@ -116,7 +117,7 @@ export default function AtencionesVoluntario() {
           `) as unknown as { data: PerfilRow[] | null; error: { message: string } | null };
         if (error) throw new Error(error.message);
 
-        const formatted: AtencionVoluntarioData[] = (perfilesData || [])
+        let formatted: AtencionVoluntarioData[] = (perfilesData || [])
           .map((p: PerfilRow) => {
             const specName = p.especialidades?.nombre || "Voluntario General";
 
@@ -170,10 +171,9 @@ export default function AtencionesVoluntario() {
           })
           .filter((x): x is AtencionVoluntarioData => x !== null)
           .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-
         setVoluntarios(formatted);
         if (formatted.length > 0) {
-          setVoluntarioSeleccionado(formatted[0].id);
+          setVoluntarioSeleccionado((prev) => prev || formatted[0].id);
         }
       } catch (err) {
         console.error("Error fetching volunteers list:", err);
@@ -263,7 +263,7 @@ export default function AtencionesVoluntario() {
 
           if (error) throw error;
 
-          const formatted: AtencionDetail[] = (data || []).map((c: any) => {
+          let formatted: AtencionDetail[] = (data || []).map((c: any) => {
             const paciente = c.paciente;
             const brigada = c.brigada;
             const pNombre = paciente ? `${paciente.nombres} ${paciente.apellidos || ""}`.trim() : "Anónimo";
@@ -290,6 +290,7 @@ export default function AtencionesVoluntario() {
   }, [voluntarioSeleccionado, voluntarios]);
 
   const selectedVol = voluntarios.find(v => v.id === voluntarioSeleccionado);
+  const totalPages = Math.ceil(atenciones.length / itemsPerPage);
 
   const [fechaActualCompleta, setFechaActualCompleta] = useState("");
 
@@ -304,6 +305,20 @@ export default function AtencionesVoluntario() {
       })
     );
   }, []);
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte de Voluntarios";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
 
   return (
     <div>
@@ -323,7 +338,7 @@ export default function AtencionesVoluntario() {
             <button
               type="button"
               className={styles.btnActionSecondary}
-              onClick={() => window.print()}
+              onClick={handlePrint}
               disabled={loadingVoluntarios || !voluntarioSeleccionado}
             >
               <svg
@@ -440,7 +455,7 @@ export default function AtencionesVoluntario() {
             </table>
           </div>
 
-          {Math.ceil(atenciones.length / itemsPerPage) > 1 && (
+          {atenciones.length > 0 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1rem" }} className="no-print">
               <button 
                 disabled={currentPage === 1} 
@@ -450,12 +465,12 @@ export default function AtencionesVoluntario() {
               >
                 Anterior
               </button>
-              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {Math.ceil(atenciones.length / itemsPerPage)}</span>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {totalPages}</span>
               <button 
-                disabled={currentPage === Math.ceil(atenciones.length / itemsPerPage)} 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(atenciones.length / itemsPerPage)))}
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 className={styles.btnActionSecondary}
-                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === Math.ceil(atenciones.length / itemsPerPage) ? "not-allowed" : "pointer", opacity: currentPage === Math.ceil(atenciones.length / itemsPerPage) ? 0.5 : 1 }}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
               >
                 Siguiente
               </button>
@@ -464,86 +479,59 @@ export default function AtencionesVoluntario() {
         </div>
       </div>
 
-      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
-        {/* Encabezado Oficial Institucional */}
-        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={35}
-              height={35}
-              style={{ objectFit: "contain" }}
-            />
-            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Fundación Dibujando Sonrisas
-            </h1>
-          </div>
-          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            REPORTE DE ATENCIONES POR VOLUNTARIO
-          </h2>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
-            <span><strong>Solicitado por:</strong> {userRole}</span>
-            <span><strong>Voluntario:</strong> {selectedVol?.nombre || "N/A"} ({selectedVol?.rol || "N/A"})</span>
-            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
-          </div>
-        </div>
-
-        {/* Resumen de totales para impresión */}
-        {selectedVol && (
-          <div style={{ display: "flex", justifyContent: "space-around", border: "1px solid #000000", padding: "1rem", marginBottom: "1.5rem", fontSize: "10pt", background: "#f8fafc" }}>
-            <span><strong>Voluntario:</strong> {selectedVol.nombre}</span>
-            <span><strong>Rol:</strong> {selectedVol.rol}</span>
-            <span><strong>Total Atenciones:</strong> {atenciones.length}</span>
-          </div>
-        )}
-
-        <table className={styles.printTable}>
-          <thead>
-            <tr>
-              <th style={{ width: "30px" }}>#</th>
-              <th>Paciente</th>
-              <th style={{ textAlign: "center" }}>Edad</th>
-              <th>Brigada</th>
-              <th>Detalle / Diagnóstico</th>
-              <th>Tratamiento / Entrega</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loadingVoluntarios || loadingAtenciones ? (
+        <PrintReportDocument
+          title="Reporte de Atenciones por Voluntario"
+          userRole={userRole}
+          metaItems={[
+            { label: "Voluntario", value: selectedVol?.nombre || "N/A" },
+            { label: "Rol / Especialidad", value: selectedVol?.rol || "N/A" },
+            { label: "Total Atenciones", value: atenciones.length },
+          ]}
+          footerNote="Reporte administrativo de atenciones — Fundación Dibujando Sonrisas"
+        >
+          <table className={styles.printTable}>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  Cargando reporte de voluntarios...
-                </td>
+                <th style={{ width: "4%" }}>#</th>
+                <th style={{ width: "24%" }}>Paciente</th>
+                <th style={{ width: "6%", textAlign: "center" }}>Edad</th>
+                <th style={{ width: "20%" }}>Brigada</th>
+                <th style={{ width: "22%" }}>Detalle / Diagnóstico</th>
+                <th style={{ width: "14%" }}>Tratamiento / Entrega</th>
+                <th style={{ width: "10%" }}>Fecha</th>
               </tr>
-            ) : atenciones.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  No hay atenciones registradas para el voluntario seleccionado.
-                </td>
-              </tr>
-            ) : (
-              atenciones.map((item, idx) => (
-                <tr key={item.id}>
-                  <td>{idx + 1}</td>
-                  <td style={{ fontWeight: "bold" }}>{item.pacienteNombre}</td>
-                  <td style={{ textAlign: "center" }}>{item.edad}</td>
-                  <td>{item.brigadaNombre}</td>
-                  <td>{item.detalle}</td>
-                  <td style={{ fontWeight: "bold" }}>{item.tratamiento}</td>
-                  <td>{item.fecha}</td>
+            </thead>
+            <tbody>
+              {loadingVoluntarios || loadingAtenciones ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    Cargando reporte de voluntarios...
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        <div style={{ marginTop: "3rem", borderTop: "1px solid #000000", paddingTop: "1rem", fontSize: "8pt", color: "#555555", display: "flex", justifyContent: "space-between" }}>
-          <span>Reporte administrativo de atenciones — Fundación Dibujando Sonrisas</span>
-          <span>Página 1 de 1</span>
-        </div>
+              ) : atenciones.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    No hay atenciones registradas para el voluntario seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                atenciones.map((item, idx) => (
+                  <tr key={item.id}>
+                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: "bold" }}>{item.pacienteNombre}</td>
+                    <td style={{ textAlign: "center" }}>{item.edad}</td>
+                    <td>{item.brigadaNombre}</td>
+                    <td>{item.detalle}</td>
+                    <td style={{ fontWeight: "bold" }}>{item.tratamiento}</td>
+                    <td>{item.fecha}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </PrintReportDocument>
       </div>
     </div>
   );

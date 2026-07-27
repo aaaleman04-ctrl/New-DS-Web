@@ -107,6 +107,7 @@ export default function GaleriaUploader({
     // 1. Decodificación cliente para archivos HEIC/HEIF
     if (isHeicFile(file)) {
       try {
+        // @ts-ignore
         const heic2any = (await import("heic2any")).default;
         const converted = await heic2any({
           blob: file,
@@ -218,6 +219,7 @@ export default function GaleriaUploader({
         let previewUrl = "";
         if (isHeicFile(file)) {
           try {
+            // @ts-ignore
             const heic2any = (await import("heic2any")).default;
             const converted = await heic2any({
               blob: file,

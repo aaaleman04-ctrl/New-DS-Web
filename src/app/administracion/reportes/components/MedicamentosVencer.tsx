@@ -6,6 +6,7 @@ import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 export interface MedicamentoVenceData {
   id: string;
@@ -51,7 +52,7 @@ export default function MedicamentosVencer() {
           `);
         if (error) throw error;
 
-        const formatted: MedicamentoVenceData[] = (data || []).map((l: {
+        let formatted: MedicamentoVenceData[] = (data || []).map((l: {
           id: string;
           numero_lote: string | null;
           fecha_vencimiento: string;
@@ -64,16 +65,15 @@ export default function MedicamentosVencer() {
           const med = l.medicamentos;
           const cat = med?.categorias_inventario?.nombre || "Sin Categoría";
           return {
-            id: l.id.slice(0, 8).toUpperCase(), // Shortened ID for UI clean layout
+            id: l.id.slice(0, 8).toUpperCase(),
             nombre: med?.nombre || "Medicamento Desconocido",
             lote: l.numero_lote || "N/A",
             fechaVencimiento: l.fecha_vencimiento,
             stock: l.cantidad_actual || 0,
-            ubicacion: "Farmacia Central", // Default location
+            ubicacion: "Farmacia Central",
             categoria: cat,
           };
         });
-
         setRawMedicamentos(formatted);
       } catch (err) {
         console.error("Error fetching lotes:", err);
@@ -131,9 +131,20 @@ export default function MedicamentosVencer() {
   };
 
   const medicamentosFiltrados = procesarDatos();
+  const totalPages = Math.ceil(medicamentosFiltrados.length / itemsPerPage);
 
   const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte de Vencimiento de Medicamentos";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
     window.print();
+    setTimeout(restoreTitle, 1000);
   };
 
   const [fechaActualCompleta, setFechaActualCompleta] = useState("");
@@ -312,7 +323,7 @@ export default function MedicamentosVencer() {
             </table>
           </div>
 
-          {Math.ceil(medicamentosFiltrados.length / itemsPerPage) > 1 && (
+          {medicamentosFiltrados.length > 0 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem", padding: "1rem" }} className="no-print">
               <button 
                 disabled={currentPage === 1} 
@@ -322,12 +333,12 @@ export default function MedicamentosVencer() {
               >
                 Anterior
               </button>
-              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {Math.ceil(medicamentosFiltrados.length / itemsPerPage)}</span>
+              <span style={{ fontSize: "1.3rem", fontWeight: "600" }}>Página {currentPage} de {totalPages}</span>
               <button 
-                disabled={currentPage === Math.ceil(medicamentosFiltrados.length / itemsPerPage)} 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(medicamentosFiltrados.length / itemsPerPage)))}
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 className={styles.btnActionSecondary}
-                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === Math.ceil(medicamentosFiltrados.length / itemsPerPage) ? "not-allowed" : "pointer", opacity: currentPage === Math.ceil(medicamentosFiltrados.length / itemsPerPage) ? 0.5 : 1 }}
+                style={{ padding: "0.6rem 1.2rem", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.5 : 1 }}
               >
                 Siguiente
               </button>
@@ -336,88 +347,67 @@ export default function MedicamentosVencer() {
         </div>
       </div>
 
-      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
-        {/* Encabezado Oficial Institucional */}
-        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={35}
-              height={35}
-              style={{ objectFit: "contain" }}
-            />
-            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Fundación Dibujando Sonrisas
-            </h1>
-          </div>
-          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            REPORTE DE VENCIMIENTO DE MEDICAMENTOS
-          </h2>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
-            <span><strong>Solicitado por:</strong> {userRole}</span>
-            <span><strong>Filtros:</strong> Vence en menos de {diasFiltro} días | Alerta: {filtroAlerta === "todos" ? "Todos" : filtroAlerta.toUpperCase()}</span>
-            <span><strong>Ordenamiento:</strong> Cronológico Ascendente</span>
-            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
-          </div>
-        </div>
-
-        <table className={styles.printTable}>
-          <thead>
-            <tr>
-              <th style={{ width: "30px" }}>#</th>
-              <th>Medicamento / Suministro</th>
-              <th>Categoría</th>
-              <th>Lote</th>
-              <th>Fecha Vencimiento</th>
-              <th>Días Restantes</th>
-              <th>Stock Disponible</th>
-              <th>Estado de Alerta</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <PrintReportDocument
+          title="Reporte de Vencimiento de Medicamentos"
+          userRole={userRole}
+          metaItems={[
+            { label: "Filtro Días", value: `Menos de ${diasFiltro} días` },
+            { label: "Nivel Alerta", value: filtroAlerta === "todos" ? "Todos" : filtroAlerta.toUpperCase() },
+            { label: "Total Registros", value: printData.length },
+          ]}
+          footerNote="Reporte de control interno — Fundación Dibujando Sonrisas"
+        >
+          <table className={styles.printTable}>
+            <thead>
               <tr>
-                <td colSpan={8} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  Cargando información de lotes...
-                </td>
+                <th style={{ width: "4%" }}>#</th>
+                <th style={{ width: "28%" }}>Medicamento / Suministro</th>
+                <th style={{ width: "18%" }}>Categoría</th>
+                <th style={{ width: "12%" }}>Lote</th>
+                <th style={{ width: "14%" }}>Fecha Vencimiento</th>
+                <th style={{ width: "12%" }}>Días Restantes</th>
+                <th style={{ width: "12%" }}>Stock Disponible</th>
               </tr>
-            ) : printData.length === 0 ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                  No hay medicamentos que venzan en el rango seleccionado.
-                </td>
-              </tr>
-            ) : (
-              printData.map((m, idx) => (
-                <tr key={m.id}>
-                  <td>{idx + 1}</td>
-                  <td style={{ fontWeight: "bold" }}>{m.nombre}</td>
-                  <td>{m.categoria}</td>
-                  <td style={{ fontFamily: "monospace" }}>{m.lote}</td>
-                  <td>
-                    {new Date(m.fechaVencimiento).toLocaleDateString("es-HN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    Cargando información de lotes...
                   </td>
-                  <td style={{ fontWeight: "bold" }}>
-                    {m.diasRestantes <= 0 ? "Vencido" : `${m.diasRestantes} días`}
-                  </td>
-                  <td>{m.stock}</td>
-                  <td>{m.estadoLabel}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        <div style={{ marginTop: "3rem", borderTop: "1px solid #000000", paddingTop: "1rem", fontSize: "8pt", color: "#555555", display: "flex", justifyContent: "space-between" }}>
-          <span>Reporte de control interno — Fundación Dibujando Sonrisas</span>
-          <span>Página 1 de 1</span>
-        </div>
+              ) : printData.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
+                    No hay medicamentos que venzan en el rango seleccionado.
+                  </td>
+                </tr>
+              ) : (
+                printData.map((m, idx) => (
+                  <tr key={m.id}>
+                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: "bold" }}>{m.nombre}</td>
+                    <td>{m.categoria}</td>
+                    <td style={{ fontFamily: "monospace" }}>{m.lote}</td>
+                    <td>
+                      {new Date(m.fechaVencimiento).toLocaleDateString("es-HN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td style={{ fontWeight: "bold", color: m.diasRestantes <= 30 ? "#dc2626" : "inherit" }}>
+                      {m.diasRestantes <= 0 ? "Vencido" : `${m.diasRestantes} días`}
+                    </td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{m.stock}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </PrintReportDocument>
       </div>
     </div>
   );

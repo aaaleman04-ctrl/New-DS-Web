@@ -5,6 +5,7 @@ import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
+import PrintReportDocument from "./PrintReportDocument";
 
 type Donante = {
   id: string;
@@ -123,9 +124,8 @@ export default function TopDonantes() {
           donorGroups[donorName].recordsCount += 1;
         });
 
-        const formattedList: Donante[] = Object.keys(donorGroups).map((name) => {
+        let formattedList: Donante[] = Object.keys(donorGroups).map((name) => {
           const group = donorGroups[name];
-          // Get latest date
           const sortedDates = [...group.dates].sort((a, b) => b.getTime() - a.getTime());
           const latestDate = sortedDates[0] || new Date();
           const formattedLatestDate = latestDate.toLocaleDateString("es-HN", {
@@ -137,15 +137,14 @@ export default function TopDonantes() {
             id: name,
             nombre: name,
             tipo: getHeuristicTipo(name),
-            ciudad: "Tegucigalpa, Honduras", // Default location
+            ciudad: "Tegucigalpa, Honduras",
             donaciones: group.recordsCount,
-            total: group.prendas * 100, // Value HNL (L. 100 per garment)
+            total: group.prendas * 100,
             ultimaDonacion: formattedLatestDate,
             esRecurrente: group.recordsCount > 1,
             fechaObj: latestDate,
           };
         });
-
         setRawDonantes(formattedList);
       } catch (err) {
         console.error("Error loading donantes report:", err);
@@ -198,38 +197,26 @@ export default function TopDonantes() {
     );
   }, []);
 
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = "Reporte de Donantes";
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
+
   return (
     <div>
-      {/* Encabezado Oficial para Impresión */}
-      <div className={styles.headerPrint}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1.5rem",
-            marginBottom: "1rem",
-          }}
-        >
-          <h1 className={styles.headerPrintTitle} style={{ margin: 0 }}>
-            Fundación Dibujando Sonrisas
-          </h1>
-        </div>
-        <h2 className={styles.headerPrintSubtitle}>
-          TOP DE DONANTES Y BENEFACTORES
-        </h2>
-        <div className={styles.headerPrintMeta}>
-          <span>
-            <strong>Generado por:</strong> {userRole}
-          </span>
-          <span>
-            <strong>Fecha:</strong> {fechaActualCompleta}
-          </span>
-        </div>
-      </div>
-
-      {/* Encabezado */}
-      <div className={styles.reportHeader}>
+      {/* ── VISTA WEB (INTERACTIVA) ── */}
+      <div className={styles.screenView}>
+        {/* Encabezado */}
+        <div className={styles.reportHeader}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <div className={styles.reportHeaderText}>
             <h3>Top de Donantes</h3>
@@ -237,6 +224,28 @@ export default function TopDonantes() {
               Muro de Honor — Benefactores que hacen posible nuestra misión de ayuda.
             </p>
           </div>
+        </div>
+        <div className={styles.reportHeaderActions}>
+          <button
+            type="button"
+            className={styles.btnActionSecondary}
+            onClick={handlePrint}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
+              />
+            </svg>
+            Imprimir
+          </button>
         </div>
       </div>
 
@@ -650,6 +659,274 @@ export default function TopDonantes() {
       >
         Donaciones en especie valoradas a una estimación de mercado (L. 100 por prenda). Información de carácter social administrativo.
       </p>
+      </div>
+      {/* ── FIN VISTA WEB ── */}
+
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
+      <div className={styles.printView}>
+        <PrintReportDocument
+          title="Top de Donantes y Benefactores — Muro de Honor"
+          userRole={userRole}
+          metaItems={[
+            { label: "Periodo Anual", value: anioFiltro === "todos" ? "Todos los Años" : `Año ${anioFiltro}` },
+            { label: "Total Donantes", value: donantes.length },
+          ]}
+          summaryCards={[
+            { label: "Total Donantes", value: donantes.length },
+            { label: "Valor Recaudado (Est.)", value: formatHNL(totalAcumulado) },
+            { label: "Mayor Donante", value: donantes[0]?.nombre.split(" ")[0] ?? "—" },
+            { label: "Donantes Recurrentes", value: donantes.filter((d) => d.esRecurrente).length },
+          ]}
+          footerNote="Muro de Honor y Reconocimiento Institucional — Fundación Dibujando Sonrisas"
+        >
+          {/* 1. Podio de Donantes en Impresión (Top 3) */}
+          {!loading && donantes.length > 0 && (
+            <div
+              style={{
+                pageBreakInside: "avoid",
+                breakInside: "avoid",
+                border: "1px solid #cbd5e1",
+                borderRadius: "6px",
+                padding: "1rem 1.2rem",
+                marginBottom: "1.5rem",
+                background: "#1e293b",
+                color: "#ffffff",
+                WebkitPrintColorAdjust: "exact",
+                printColorAdjust: "exact",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "10.5pt",
+                  fontWeight: "bold",
+                  color: "#ffd700",
+                  margin: "0 0 1rem 0",
+                  textTransform: "uppercase",
+                  borderBottom: "1px solid #475569",
+                  paddingBottom: "0.4rem",
+                  textAlign: "center",
+                }}
+              >
+                Podio de Benefactores Destacados
+              </h3>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "center",
+                  gap: "1.5rem",
+                  padding: "0.5rem 0",
+                }}
+              >
+                {/* Posición 2 — Plata */}
+                {topTres[1] && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      width: "160px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%)",
+                        borderRadius: "50%",
+                        width: "4.5rem",
+                        height: "4.5rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.6rem",
+                        fontWeight: 800,
+                        color: "#0f172a",
+                        border: "3px solid #cbd5e1",
+                        marginBottom: "0.4rem",
+                        WebkitPrintColorAdjust: "exact",
+                        printColorAdjust: "exact",
+                      }}
+                    >
+                      2
+                    </div>
+                    <p style={{ fontSize: "9pt", fontWeight: "bold", color: "#ffffff", margin: "2px 0" }}>
+                      {topTres[1].nombre}
+                    </p>
+                    <p style={{ fontSize: "10.5pt", fontWeight: 800, color: "#38bdf8", margin: "2px 0" }}>
+                      {formatHNL(topTres[1].total)}
+                    </p>
+                    <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                      {tipoLabel[topTres[1].tipo]}
+                    </span>
+                  </div>
+                )}
+
+                {/* Posición 1 — Oro (Centro, más destacado) */}
+                {topTres[0] && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      width: "180px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #ffd700 0%, #f59e0b 100%)",
+                        borderRadius: "50%",
+                        width: "5.5rem",
+                        height: "5.5rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "2.2rem",
+                        fontWeight: 800,
+                        color: "#78350f",
+                        border: "3px solid #fef08a",
+                        marginBottom: "0.4rem",
+                        WebkitPrintColorAdjust: "exact",
+                        printColorAdjust: "exact",
+                      }}
+                    >
+                      1
+                    </div>
+                    <p style={{ fontSize: "10pt", fontWeight: "bold", color: "#ffffff", margin: "2px 0" }}>
+                      {topTres[0].nombre}
+                    </p>
+                    <p style={{ fontSize: "12pt", fontWeight: 800, color: "#ffd700", margin: "2px 0" }}>
+                      {formatHNL(topTres[0].total)}
+                    </p>
+                    <span
+                      style={{
+                        fontSize: "7.5pt",
+                        color: "#ffd700",
+                        background: "rgba(255, 215, 0, 0.2)",
+                        border: "1px solid #ffd700",
+                        borderRadius: "999px",
+                        padding: "1px 8px",
+                        marginTop: "2px",
+                        fontWeight: "bold",
+                        WebkitPrintColorAdjust: "exact",
+                        printColorAdjust: "exact",
+                      }}
+                    >
+                      ★ Mayor Donante
+                    </span>
+                  </div>
+                )}
+
+                {/* Posición 3 — Bronce */}
+                {topTres[2] && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      width: "160px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #cd7c2f 0%, #92400e 100%)",
+                        borderRadius: "50%",
+                        width: "4.5rem",
+                        height: "4.5rem",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.6rem",
+                        fontWeight: 800,
+                        color: "#fef3c7",
+                        border: "3px solid #fde68a",
+                        marginBottom: "0.4rem",
+                        WebkitPrintColorAdjust: "exact",
+                        printColorAdjust: "exact",
+                      }}
+                    >
+                      3
+                    </div>
+                    <p style={{ fontSize: "9pt", fontWeight: "bold", color: "#ffffff", margin: "2px 0" }}>
+                      {topTres[2].nombre}
+                    </p>
+                    <p style={{ fontSize: "10.5pt", fontWeight: 800, color: "#f97316", margin: "2px 0" }}>
+                      {formatHNL(topTres[2].total)}
+                    </p>
+                    <span style={{ fontSize: "7.5pt", color: "#94a3b8" }}>
+                      {tipoLabel[topTres[2].tipo]}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 2. Tabla de Ranking Completo */}
+          <h3
+            style={{
+              fontSize: "10pt",
+              fontWeight: "bold",
+              color: "#000000",
+              margin: "1rem 0 0.4rem 0",
+              textTransform: "uppercase",
+            }}
+          >
+            Ranking Completo de Donantes
+          </h3>
+          <table className={styles.printTable}>
+            <thead>
+              <tr>
+                <th style={{ width: "4%" }}>#</th>
+                <th style={{ width: "26%" }}>Nombre del Donante</th>
+                <th style={{ width: "14%" }}>Tipo</th>
+                <th style={{ width: "16%" }}>Ciudad</th>
+                <th style={{ width: "10%", textAlign: "center" }}>Aportes</th>
+                <th style={{ width: "15%" }}>Última Donación</th>
+                <th style={{ width: "15%", textAlign: "right" }}>Total Valoración</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando donantes...</td>
+                </tr>
+              ) : donantes.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "1.5rem" }}>No hay donantes registrados.</td>
+                </tr>
+              ) : (
+                donantes.map((d, idx) => (
+                  <tr key={d.id}>
+                    <td style={{ textAlign: "center", fontWeight: "bold" }}>{idx + 1}</td>
+                    <td style={{ fontWeight: "bold" }}>
+                      {d.nombre}
+                      {d.esRecurrente && (
+                        <span style={{ fontSize: "7pt", color: "#16a34a", marginLeft: "4px" }}>
+                          (Recurrente)
+                        </span>
+                      )}
+                    </td>
+                    <td>{d.tipo}</td>
+                    <td>{d.ciudad}</td>
+                    <td style={{ textAlign: "center" }}>{d.donaciones}</td>
+                    <td>{d.ultimaDonacion}</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{formatHNL(d.total)}</td>
+                  </tr>
+                ))
+              )}
+              {!loading && donantes.length > 0 && (
+                <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
+                  <td colSpan={6}>TOTAL ACUMULADO VALORADO</td>
+                  <td style={{ textAlign: "right" }}>{formatHNL(totalAcumulado)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </PrintReportDocument>
+      </div>
     </div>
   );
 }

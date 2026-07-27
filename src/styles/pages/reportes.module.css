@@ -1270,11 +1270,27 @@
   display: none;
 }
 
-/* ── Estilos de Impresión ── */
+/* ── Estilos de Impresión Reutilizables ── */
 @media print {
   @page {
-    size: letter;
-    margin: 12mm 15mm;
+    size: letter portrait;
+    margin: 12mm 15mm 18mm 15mm;
+
+    /* Numeración de página nativa del browser — Formato Pág. X de Y */
+    @bottom-right {
+      content: "Pág. " counter(page) " de " counter(pages);
+      font-family: 'Outfit', sans-serif;
+      font-size: 8pt;
+      font-weight: 700;
+      color: #000000;
+    }
+
+    @bottom-left {
+      content: "Reporte — Fundación Dibujando Sonrisas";
+      font-family: 'Outfit', sans-serif;
+      font-size: 7pt;
+      color: #475569;
+    }
   }
 
   /* Evitar que las imágenes/logos se estiren al 100% de ancho en la hoja */
@@ -1283,156 +1299,283 @@
     max-width: 100% !important;
   }
 
+  /* Logo institucional en encabezado de impresión: tamaño fijo */
+  .printBrandRow img,
+  .printBrandRow :global(img) {
+    width: 52px !important;
+    height: 52px !important;
+    max-width: 52px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+  }
 
-  /* Ocultar elementos de navegación y de control de la app web */
+  /* Reset global de contenedores estructurales para eliminar scrollbars en impresión */
+  :global(html),
+  :global(body),
+  :global(main),
+  :global(article),
+  :global(section),
+  :global([class*="adminLayout"]),
+  :global([class*="mainContent"]),
+  :global([class*="contentArea"]),
+  :global([class*="printableContainer"]),
+  :global([class*="tableContainer"]) {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    position: static !important;
+    transform: none !important;
+    contain: none !important;
+    float: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Convertir wrappers estructurales de la app web a bloques normales */
+  :global(body),
+  :global(main),
+  :global(article),
+  :global(section),
+  :global([class*="adminLayout"]),
+  :global([class*="mainContent"]),
+  :global([class*="contentArea"]) {
+    display: block !important;
+  }
+
+  /* Forzar reproducción exacta de colores y fondos en impresión */
+  :global(*),
+  :global(*::before),
+  :global(*::after) {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Preservar display flex en componentes gráficos e indicadores de impresión */
+  .printBrandRow,
+  .printMetaGrid,
+  .printSummaryGrid,
+  .barChartGrid,
+  .barCol,
+  .donantesPodio,
+  .podioItem,
+  .donorAvatar,
+  .progressBar,
+  .progressFill {
+    display: flex !important;
+  }
+
+  /* Ocultar ABSOLUTAMENTE TODOS los elementos de interfaz web */
+  .pageHeader,
+  .pageHeaderText,
+  .viewSelector,
   .categoryTabs,
   .reportSelectorWrapper,
   .reportHeaderActions,
   .reportFilters,
-  .viewSelector,
+  .statsDashboard,
+  .screenView,
   :global(nav),
   :global(header),
+  :global(aside),
   :global(button),
+  :global(.no-print),
   :global([class*="Sidebar"]),
   :global([class*="sidebar"]),
   :global([class*="Topbar"]),
   :global([class*="topbar"]),
+  :global([class*="AdminHeader"]),
+  :global([class*="adminHeader"]),
   :global([class*="logoutBtn"]) {
     display: none !important;
   }
 
-  /* Resetear el contenedor principal para que ocupe todo el papel */
-  :global([class*="adminLayout"]),
-  :global([class*="mainContent"]),
-  :global([class*="contentArea"]),
-  :global(main) {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-shadow: none !important;
-    background: transparent !important;
-  }
-
-  /* Mostrar el bloque oficial de impresión institucional */
-  .headerPrint {
-    display: block !important;
-    width: 100% !important;
-    border-bottom: 3px double #000 !important;
-    padding-bottom: 1.2rem !important;
-    margin-bottom: 2.4rem !important;
-  }
-
-  .headerPrintTitle {
-    font-size: 2.2rem !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    color: #000 !important;
-    margin: 0 0 0.4rem 0 !important;
-    font-family: var(--fontHeading) !important;
-    text-align: center !important;
-  }
-
-  .headerPrintSubtitle {
-    font-size: 1.6rem !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    color: #000 !important;
-    margin: 0 0 1.2rem 0 !important;
-    font-family: var(--fontHeading) !important;
-    text-align: center !important;
-  }
-
-  .headerPrintMeta {
-    display: flex !important;
-    justify-content: space-between !important;
-    font-size: 1.2rem !important;
-    color: #000 !important;
-    font-family: var(--fontBody) !important;
-    border-top: 1px solid #000 !important;
-    padding-top: 0.6rem !important;
-  }
-
-  .printableContainer {
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  :global(table) {
-    page-break-inside: avoid;
-    width: 100% !important;
-  }
-
-  :global(tr) {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-
-  :global(thead) {
-    display: table-header-group;
-  }
-
-  .printableTable th {
-    background-color: #f1f5f9 !important;
-    color: #000 !important;
-    border-bottom: 2px solid #000 !important;
-    font-size: 1rem !important;
-    padding: 0.8rem !important;
-  }
-
-  .printableTable td {
-    border-bottom: 1px solid #e2e8f0 !important;
-    font-size: 0.95rem !important;
-    padding: 0.8rem !important;
-  }
-
-  .summaryBar {
-    border: 1px solid #000 !important;
-    background-color: #f8fafc !important;
-    padding: 1.2rem !important;
-    margin-bottom: 2rem !important;
-    page-break-inside: avoid;
-  }
-
-  .screenView {
-    display: none !important;
-  }
-
+  /* Formato del Documento Institucional Reutilizable */
+  .printOnlyDocument,
   .printView {
     display: block !important;
     width: 100% !important;
-    background: white !important;
+    background: #ffffff !important;
     color: #000000 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 9.5pt !important;
+    line-height: 1.4 !important;
+    padding-bottom: 25px !important;
+  }
+
+  .printHeaderBlock {
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .printBrandRow {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .printFoundationTitle {
+    font-size: 15pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+    color: #000000 !important;
+    letter-spacing: 0.5px !important;
+    text-align: center !important;
+  }
+
+  .printSystemSubtitle {
+    font-size: 9.5pt !important;
+    color: #334155 !important;
+    margin: 2px 0 0 0 !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+  }
+
+  .printReportTitle {
+    font-size: 11.5pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 8px 0 6px 0 !important;
+    color: #000000 !important;
+    text-align: center !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .printMetaGrid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    gap: 6px 14px !important;
+    font-size: 8.5pt !important;
+    border-top: 1px solid #cbd5e1 !important;
+    padding-top: 6px !important;
+    margin-top: 6px !important;
+  }
+
+  .printMetaItem {
+    color: #000000 !important;
+  }
+
+  .printSummaryGrid {
+    display: flex !important;
+    justify-content: space-around !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .printSummaryCard {
+    flex: 1 !important;
+    border: 1px solid #94a3b8 !important;
+    border-radius: 4px !important;
+    padding: 6px 10px !important;
+    text-align: center !important;
+    background: #f8fafc !important;
+  }
+
+  .printSummaryCardLabel {
+    display: block !important;
+    font-size: 8pt !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+  }
+
+  .printSummaryCardValue {
+    display: block !important;
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+  }
+
+  .printBodyContent {
+    width: 100% !important;
+  }
+
+  /* Formato de Tablas de Impresión */
+  :global(table) {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  :global(thead) {
+    display: table-header-group !important;
+  }
+
+  :global(tbody) {
+    display: table-row-group !important;
+  }
+
+  :global(tr) {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  :global(td), :global(th) {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .printTable {
     width: 100% !important;
     border-collapse: collapse !important;
-    font-size: 10pt !important;
+    font-size: 8.5pt !important;
     color: #000000 !important;
-    margin-top: 1.5rem !important;
+    margin-top: 8px !important;
   }
 
   .printTable th {
     background-color: #f1f5f9 !important;
     color: #000000 !important;
     border-bottom: 2px solid #000000 !important;
-    font-size: 10pt !important;
+    font-size: 8.5pt !important;
     font-weight: bold !important;
-    padding: 6px 8px !important;
+    padding: 5px 6px !important;
     text-align: left !important;
   }
 
   .printTable td {
-    border-bottom: 1px solid #e2e8f0 !important;
-    font-size: 9pt !important;
-    padding: 6px 8px !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    font-size: 8pt !important;
+    padding: 4px 6px !important;
+    color: #000000 !important;
   }
 
-  .printTable tr {
+  /* Regla para Gráficos en Impresión (Punto 9) */
+  :global(.chartCard),
+  :global(.chartContainer),
+  :global([class*="chart"]),
+  :global([class*="Chart"]),
+  :global(canvas),
+  :global(svg) {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    max-width: 100% !important;
+  }
+
+  /* El número de página ahora viene de @page @bottom-right — ocultar el span React */
+  .printDocumentPageNumber {
+    display: none !important;
+  }
+
+  /* Ocultar pie de página React (reemplazado por márgenes @page) */
+  .printDocumentFooter,
+  .printFooter {
+    display: none !important;
   }
 }
 
