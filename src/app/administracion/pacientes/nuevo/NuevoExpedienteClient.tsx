@@ -671,11 +671,11 @@ export function NuevoExpedienteClient() {
       <div className={styles.tableContainer} style={{ padding: "2.4rem" }}>
         {/* TAB 1: PACIENTE */}
         {activeTab === 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Datos del Paciente</h3>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>1. Datos Personales del Paciente</div>
 
-            <div className={styles.formField}>
-              <label>Brigada *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Brigada Médica <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <select
                 ref={registerRef("brigada_id")}
                 style={getInputStyle("brigada_id")}
@@ -692,12 +692,12 @@ export function NuevoExpedienteClient() {
                   </option>
                 ))}
               </select>
-              {errors.brigada_id && <span className={styles.formError}>{errors.brigada_id}</span>}
-            </div>
+              {errors.brigada_id && <span className={styles.formFieldError}>⚠️ {errors.brigada_id}</span>}
+            </label>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Nombres *</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nombres <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("nombres")}
                   style={getInputStyle("nombres")}
@@ -708,10 +708,10 @@ export function NuevoExpedienteClient() {
                     if (errors.nombres) setErrors((prev) => ({ ...prev, nombres: "" }));
                   }}
                 />
-                {errors.nombres && <span className={styles.formError}>{errors.nombres}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Apellidos *</label>
+                {errors.nombres && <span className={styles.formFieldError}>⚠️ {errors.nombres}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Apellidos <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("apellidos")}
                   style={getInputStyle("apellidos")}
@@ -722,13 +722,13 @@ export function NuevoExpedienteClient() {
                     if (errors.apellidos) setErrors((prev) => ({ ...prev, apellidos: "" }));
                   }}
                 />
-                {errors.apellidos && <span className={styles.formError}>{errors.apellidos}</span>}
-              </div>
+                {errors.apellidos && <span className={styles.formFieldError}>⚠️ {errors.apellidos}</span>}
+              </label>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Sexo *</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Sexo <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select
                   ref={registerRef("sexo")}
                   style={getInputStyle("sexo")}
@@ -741,10 +741,10 @@ export function NuevoExpedienteClient() {
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
-                {errors.sexo && <span className={styles.formError}>{errors.sexo}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Edad (Años) *</label>
+                {errors.sexo && <span className={styles.formFieldError}>⚠️ {errors.sexo}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Edad (Años) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("edad")}
                   style={getInputStyle("edad")}
@@ -762,10 +762,10 @@ export function NuevoExpedienteClient() {
                     }
                   }}
                 />
-                {errors.edad && <span className={styles.formError}>{errors.edad}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Teléfono (Opcional)</label>
+                {errors.edad && <span className={styles.formFieldError}>⚠️ {errors.edad}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Teléfono <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("telefono")}
                   style={getInputStyle("telefono")}
@@ -776,12 +776,12 @@ export function NuevoExpedienteClient() {
                     if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: "" }));
                   }}
                 />
-                {errors.telefono && <span className={styles.formError}>{errors.telefono}</span>}
-              </div>
+                {errors.telefono && <span className={styles.formFieldError}>⚠️ {errors.telefono}</span>}
+              </label>
             </div>
 
-            <div className={styles.formField}>
-              <label>Comunidad (Opcional)</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Comunidad <span className={styles.optionalTag}>(Opcional)</span></span>
               <input
                 ref={registerRef("comunidad")}
                 style={getInputStyle("comunidad")}
@@ -792,8 +792,8 @@ export function NuevoExpedienteClient() {
                   if (errors.comunidad) setErrors((prev) => ({ ...prev, comunidad: "" }));
                 }}
               />
-              {errors.comunidad && <span className={styles.formError}>{errors.comunidad}</span>}
-            </div>
+              {errors.comunidad && <span className={styles.formFieldError}>⚠️ {errors.comunidad}</span>}
+            </label>
 
             <div className={styles.formField}>
               <label>

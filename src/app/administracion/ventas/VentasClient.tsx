@@ -37,6 +37,10 @@ export function VentasClient({ userId }: { userId: string }) {
   const [prodForm, setProdForm] = useState({ categoria_id: "", codigo: "", nombre: "", descripcion: "", precio: 0, stock: 0 });
   const [stockForm, setStockForm] = useState({ id: "", nombre: "", stock: 0 });
 
+  // Delete target states
+  const [deleteCatTarget, setDeleteCatTarget] = useState<any>(null);
+  const [deleteProdTarget, setDeleteProdTarget] = useState<any>(null);
+
   // Venta state (Cart)
   const [ventaBrigadaId, setVentaBrigadaId] = useState("");
   const [ventaObservaciones, setVentaObservaciones] = useState("");
@@ -334,17 +338,9 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td>{c.descripcion}</td>
                         <td>
                           <button 
-                            className={styles.btnSecondary} 
-                            style={{ color: "var(--danger)", border: "none", padding: "0.4rem 0.8rem" }}
-                            onClick={async () => {
-                              if(confirm("¿Seguro que deseas eliminar esta categoría? (No debe tener productos asociados)")) {
-                                try {
-                                  const { deleteCategoriaProducto } = await import("@/lib/db/ventas");
-                                  await deleteCategoriaProducto(c.id);
-                                  fetchData();
-                                } catch (e: any) { alert("Error al eliminar: " + e.message); }
-                              }
-                            }}
+                            className={styles.btnDanger} 
+                            style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
+                            onClick={() => setDeleteCatTarget(c)}
                           >
                             Eliminar
                           </button>
@@ -370,20 +366,12 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td>{p.categorias_productos?.nombre}</td>
                         <td>L. {p.precio}</td>
                         <td style={{fontWeight: "bold", color: p.stock === 0 ? "var(--danger)" : "inherit"}}>{p.stock}</td>
-                        <td style={{ display: "flex", gap: "0.5rem" }}>
+                        <td style={{ display: "flex", gap: "0.8rem", alignItems: "center" }}>
                           <button className={styles.btnSecondary} onClick={() => { setStockForm({id: p.id, nombre: p.nombre, stock: p.stock}); setIsStockModalOpen(true); }}>Ajustar Stock</button>
                           <button 
-                            className={styles.btnSecondary} 
-                            style={{ color: "var(--danger)", border: "none" }}
-                            onClick={async () => {
-                              if(confirm("¿Seguro que deseas eliminar este producto? (No debe tener ventas asociadas)")) {
-                                try {
-                                  const { deleteProducto } = await import("@/lib/db/ventas");
-                                  await deleteProducto(p.id);
-                                  fetchData();
-                                } catch (e: any) { alert("Error al eliminar: " + e.message); }
-                              }
-                            }}
+                            className={styles.btnDanger} 
+                            style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
+                            onClick={() => setDeleteProdTarget(p)}
                           >
                             Eliminar
                           </button>
@@ -429,6 +417,7 @@ export function VentasClient({ userId }: { userId: string }) {
               <button className={styles.modalClose} onClick={() => setIsCatModalOpen(false)}>✕</button>
             </div>
             <form className={styles.adminFormSingleColumn} onSubmit={submitCategoria} style={{ padding: "2.4rem" }}>
+              <div className={styles.formSectionTitle}>1. Clasificación de Recaudación</div>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Código de Categoría <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input value={catForm.codigo} onChange={e => setCatForm({...catForm, codigo: e.target.value.toUpperCase()})} placeholder="Ej. CAM" required maxLength={15} />
@@ -459,6 +448,7 @@ export function VentasClient({ userId }: { userId: string }) {
               <button className={styles.modalClose} onClick={() => setIsProdModalOpen(false)}>✕</button>
             </div>
             <form className={styles.adminFormSingleColumn} onSubmit={submitProducto} style={{ padding: "2.4rem" }}>
+              <div className={styles.formSectionTitle}>1. Información del Producto</div>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Categoría <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} required>
@@ -474,6 +464,7 @@ export function VentasClient({ userId }: { userId: string }) {
                 <span className={styles.fieldLabel}>Nombre del Producto <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input value={prodForm.nombre} onChange={e => setProdForm({...prodForm, nombre: e.target.value})} placeholder="Ej. Camiseta Oficial Blanca" required />
               </label>
+              <div className={styles.formSectionTitle}>2. Precio y Existencias</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
                 <label className={styles.formField}>
                   <span className={styles.fieldLabel}>Precio (L.) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
@@ -518,6 +509,72 @@ export function VentasClient({ userId }: { userId: string }) {
                 <button type="submit" className={styles.btnPrimary}>Actualizar Stock</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ADVERTENCIA ELIMINAR CATEGORÍA */}
+      {deleteCatTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteCatTarget(null)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className={styles.modalHeader}>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#dc2626" }}>¿Eliminar Categoría?</h3>
+            </div>
+            <p style={{ padding: "1.6rem 0", color: "var(--text-color)", fontSize: "1.4rem", lineHeight: "1.6" }}>
+              ¿Estás seguro de que deseas eliminar la categoría <strong>{deleteCatTarget.nombre}</strong>? (No debe tener productos asociados). Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={() => setDeleteCatTarget(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={async () => {
+                  try {
+                    const { deleteCategoriaProducto } = await import("@/lib/db/ventas");
+                    await deleteCategoriaProducto(deleteCatTarget.id);
+                    setDeleteCatTarget(null);
+                    fetchData();
+                  } catch (e: any) { alert("Error al eliminar: " + e.message); }
+                }}
+              >
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ADVERTENCIA ELIMINAR PRODUCTO */}
+      {deleteProdTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteProdTarget(null)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className={styles.modalHeader}>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#dc2626" }}>¿Eliminar Producto?</h3>
+            </div>
+            <p style={{ padding: "1.6rem 0", color: "var(--text-color)", fontSize: "1.4rem", lineHeight: "1.6" }}>
+              ¿Estás seguro de que deseas eliminar el producto <strong>{deleteProdTarget.nombre}</strong>? (No debe tener ventas asociadas). Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={() => setDeleteProdTarget(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={async () => {
+                  try {
+                    const { deleteProducto } = await import("@/lib/db/ventas");
+                    await deleteProducto(deleteProdTarget.id);
+                    setDeleteProdTarget(null);
+                    fetchData();
+                  } catch (e: any) { alert("Error al eliminar: " + e.message); }
+                }}
+              >
+                Sí, Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}
