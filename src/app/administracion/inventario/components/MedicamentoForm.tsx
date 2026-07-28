@@ -32,9 +32,13 @@ export function MedicamentoForm({ initialData, onSubmit, isLoading }: Medicament
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-      <div className={styles.formField}>
-        <label>Nombre del Medicamento/Insumo *</label>
+    <form onSubmit={handleSubmit} className={styles.adminFormSingleColumn}>
+      <div className={styles.formSectionTitle}>1. Información del Medicamentos e Insumos</div>
+
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Nombre del Medicamento / Insumo <strong className={styles.requiredStar}>* (Requerido)</strong>
+        </span>
         <input 
           name="nombre"
           value={formData.nombre}
@@ -42,32 +46,39 @@ export function MedicamentoForm({ initialData, onSubmit, isLoading }: Medicament
           placeholder="Ej. Paracetamol 500mg"
           required
         />
-      </div>
+      </label>
       
-      <div className={styles.formField}>
-        <label>Descripción</label>
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Descripción de Fármacos / Insumos <span className={styles.optionalTag}>(Opcional)</span>
+        </span>
         <textarea 
           name="descripcion"
           value={formData.descripcion || ""}
           onChange={handleChange}
-          placeholder="Descripción detallada..."
+          placeholder="Descripción detallada de posología, concentración o tipo de insumo..."
           rows={3}
-          style={{ padding: "1.2rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}
         />
-      </div>
+      </label>
 
-      <div className={styles.formField}>
-        <label>Unidad de Medida</label>
+      <div className={styles.formSectionTitle}>2. Control de Existencias y Presentación</div>
+
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Unidad de Medida / Presentación <span className={styles.optionalTag}>(Opcional)</span>
+        </span>
         <input 
           name="unidad_medida"
           value={formData.unidad_medida || ""}
           onChange={handleChange}
-          placeholder="Ej. Cajas, Frascos, Blíster, Tabletas"
+          placeholder="Ej. Cajas, Frascos, Blíster, Tabletas, Unidades"
         />
-      </div>
+      </label>
 
-      <div className={styles.formField}>
-        <label>Stock Mínimo (Alerta) *</label>
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Stock Mínimo (Umbral de Alerta) <strong className={styles.requiredStar}>* (Requerido)</strong>
+        </span>
         <input 
           type="number"
           min="0"
@@ -76,11 +87,11 @@ export function MedicamentoForm({ initialData, onSubmit, isLoading }: Medicament
           onChange={handleChange}
           required
         />
-      </div>
+      </label>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2rem" }}>
+      <div className={styles.modalActions} style={{ marginTop: "1.6rem" }}>
         <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
-          {isLoading ? "Guardando..." : "Guardar Medicamento"}
+          {isLoading ? "Guardando Medicamento..." : "Guardar Medicamento"}
         </button>
       </div>
     </form>

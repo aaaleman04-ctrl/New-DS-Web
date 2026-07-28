@@ -212,66 +212,73 @@ export function ActividadesClient({ userId }: { userId: string }) {
 
       {/* Modal Nueva Actividad */}
       {isActividadModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modal} ${styles.modalSm}`}>
+        <div className={styles.modalOverlay} onClick={() => setIsActividadModalOpen(false)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Crear Actividad Infantil</h3>
-              <button className={styles.modalClose} onClick={() => setIsActividadModalOpen(false)}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Crear Actividad Infantil</h3>
+              <button className={styles.modalClose} onClick={() => setIsActividadModalOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "2.4rem" }}>
-              <form className={styles.adminForm} onSubmit={(e) => { e.preventDefault(); submitActividad(); }}>
-                <div className={styles.formField}>
-                  <label>Brigada *</label>
-                  <select value={actividadForm.brigada_id} onChange={e => setActividadForm({ ...actividadForm, brigada_id: e.target.value })} required>
-                    <option value="">-- Seleccionar Brigada --</option>
-                    {brigadas.map(b => (
-                      <option key={b.id} value={b.id}>{b.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={styles.formField}>
-                  <label>Nombre de la Actividad *</label>
-                  <input value={actividadForm.nombre} onChange={e => setActividadForm({ ...actividadForm, nombre: e.target.value })} placeholder="Ej. Piñata y dinámicas" required />
-                </div>
-                <div className={styles.formField}>
-                  <label>Descripción</label>
-                  <textarea rows={2} value={actividadForm.descripcion} onChange={e => setActividadForm({ ...actividadForm, descripcion: e.target.value })} />
-                </div>
-                <div className={styles.formField}>
-                  <label>Regalos Entregados</label>
-                  <input type="number" min="0" value={actividadForm.cantidad_regalos} onChange={e => setActividadForm({ ...actividadForm, cantidad_regalos: Number(e.target.value) })} />
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setIsActividadModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary}>Crear Actividad</button>
-                </div>
-              </form>
-            </div>
+            <form className={styles.adminFormSingleColumn} style={{ padding: "2.4rem" }} onSubmit={(e) => { e.preventDefault(); submitActividad(); }}>
+              <div className={styles.formSectionTitle}>1. Vinculación y Datos de la Actividad</div>
+
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Brigada Médica <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <select value={actividadForm.brigada_id} onChange={e => setActividadForm({ ...actividadForm, brigada_id: e.target.value })} required>
+                  <option value="">-- Seleccionar Brigada --</option>
+                  {brigadas.map(b => (
+                    <option key={b.id} value={b.id}>{b.nombre}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nombre de la Actividad Infantil <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input value={actividadForm.nombre} onChange={e => setActividadForm({ ...actividadForm, nombre: e.target.value })} placeholder="Ej. Piñata, dinámicas y taller de dibujo" required />
+              </label>
+
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Descripción <span className={styles.optionalTag}>(Opcional)</span></span>
+                <textarea rows={2} value={actividadForm.descripcion} onChange={e => setActividadForm({ ...actividadForm, descripcion: e.target.value })} placeholder="Descripción del programa de recreación..." />
+              </label>
+
+              <div className={styles.formSectionTitle}>2. Recursos y Entrega de Regalos</div>
+
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Regalos / Juguetes Entregados <span className={styles.optionalTag}>(Opcional)</span></span>
+                <input type="number" min="0" value={actividadForm.cantidad_regalos} onChange={e => setActividadForm({ ...actividadForm, cantidad_regalos: Number(e.target.value) })} />
+              </label>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setIsActividadModalOpen(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary}>Crear Actividad</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* Modal Sumar Niños */}
       {isParticipantesModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modal} ${styles.modalSm}`}>
+        <div className={styles.modalOverlay} onClick={() => setIsParticipantesModalOpen(false)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Registrar Niños</h3>
-              <button className={styles.modalClose} onClick={() => setIsParticipantesModalOpen(false)}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Registrar Asistencia de Niños</h3>
+              <button className={styles.modalClose} onClick={() => setIsParticipantesModalOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "2.4rem" }}>
-              <p style={{ marginBottom: "1.6rem", color: "var(--gray)" }}>Suma participantes a la actividad sin registrar datos personales.</p>
-              <form className={styles.adminForm} onSubmit={(e) => { e.preventDefault(); submitParticipantes(); }}>
-                <div className={styles.formField}>
-                  <label>Cantidad de niños nuevos a sumar *</label>
-                  <input type="number" min="1" value={participantesForm.cantidad_ninos} onChange={e => setParticipantesForm({ ...participantesForm, cantidad_ninos: Number(e.target.value) })} required />
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setIsParticipantesModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary} style={{ background: "var(--success)" }}>Sumar a la Actividad</button>
-                </div>
-              </form>
-            </div>
+            <form className={styles.adminFormSingleColumn} style={{ padding: "2.4rem" }} onSubmit={(e) => { e.preventDefault(); submitParticipantes(); }}>
+              <p style={{ marginBottom: "1.6rem", color: "var(--gray)", fontSize: "1.4rem" }}>
+                Suma participantes a la actividad comunitaria sin registrar datos personales.
+              </p>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Cantidad de Niños a Sumar <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input type="number" min="1" value={participantesForm.cantidad_ninos} onChange={e => setParticipantesForm({ ...participantesForm, cantidad_ninos: Number(e.target.value) })} required />
+              </label>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setIsParticipantesModalOpen(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary}>Sumar a la Actividad</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

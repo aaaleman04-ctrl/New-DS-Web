@@ -191,13 +191,15 @@ export function InventarioClient() {
           <div 
             className={styles.modal} 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "600px", width: "90%" }}
+            style={{ maxWidth: "640px", width: "95%" }}
           >
             <div className={styles.modalHeader}>
-              <h3>{selectedMedForEdit ? "Editar Medicamento" : "Nuevo Medicamento"}</h3>
-              <button className={styles.modalClose} onClick={handleCloseMedForm}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>
+                {selectedMedForEdit ? "Editar Medicamento o Insumo" : "Nuevo Medicamento o Insumo"}
+              </h3>
+              <button className={styles.modalClose} onClick={handleCloseMedForm}>✕</button>
             </div>
-            <div style={{ padding: "2rem" }}>
+            <div style={{ padding: "2.4rem" }}>
               <MedicamentoForm 
                 initialData={selectedMedForEdit} 
                 onSubmit={handleSubmitMed} 
