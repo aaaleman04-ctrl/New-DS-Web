@@ -80,7 +80,13 @@ export default function TopDonantes() {
   const { role } = usePermissions();
   const userRole = role ? ROLE_LABELS[role] : "ADMINISTRADOR";
   const [anioFiltro, setAnioFiltro] = useState<string>("todos");
-  const [rawDonantes, setRawDonantes] = useState<Donante[]>([]);
+  const [rawDonaciones, setRawDonaciones] = useState<Array<{
+    id: string;
+    fecha_donacion: string | null;
+    nombre_donante: string | null;
+    cantidad_prendas: number | null;
+    observaciones: string | null;
+  }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -97,55 +103,7 @@ export default function TopDonantes() {
           .from("donaciones_ropa")
           .select("id, fecha_donacion, nombre_donante, cantidad_prendas, observaciones");
         if (error) throw error;
-
-        // Group by donor name
-        const donorGroups: Record<string, {
-          nombre: string;
-          dates: Date[];
-          prendas: number;
-          recordsCount: number;
-        }> = {};
-
-        (data || []).forEach((row) => {
-          const donorName = (row.nombre_donante || "Donante Anónimo").trim();
-          const date = new Date(row.fecha_donacion || new Date());
-          const qty = row.cantidad_prendas || 0;
-
-          if (!donorGroups[donorName]) {
-            donorGroups[donorName] = {
-              nombre: donorName,
-              dates: [],
-              prendas: 0,
-              recordsCount: 0,
-            };
-          }
-          donorGroups[donorName].dates.push(date);
-          donorGroups[donorName].prendas += qty;
-          donorGroups[donorName].recordsCount += 1;
-        });
-
-        let formattedList: Donante[] = Object.keys(donorGroups).map((name) => {
-          const group = donorGroups[name];
-          const sortedDates = [...group.dates].sort((a, b) => b.getTime() - a.getTime());
-          const latestDate = sortedDates[0] || new Date();
-          const formattedLatestDate = latestDate.toLocaleDateString("es-HN", {
-            month: "short",
-            year: "numeric",
-          });
-
-          return {
-            id: name,
-            nombre: name,
-            tipo: getHeuristicTipo(name),
-            ciudad: "Tegucigalpa, Honduras",
-            donaciones: group.recordsCount,
-            total: group.prendas * 100,
-            ultimaDonacion: formattedLatestDate,
-            esRecurrente: group.recordsCount > 1,
-            fechaObj: latestDate,
-          };
-        });
-        setRawDonantes(formattedList);
+        setRawDonaciones(data || []);
       } catch (err) {
         console.error("Error loading donantes report:", err);
       } finally {
@@ -155,27 +113,83 @@ export default function TopDonantes() {
     fetchDonantes();
   }, []);
 
-  // Extract years dynamically
+  // Extract years dynamically from raw donations
   const aniosDisponibles = Array.from(
     new Set(
-      rawDonantes
-        .map((d) => {
+      rawDonaciones
+        .map((row) => {
           try {
-            return d.fechaObj.getFullYear().toString();
+            if (!row.fecha_donacion) return null;
+            return new Date(row.fecha_donacion).getFullYear().toString();
           } catch {
             return null;
           }
         })
-        .filter(Boolean)
+        .filter((y): y is string => Boolean(y) && y !== "NaN")
     )
-  ).sort() as string[];
+  ).sort((a, b) => b.localeCompare(a));
 
-  const donantes = rawDonantes
-    .filter((d) => {
+  // Dynamic donor grouping & ranking based on selected year filter
+  const donantes: Donante[] = rawDonaciones.length === 0 ? [] : (() => {
+    const filteredRows = rawDonaciones.filter((row) => {
       if (anioFiltro === "todos") return true;
-      return d.fechaObj.getFullYear().toString() === anioFiltro;
-    })
-    .sort((a, b) => b.total - a.total);
+      try {
+        if (!row.fecha_donacion) return false;
+        return new Date(row.fecha_donacion).getFullYear().toString() === anioFiltro;
+      } catch {
+        return false;
+      }
+    });
+
+    const donorGroups: Record<string, {
+      nombre: string;
+      dates: Date[];
+      prendas: number;
+      recordsCount: number;
+    }> = {};
+
+    filteredRows.forEach((row) => {
+      const donorName = (row.nombre_donante || "Donante Anónimo").trim();
+      const date = new Date(row.fecha_donacion || new Date());
+      const qty = row.cantidad_prendas || 0;
+
+      if (!donorGroups[donorName]) {
+        donorGroups[donorName] = {
+          nombre: donorName,
+          dates: [],
+          prendas: 0,
+          recordsCount: 0,
+        };
+      }
+      donorGroups[donorName].dates.push(date);
+      donorGroups[donorName].prendas += qty;
+      donorGroups[donorName].recordsCount += 1;
+    });
+
+    return Object.keys(donorGroups)
+      .map((name) => {
+        const group = donorGroups[name];
+        const sortedDates = [...group.dates].sort((a, b) => b.getTime() - a.getTime());
+        const latestDate = sortedDates[0] || new Date();
+        const formattedLatestDate = latestDate.toLocaleDateString("es-HN", {
+          month: "short",
+          year: "numeric",
+        });
+
+        return {
+          id: name,
+          nombre: name,
+          tipo: getHeuristicTipo(name),
+          ciudad: "Tegucigalpa, Honduras",
+          donaciones: group.recordsCount,
+          total: group.prendas * 100,
+          ultimaDonacion: formattedLatestDate,
+          esRecurrente: group.recordsCount > 1,
+          fechaObj: latestDate,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  })();
 
   const donantesOrdenados = [...donantes];
   const topTres = donantesOrdenados.slice(0, 3);
@@ -199,7 +213,7 @@ export default function TopDonantes() {
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    document.title = "Reporte de Donantes";
+    document.title = "Reporte - Top Donantes por Año";
 
     const restoreTitle = () => {
       document.title = originalTitle;
@@ -217,39 +231,68 @@ export default function TopDonantes() {
       <div className={styles.screenView}>
         {/* Encabezado */}
         <div className={styles.reportHeader}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <div className={styles.reportHeaderText}>
-            <h3>Top de Donantes</h3>
-            <p>
-              Muro de Honor — Benefactores que hacen posible nuestra misión de ayuda.
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            <div className={styles.reportHeaderText}>
+              <h3>Top Donantes por Año</h3>
+              <p>
+                Muro de Honor — Benefactores que hacen posible nuestra misión de ayuda por periodo anual.
+              </p>
+            </div>
+          </div>
+          <div className={styles.reportHeaderActions}>
+            <button
+              type="button"
+              className={styles.btnActionSecondary}
+              onClick={handlePrint}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
+                />
+              </svg>
+              Imprimir
+            </button>
           </div>
         </div>
-        <div className={styles.reportHeaderActions}>
-          <button
-            type="button"
-            className={styles.btnActionSecondary}
-            onClick={handlePrint}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"
-              />
-            </svg>
-            Imprimir
-          </button>
-        </div>
-      </div>
 
-      {/* Estadísticas resumen */}
+        {/* Filtros por Año */}
+        <div className={styles.reportFilters}>
+          <div className={styles.filterGroup}>
+            <label htmlFor="donantes-anio">Periodo Anual</label>
+            <select
+              id="donantes-anio"
+              value={anioFiltro}
+              onChange={(e) => setAnioFiltro(e.target.value)}
+            >
+              <option value="todos">Todos los años</option>
+              {aniosDisponibles.map((a) => (
+                <option key={a} value={a}>
+                  Año {a}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p
+            style={{
+              margin: "auto 0 0",
+              fontSize: "1.35rem",
+              color: "var(--gray)",
+              fontStyle: "italic",
+            }}
+          >
+            Muro de Honor y ranking acumulado de donantes por aportación en el periodo seleccionado.
+          </p>
+        </div>
+
+        {/* Estadísticas resumen */}
       <div className={styles.summaryBar}>
         <div className={styles.summaryBarItem}>
           <span className={styles.summaryBarLabel}>Total donantes</span>
@@ -665,7 +708,7 @@ export default function TopDonantes() {
       {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
         <PrintReportDocument
-          title="Top de Donantes y Benefactores — Muro de Honor"
+          title="Top Donantes por Año — Muro de Honor"
           userRole={userRole}
           metaItems={[
             { label: "Periodo Anual", value: anioFiltro === "todos" ? "Todos los Años" : `Año ${anioFiltro}` },
