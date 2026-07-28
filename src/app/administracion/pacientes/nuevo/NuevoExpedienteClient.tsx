@@ -671,11 +671,11 @@ export function NuevoExpedienteClient() {
       <div className={styles.tableContainer} style={{ padding: "2.4rem" }}>
         {/* TAB 1: PACIENTE */}
         {activeTab === 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Datos del Paciente</h3>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>1. Datos Personales del Paciente</div>
 
-            <div className={styles.formField}>
-              <label>Brigada *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Brigada Médica <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <select
                 ref={registerRef("brigada_id")}
                 style={getInputStyle("brigada_id")}
@@ -692,12 +692,12 @@ export function NuevoExpedienteClient() {
                   </option>
                 ))}
               </select>
-              {errors.brigada_id && <span className={styles.formError}>{errors.brigada_id}</span>}
-            </div>
+              {errors.brigada_id && <span className={styles.formFieldError}>⚠️ {errors.brigada_id}</span>}
+            </label>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Nombres *</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nombres <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("nombres")}
                   style={getInputStyle("nombres")}
@@ -708,10 +708,10 @@ export function NuevoExpedienteClient() {
                     if (errors.nombres) setErrors((prev) => ({ ...prev, nombres: "" }));
                   }}
                 />
-                {errors.nombres && <span className={styles.formError}>{errors.nombres}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Apellidos *</label>
+                {errors.nombres && <span className={styles.formFieldError}>⚠️ {errors.nombres}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Apellidos <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("apellidos")}
                   style={getInputStyle("apellidos")}
@@ -722,13 +722,13 @@ export function NuevoExpedienteClient() {
                     if (errors.apellidos) setErrors((prev) => ({ ...prev, apellidos: "" }));
                   }}
                 />
-                {errors.apellidos && <span className={styles.formError}>{errors.apellidos}</span>}
-              </div>
+                {errors.apellidos && <span className={styles.formFieldError}>⚠️ {errors.apellidos}</span>}
+              </label>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Sexo *</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Sexo <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select
                   ref={registerRef("sexo")}
                   style={getInputStyle("sexo")}
@@ -741,10 +741,10 @@ export function NuevoExpedienteClient() {
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
-                {errors.sexo && <span className={styles.formError}>{errors.sexo}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Edad (Años) *</label>
+                {errors.sexo && <span className={styles.formFieldError}>⚠️ {errors.sexo}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Edad (Años) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("edad")}
                   style={getInputStyle("edad")}
@@ -762,10 +762,10 @@ export function NuevoExpedienteClient() {
                     }
                   }}
                 />
-                {errors.edad && <span className={styles.formError}>{errors.edad}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Teléfono (Opcional)</label>
+                {errors.edad && <span className={styles.formFieldError}>⚠️ {errors.edad}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Teléfono <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("telefono")}
                   style={getInputStyle("telefono")}
@@ -776,12 +776,12 @@ export function NuevoExpedienteClient() {
                     if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: "" }));
                   }}
                 />
-                {errors.telefono && <span className={styles.formError}>{errors.telefono}</span>}
-              </div>
+                {errors.telefono && <span className={styles.formFieldError}>⚠️ {errors.telefono}</span>}
+              </label>
             </div>
 
-            <div className={styles.formField}>
-              <label>Comunidad (Opcional)</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Comunidad <span className={styles.optionalTag}>(Opcional)</span></span>
               <input
                 ref={registerRef("comunidad")}
                 style={getInputStyle("comunidad")}
@@ -792,8 +792,8 @@ export function NuevoExpedienteClient() {
                   if (errors.comunidad) setErrors((prev) => ({ ...prev, comunidad: "" }));
                 }}
               />
-              {errors.comunidad && <span className={styles.formError}>{errors.comunidad}</span>}
-            </div>
+              {errors.comunidad && <span className={styles.formFieldError}>⚠️ {errors.comunidad}</span>}
+            </label>
 
             <div className={styles.formField}>
               <label>
@@ -831,15 +831,15 @@ export function NuevoExpedienteClient() {
 
         {/* TAB 2: SIGNOS VITALES */}
         {activeTab === 2 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Signos Vitales</h3>
-            <p style={{ color: "var(--gray)", fontSize: "1.4rem" }}>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>2. Signos Vitales del Paciente</div>
+            <p style={{ color: "var(--gray)", fontSize: "1.4rem", marginTop: "-0.8rem" }}>
               Todos los campos son opcionales. Si ingresas datos, se verificarán sus rangos normales.
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Peso (kg)</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Peso (kg) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("peso")}
                   style={getInputStyle("peso")}
@@ -852,10 +852,10 @@ export function NuevoExpedienteClient() {
                     if (errors.peso) setErrors((prev) => ({ ...prev, peso: "" }));
                   }}
                 />
-                {errors.peso && <span className={styles.formError}>{errors.peso}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Talla (cm)</label>
+                {errors.peso && <span className={styles.formFieldError}>⚠️ {errors.peso}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Talla (cm) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("talla")}
                   style={getInputStyle("talla")}
@@ -868,10 +868,10 @@ export function NuevoExpedienteClient() {
                     if (errors.talla) setErrors((prev) => ({ ...prev, talla: "" }));
                   }}
                 />
-                {errors.talla && <span className={styles.formError}>{errors.talla}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Temperatura (°C)</label>
+                {errors.talla && <span className={styles.formFieldError}>⚠️ {errors.talla}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Temperatura (°C) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("temperatura")}
                   style={getInputStyle("temperatura")}
@@ -884,13 +884,13 @@ export function NuevoExpedienteClient() {
                     if (errors.temperatura) setErrors((prev) => ({ ...prev, temperatura: "" }));
                   }}
                 />
-                {errors.temperatura && <span className={styles.formError}>{errors.temperatura}</span>}
-              </div>
+                {errors.temperatura && <span className={styles.formFieldError}>⚠️ {errors.temperatura}</span>}
+              </label>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Frecuencia Cardíaca (lpm)</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Frecuencia Cardíaca (lpm) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("frecuencia_cardiaca")}
                   style={getInputStyle("frecuencia_cardiaca")}
@@ -902,10 +902,10 @@ export function NuevoExpedienteClient() {
                     if (errors.frecuencia_cardiaca) setErrors((prev) => ({ ...prev, frecuencia_cardiaca: "" }));
                   }}
                 />
-                {errors.frecuencia_cardiaca && <span className={styles.formError}>{errors.frecuencia_cardiaca}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Frecuencia Respiratoria (rpm)</label>
+                {errors.frecuencia_cardiaca && <span className={styles.formFieldError}>⚠️ {errors.frecuencia_cardiaca}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Frecuencia Respiratoria (rpm) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("frecuencia_respiratoria")}
                   style={getInputStyle("frecuencia_respiratoria")}
@@ -917,13 +917,13 @@ export function NuevoExpedienteClient() {
                     if (errors.frecuencia_respiratoria) setErrors((prev) => ({ ...prev, frecuencia_respiratoria: "" }));
                   }}
                 />
-                {errors.frecuencia_respiratoria && <span className={styles.formError}>{errors.frecuencia_respiratoria}</span>}
-              </div>
+                {errors.frecuencia_respiratoria && <span className={styles.formFieldError}>⚠️ {errors.frecuencia_respiratoria}</span>}
+              </label>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Presión Arterial (Ej. 120/80)</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Presión Arterial <span className={styles.optionalTag}>(Opcional, ej. 120/80)</span></span>
                 <input
                   ref={registerRef("presion_arterial")}
                   style={getInputStyle("presion_arterial")}
@@ -934,10 +934,10 @@ export function NuevoExpedienteClient() {
                     if (errors.presion_arterial) setErrors((prev) => ({ ...prev, presion_arterial: "" }));
                   }}
                 />
-                {errors.presion_arterial && <span className={styles.formError}>{errors.presion_arterial}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Saturación O2 (%)</label>
+                {errors.presion_arterial && <span className={styles.formFieldError}>⚠️ {errors.presion_arterial}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Saturación O2 (%) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("saturacion")}
                   style={getInputStyle("saturacion")}
@@ -949,10 +949,10 @@ export function NuevoExpedienteClient() {
                     if (errors.saturacion) setErrors((prev) => ({ ...prev, saturacion: "" }));
                   }}
                 />
-                {errors.saturacion && <span className={styles.formError}>{errors.saturacion}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Glucosa (mg/dL)</label>
+                {errors.saturacion && <span className={styles.formFieldError}>⚠️ {errors.saturacion}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Glucosa (mg/dL) <span className={styles.optionalTag}>(Opcional)</span></span>
                 <input
                   ref={registerRef("glucosa")}
                   style={getInputStyle("glucosa")}
@@ -965,39 +965,31 @@ export function NuevoExpedienteClient() {
                     if (errors.glucosa) setErrors((prev) => ({ ...prev, glucosa: "" }));
                   }}
                 />
-                {errors.glucosa && <span className={styles.formError}>{errors.glucosa}</span>}
-              </div>
+                {errors.glucosa && <span className={styles.formFieldError}>⚠️ {errors.glucosa}</span>}
+              </label>
             </div>
 
-            <div className={styles.formField}>
-              <label>Observaciones (Preclínica)</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Observaciones de Preclínica <span className={styles.optionalTag}>(Opcional, máx. 1000 caracteres)</span></span>
               <textarea
                 ref={registerRef("observaciones")}
                 style={getInputStyle("observaciones")}
                 rows={3}
-                placeholder="Máximo 1000 caracteres"
+                placeholder="Ej. Paciente llega con acompañante, refiere alergias a penicilina..."
                 value={signos.observaciones}
                 onChange={(e) => {
                   setSignos({ ...signos, observaciones: e.target.value });
                   if (errors.observaciones) setErrors((prev) => ({ ...prev, observaciones: "" }));
                 }}
               />
-              {errors.observaciones && <span className={styles.formError}>{errors.observaciones}</span>}
-            </div>
+              {errors.observaciones && <span className={styles.formFieldError}>⚠️ {errors.observaciones}</span>}
+            </label>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
-              <button
-                className={styles.btnSecondary}
-                onClick={() => goToTab(1)}
-                disabled={isSubmitting}
-              >
+            <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
+              <button className={styles.btnSecondary} onClick={() => goToTab(1)} disabled={isSubmitting}>
                 &larr; Atrás
               </button>
-              <button
-                className={styles.btnPrimary}
-                onClick={() => goToTab(3)}
-                disabled={isSubmitting}
-              >
+              <button className={styles.btnPrimary} onClick={() => goToTab(3)} disabled={isSubmitting}>
                 Siguiente: Consulta &rarr;
               </button>
             </div>
@@ -1006,12 +998,12 @@ export function NuevoExpedienteClient() {
 
         {/* TAB 3: CONSULTA */}
         {activeTab === 3 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Consulta Médica / Odontológica</h3>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>3. Consulta Médica / Odontológica</div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.6rem" }}>
-              <div className={styles.formField}>
-                <label>Tipo de Consulta *</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Tipo de Consulta <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select
                   ref={registerRef("tipo_consulta")}
                   style={getInputStyle("tipo_consulta")}
@@ -1024,10 +1016,10 @@ export function NuevoExpedienteClient() {
                   <option value="Medica">Médica</option>
                   <option value="Odontologica">Odontológica</option>
                 </select>
-                {errors.tipo_consulta && <span className={styles.formError}>{errors.tipo_consulta}</span>}
-              </div>
-              <div className={styles.formField}>
-                <label>Médico / Odontólogo que atendió *</label>
+                {errors.tipo_consulta && <span className={styles.formFieldError}>⚠️ {errors.tipo_consulta}</span>}
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Médico / Odontólogo que atendió <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select
                   ref={registerRef("medico_id")}
                   style={getInputStyle("medico_id")}
@@ -1051,12 +1043,12 @@ export function NuevoExpedienteClient() {
                     </>
                   )}
                 </select>
-                {errors.medico_id && <span className={styles.formError}>{errors.medico_id}</span>}
-              </div>
+                {errors.medico_id && <span className={styles.formFieldError}>⚠️ {errors.medico_id}</span>}
+              </label>
             </div>
 
-            <div className={styles.formField}>
-              <label>Motivo de Consulta *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Motivo de Consulta <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <textarea
                 ref={registerRef("motivo_consulta")}
                 style={getInputStyle("motivo_consulta")}
@@ -1068,11 +1060,11 @@ export function NuevoExpedienteClient() {
                   if (errors.motivo_consulta) setErrors((prev) => ({ ...prev, motivo_consulta: "" }));
                 }}
               />
-              {errors.motivo_consulta && <span className={styles.formError}>{errors.motivo_consulta}</span>}
-            </div>
+              {errors.motivo_consulta && <span className={styles.formFieldError}>⚠️ {errors.motivo_consulta}</span>}
+            </label>
 
-            <div className={styles.formField}>
-              <label>Enfermedad Actual *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Enfermedad Actual <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <textarea
                 ref={registerRef("enfermedad_actual")}
                 style={getInputStyle("enfermedad_actual")}
@@ -1084,11 +1076,11 @@ export function NuevoExpedienteClient() {
                   if (errors.enfermedad_actual) setErrors((prev) => ({ ...prev, enfermedad_actual: "" }));
                 }}
               />
-              {errors.enfermedad_actual && <span className={styles.formError}>{errors.enfermedad_actual}</span>}
-            </div>
+              {errors.enfermedad_actual && <span className={styles.formFieldError}>⚠️ {errors.enfermedad_actual}</span>}
+            </label>
 
-            <div className={styles.formField}>
-              <label>Plan de Tratamiento *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Plan de Tratamiento <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <textarea
                 ref={registerRef("tratamiento")}
                 style={getInputStyle("tratamiento")}
@@ -1100,17 +1092,18 @@ export function NuevoExpedienteClient() {
                   if (errors.tratamiento) setErrors((prev) => ({ ...prev, tratamiento: "" }));
                 }}
               />
-              {errors.tratamiento && <span className={styles.formError}>{errors.tratamiento}</span>}
-            </div>
+              {errors.tratamiento && <span className={styles.formFieldError}>⚠️ {errors.tratamiento}</span>}
+            </label>
 
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "1rem",
-                padding: "1rem",
+                padding: "1rem 1.4rem",
                 background: "var(--bg-light)",
                 borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border-color)",
               }}
             >
               <input
@@ -1119,24 +1112,16 @@ export function NuevoExpedienteClient() {
                 checked={consulta.requiere_postclinica}
                 onChange={(e) => setConsulta({ ...consulta, requiere_postclinica: e.target.checked })}
               />
-              <label htmlFor="postclinica" style={{ margin: 0, cursor: "pointer", fontWeight: "bold" }}>
+              <label htmlFor="postclinica" style={{ margin: 0, cursor: "pointer", fontWeight: "600", fontSize: "1.4rem" }}>
                 Requiere Postclínica
               </label>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
-              <button
-                className={styles.btnSecondary}
-                onClick={() => goToTab(2)}
-                disabled={isSubmitting}
-              >
+            <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
+              <button className={styles.btnSecondary} onClick={() => goToTab(2)} disabled={isSubmitting}>
                 &larr; Atrás
               </button>
-              <button
-                className={styles.btnPrimary}
-                onClick={() => goToTab(4)}
-                disabled={isSubmitting}
-              >
+              <button className={styles.btnPrimary} onClick={() => goToTab(4)} disabled={isSubmitting}>
                 Siguiente: Diagnósticos &rarr;
               </button>
             </div>
@@ -1145,14 +1130,14 @@ export function NuevoExpedienteClient() {
 
         {/* TAB 4: DIAGNÓSTICOS */}
         {activeTab === 4 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Diagnósticos Clínicos</h3>
-            <p style={{ color: "var(--gray)", fontSize: "1.4rem" }}>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>4. Diagnósticos Clínicos</div>
+            <p style={{ color: "var(--gray)", fontSize: "1.4rem", marginTop: "-0.8rem" }}>
               Ingresa los diagnósticos separados por coma (,). Cada diagnóstico debe tener al menos 3 caracteres.
             </p>
 
-            <div className={styles.formField}>
-              <label>Diagnósticos *</label>
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>Diagnósticos <strong className={styles.requiredStar}>* (Requerido)</strong></span>
               <textarea
                 ref={registerRef("diagnosticosStr")}
                 style={getInputStyle("diagnosticosStr")}
@@ -1164,22 +1149,14 @@ export function NuevoExpedienteClient() {
                   if (errors.diagnosticosStr) setErrors((prev) => ({ ...prev, diagnosticosStr: "" }));
                 }}
               />
-              {errors.diagnosticosStr && <span className={styles.formError}>{errors.diagnosticosStr}</span>}
-            </div>
+              {errors.diagnosticosStr && <span className={styles.formFieldError}>⚠️ {errors.diagnosticosStr}</span>}
+            </label>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
-              <button
-                className={styles.btnSecondary}
-                onClick={() => goToTab(3)}
-                disabled={isSubmitting}
-              >
+            <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
+              <button className={styles.btnSecondary} onClick={() => goToTab(3)} disabled={isSubmitting}>
                 &larr; Atrás
               </button>
-              <button
-                className={styles.btnPrimary}
-                onClick={() => goToTab(5)}
-                disabled={isSubmitting}
-              >
+              <button className={styles.btnPrimary} onClick={() => goToTab(5)} disabled={isSubmitting}>
                 Siguiente: Medicamentos &rarr;
               </button>
             </div>
@@ -1188,12 +1165,12 @@ export function NuevoExpedienteClient() {
 
         {/* TAB 5: MEDICAMENTOS */}
         {activeTab === 5 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-            <h3 style={{ fontSize: "1.8rem", marginBottom: "1rem" }}>Receta de Medicamentos</h3>
+          <div className={styles.adminFormSingleColumn}>
+            <div className={styles.formSectionTitle}>5. Receta de Medicamentos</div>
 
             {recetaError && (
-              <div className={styles.toastError} style={{ position: "static", maxWidth: "100%", margin: 0 }}>
-                ⚠️ {recetaError}
+              <div className={styles.formErrorBanner}>
+                <span>⚠️ {recetaError}</span>
               </div>
             )}
 
@@ -1202,15 +1179,16 @@ export function NuevoExpedienteClient() {
                 background: "var(--bg-light)",
                 padding: "1.6rem",
                 borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border-color)",
                 display: "flex",
                 flexDirection: "column",
-                gap: "1rem",
+                gap: "1.2rem",
               }}
             >
-              <h4>Añadir Medicamento a la Receta</h4>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                <div className={styles.formField} style={{ flex: 2, minWidth: "200px" }}>
-                  <label>Medicamento</label>
+              <h4 style={{ fontSize: "1.5rem", fontWeight: "600", margin: 0 }}>Añadir Medicamento a la Receta</h4>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
+                <label className={styles.formField}>
+                  <span className={styles.fieldLabel}>Medicamento <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                   <select
                     ref={registerRef("newMedId")}
                     style={getInputStyle("newMedId")}
@@ -1228,10 +1206,10 @@ export function NuevoExpedienteClient() {
                       </option>
                     ))}
                   </select>
-                  {errors.newMedId && <span className={styles.formError}>{errors.newMedId}</span>}
-                </div>
-                <div className={styles.formField} style={{ flex: 1, minWidth: "100px" }}>
-                  <label>Cantidad</label>
+                  {errors.newMedId && <span className={styles.formFieldError}>⚠️ {errors.newMedId}</span>}
+                </label>
+                <label className={styles.formField}>
+                  <span className={styles.fieldLabel}>Cantidad <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                   <input
                     ref={registerRef("newMedCantidad")}
                     style={getInputStyle("newMedCantidad")}
@@ -1243,11 +1221,11 @@ export function NuevoExpedienteClient() {
                       if (errors.newMedCantidad) setErrors((prev) => ({ ...prev, newMedCantidad: "" }));
                     }}
                   />
-                  {errors.newMedCantidad && <span className={styles.formError}>{errors.newMedCantidad}</span>}
-                </div>
+                  {errors.newMedCantidad && <span className={styles.formFieldError}>⚠️ {errors.newMedCantidad}</span>}
+                </label>
               </div>
-              <div className={styles.formField}>
-                <label>Indicaciones (Dosis, Frecuencia)</label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Indicaciones (Dosis, Frecuencia) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <input
                   ref={registerRef("newMedIndicaciones")}
                   style={getInputStyle("newMedIndicaciones")}
@@ -1258,9 +1236,9 @@ export function NuevoExpedienteClient() {
                     if (errors.newMedIndicaciones) setErrors((prev) => ({ ...prev, newMedIndicaciones: "" }));
                   }}
                 />
-                {errors.newMedIndicaciones && <span className={styles.formError}>{errors.newMedIndicaciones}</span>}
-              </div>
-              <div style={{ alignSelf: "flex-end" }}>
+                {errors.newMedIndicaciones && <span className={styles.formFieldError}>⚠️ {errors.newMedIndicaciones}</span>}
+              </label>
+              <div>
                 <button className={styles.btnSecondary} onClick={handleAddMed} disabled={isSubmitting}>
                   + Añadir a Receta
                 </button>
@@ -1268,9 +1246,11 @@ export function NuevoExpedienteClient() {
             </div>
 
             <div>
-              <h4>Medicamentos Agregados ({medsRecetados.length})</h4>
+              <h4 style={{ fontSize: "1.5rem", fontWeight: "600", margin: "0 0 1rem 0" }}>
+                Medicamentos Agregados ({medsRecetados.length})
+              </h4>
               {medsRecetados.length === 0 ? (
-                <p style={{ color: "var(--gray)", fontSize: "1.4rem", marginTop: "1rem" }}>
+                <p style={{ color: "var(--gray)", fontSize: "1.4rem" }}>
                   No hay medicamentos recetados aún.
                 </p>
               ) : (
@@ -1291,17 +1271,12 @@ export function NuevoExpedienteClient() {
                         <td>{m.indicaciones}</td>
                         <td>
                           <button
-                            style={{
-                              color: "var(--danger)",
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontWeight: "bold",
-                            }}
+                            className={styles.btnDanger}
+                            style={{ padding: "0.3rem 0.8rem", fontSize: "1.2rem" }}
                             onClick={() => handleRemoveMed(idx)}
                             disabled={isSubmitting}
                           >
-                            X
+                            Quitar
                           </button>
                         </td>
                       </tr>
@@ -1312,58 +1287,40 @@ export function NuevoExpedienteClient() {
             </div>
 
             {backendError && (
-              <div className={styles.toastError} style={{ position: "static", maxWidth: "100%", marginTop: "1.6rem" }}>
-                ⚠️ {backendError}
+              <div className={styles.formErrorBanner} style={{ marginTop: "1.6rem" }}>
+                <span>⚠️ {backendError}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className={styles.toastSuccess} style={{ position: "static", maxWidth: "100%", marginTop: "1.6rem" }}>
-                {successMsg}
+              <div style={{
+                display: "flex", alignItems: "center", gap: "1rem",
+                padding: "1.2rem 1.6rem", borderRadius: "var(--radius-sm)",
+                background: "#dcfce7", color: "#166534",
+                border: "1px solid #86efac", fontSize: "1.4rem",
+                fontWeight: "600", marginTop: "1.6rem"
+              }}>
+                ✓ {successMsg}
               </div>
             )}
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "2rem",
-                paddingTop: "2rem",
-                borderTop: "1px solid var(--border-color)",
-              }}
-            >
-              <button
-                className={styles.btnSecondary}
-                onClick={() => goToTab(4)}
-                disabled={isSubmitting}
-              >
+            <div className={styles.modalActions} style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "1px solid var(--border-color)" }}>
+              <button className={styles.btnSecondary} onClick={() => goToTab(4)} disabled={isSubmitting}>
                 &larr; Atrás
               </button>
               <button
                 className={styles.btnPrimary}
                 onClick={handleSubmit}
                 disabled={isSubmitting}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.8rem" }}
               >
-                {isSubmitting ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.8rem" }}>
-                    <svg
-                      style={{
-                        width: "1.6rem",
-                        height: "1.6rem",
-                        animation: "spin 1s linear infinite",
-                        display: "inline-block",
-                      }}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
-                    </svg>
-                    Guardando expediente...
-                  </span>
-                ) : (
-                  "Guardar Expediente"
+                {isSubmitting && (
+                  <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
+                  </svg>
                 )}
+                <span>{isSubmitting ? "Guardando expediente..." : "Guardar Expediente"}</span>
               </button>
             </div>
           </div>

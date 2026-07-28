@@ -102,22 +102,26 @@ export function FarmaciaClient({ userId }: { userId: string }) {
       
       {/* Modal */}
       {isModalOpen && selectedConsulta && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal} style={{ maxWidth: "800px" }}>
+        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", width: "95%" }}>
             <div className={styles.modalHeader}>
-              <h3 style={{ fontSize: "2rem" }}>Registrar Entrega a Paciente</h3>
-              <button className={styles.modalClose} onClick={() => setIsModalOpen(false)}>
-                &times;
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Registrar Entrega a Paciente</h3>
+              <button className={styles.modalClose} onClick={() => setIsModalOpen(false)} title="Cerrar" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
             <div style={{ padding: "2.4rem" }}>
-              <div style={{ marginBottom: "2rem", color: "var(--gray)" }}>
+              <div className={styles.formSectionTitle}>1. Información del Paciente y Receta</div>
+              <div style={{ marginBottom: "2rem", color: "var(--gray)", fontSize: "1.4rem", background: "var(--bg-secondary)", padding: "1.2rem", borderRadius: "var(--radius-sm)" }}>
                 <strong>Paciente:</strong> {selectedConsulta.pacientes?.nombres} {selectedConsulta.pacientes?.apellidos} <br />
                 <strong>Fecha Receta:</strong> {new Date(selectedConsulta.created_at).toLocaleDateString()}
               </div>
 
-              <h3 style={{ marginBottom: "1rem", fontSize: "1.6rem" }}>Asignación de Lotes (Automático FEFO)</h3>
+              <div className={styles.formSectionTitle}>2. Asignación de Lotes (Automático FEFO)</div>
               <table className={styles.adminTable} style={{ marginBottom: "2rem" }}>
                 <thead>
                   <tr>
@@ -157,21 +161,24 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                 </tbody>
               </table>
 
-              <form className={styles.adminForm} onSubmit={(e) => { e.preventDefault(); handleConfirmarEntrega(); }}>
-                <div className={styles.formField} style={{ marginBottom: "2rem" }}>
-                  <label>Observaciones de Entrega</label>
+              <form className={styles.adminFormSingleColumn} onSubmit={(e) => { e.preventDefault(); handleConfirmarEntrega(); }}>
+                <div className={styles.formSectionTitle}>3. Observaciones y Confirmación</div>
+                <label className={styles.formField} style={{ marginBottom: "2rem" }}>
+                  <span className={styles.fieldLabel}>
+                    Observaciones de Entrega <span className={styles.optionalTag}>(Opcional)</span>
+                  </span>
                   <textarea 
                     rows={2} 
                     value={observaciones} 
                     onChange={(e) => setObservaciones(e.target.value)}
                     placeholder="Opcional: Ej. Paciente rechazó un medicamento..."
                   />
-                </div>
+                </label>
 
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.btnSecondary} onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary} style={{ background: "var(--success)" }} disabled={isSubmitting || fefoSuggestions.length === 0}>
-                    {isSubmitting ? "Procesando..." : "✅ Confirmar Entrega"}
+                  <button type="submit" className={styles.btnPrimary} disabled={isSubmitting || fefoSuggestions.length === 0}>
+                    {isSubmitting ? "Procesando Entrega..." : "Confirmar Entrega de Medicamentos"}
                   </button>
                 </div>
               </form>
@@ -312,8 +319,7 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                         </td>
                         <td>
                           <button 
-                            className={styles.btnPrimary} 
-                            style={{ background: "var(--success)" }}
+                            className={styles.btnPrimary}
                             onClick={() => openEntregaModal(p)}
                           >
                             Realizar Entrega

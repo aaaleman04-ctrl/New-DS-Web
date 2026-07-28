@@ -52,7 +52,7 @@ export async function AdminStats() {
       </div>
       <div className={styles.statCard}>
         <div className={styles.statHeader}><h3>Ventas Recaudadas</h3><span></span></div>
-        <p className={styles.statValue}>${ven?.ingresos || 0}</p>
+        <p className={styles.statValue}>L. {Number(ven?.ingresos || 0).toLocaleString("es-HN", { minimumFractionDigits: 2 })}</p>
         <p className={styles.statChange} style={{color: "var(--gray)", fontSize: "1.2rem", marginTop: "0.5rem"}}>{ven?.ventas || 0} ventas completadas</p>
       </div>
     </>
