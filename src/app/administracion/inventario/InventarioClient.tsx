@@ -153,20 +153,21 @@ export function InventarioClient() {
                     <td style={{ fontWeight: "bold", fontSize: "1.4rem" }}>{med.stock_total || 0}</td>
                     <td>{getStockBadge(med.estado_stock || "Sin Existencias")}</td>
                     <td>
-                      <div className={styles.tableActions}>
-                        <button 
-                          className={styles.linkBtn}
-                          onClick={() => handleOpenMedForm(med)}
-                        >
-                          Editar
-                        </button>
-                        <button 
-                          className={styles.btnSecondary}
-                          onClick={() => setSelectedMedLotes({ id: med.medicamento_id || med.id, nombre: med.nombre })}
-                        >
-                          Ver Lotes
-                        </button>
-                      </div>
+                        <div className={styles.tableActions}>
+                          <button 
+                            className={styles.btnSecondary}
+                            style={{ fontSize: "1.3rem" }}
+                            onClick={() => handleOpenMedForm(med)}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            className={styles.btnSecondary}
+                            onClick={() => setSelectedMedLotes({ id: med.medicamento_id || med.id, nombre: med.nombre })}
+                          >
+                            Ver Lotes
+                          </button>
+                        </div>
                     </td>
                   </tr>
                 ))
@@ -191,16 +192,24 @@ export function InventarioClient() {
           <div 
             className={styles.modal} 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "600px", width: "90%" }}
+            style={{ maxWidth: "640px", width: "95%" }}
           >
             <div className={styles.modalHeader}>
-              <h3>{selectedMedForEdit ? "Editar Medicamento" : "Nuevo Medicamento"}</h3>
-              <button className={styles.modalClose} onClick={handleCloseMedForm}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>
+                {selectedMedForEdit ? "Editar Medicamento o Insumo" : "Nuevo Medicamento o Insumo"}
+              </h3>
+              <button className={styles.modalClose} onClick={handleCloseMedForm} title="Cerrar" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
-            <div style={{ padding: "2rem" }}>
+            <div style={{ padding: "2.4rem" }}>
               <MedicamentoForm 
                 initialData={selectedMedForEdit} 
-                onSubmit={handleSubmitMed} 
+                onSubmit={handleSubmitMed}
+                onCancel={handleCloseMedForm}
                 isLoading={isSubmitting} 
               />
             </div>

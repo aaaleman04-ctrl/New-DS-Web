@@ -209,9 +209,9 @@ const categorias: CategoriaDef[] = [
     reportes: [
       {
         id: "top-donantes",
-        label: " Top de Donantes",
+        label: " Top Donantes por Año",
         descripcion:
-          "Insignia y muro de honor a los benefactores de la fundación.",
+          "Insignia y muro de honor a los benefactores de la fundación por periodo anual.",
         icon: (
           <svg {...iconProps}>
             <path

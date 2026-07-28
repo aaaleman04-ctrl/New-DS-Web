@@ -37,6 +37,10 @@ export function VentasClient({ userId }: { userId: string }) {
   const [prodForm, setProdForm] = useState({ categoria_id: "", codigo: "", nombre: "", descripcion: "", precio: 0, stock: 0 });
   const [stockForm, setStockForm] = useState({ id: "", nombre: "", stock: 0 });
 
+  // Delete target states
+  const [deleteCatTarget, setDeleteCatTarget] = useState<any>(null);
+  const [deleteProdTarget, setDeleteProdTarget] = useState<any>(null);
+
   // Venta state (Cart)
   const [ventaBrigadaId, setVentaBrigadaId] = useState("");
   const [ventaObservaciones, setVentaObservaciones] = useState("");
@@ -194,11 +198,11 @@ export function VentasClient({ userId }: { userId: string }) {
                 </div>
                 <div className={styles.statCard}>
                   <div className={styles.statHeader}><h3>Ingresos Totales</h3></div>
-                  <p className={styles.statValue} style={{ color: "var(--success)" }}>${Number(dashboard?.ingresos || 0).toFixed(2)}</p>
+                  <p className={styles.statValue} style={{ color: "var(--success)" }}>L. {Number(dashboard?.ingresos || 0).toFixed(2)}</p>
                 </div>
                 <div className={styles.statCard}>
                   <div className={styles.statHeader}><h3>Promedio por Venta</h3></div>
-                  <p className={styles.statValue}>${Number(dashboard?.promedio_venta || 0).toFixed(2)}</p>
+                  <p className={styles.statValue}>L. {Number(dashboard?.promedio_venta || 0).toFixed(2)}</p>
                 </div>
               </div>
 
@@ -247,7 +251,7 @@ export function VentasClient({ userId }: { userId: string }) {
                     }}>
                       <div style={{ fontSize: "1.2rem", color: "var(--gray)" }}>{p.codigo}</div>
                       <h4 style={{ margin: 0, fontSize: "1.6rem" }}>{p.nombre}</h4>
-                      <div style={{ fontSize: "1.8rem", fontWeight: "bold", color: "var(--success)" }}>${p.precio}</div>
+                      <div style={{ fontSize: "1.8rem", fontWeight: "bold", color: "var(--success)" }}>L. {p.precio}</div>
                       <div style={{ fontSize: "1.2rem", color: p.stock > 0 ? "var(--primaryColor)" : "var(--danger)" }}>
                         Stock: {p.stock}
                       </div>
@@ -265,8 +269,8 @@ export function VentasClient({ userId }: { userId: string }) {
               </div>
 
               {/* Carrito */}
-              <form className={styles.adminForm} style={{ background: "var(--white)", padding: "2.4rem", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)", position: "sticky", top: "2.4rem" }} onSubmit={confirmarVenta}>
-                <h3 style={{ marginBottom: "2rem", borderBottom: "1px solid var(--border-color)", paddingBottom: "1rem" }}>Resumen de Venta</h3>
+              <form className={styles.adminFormSingleColumn} style={{ background: "var(--white)", padding: "2.4rem", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-sm)", position: "sticky", top: "2.4rem" }} onSubmit={confirmarVenta}>
+                <h3 style={{ marginBottom: "2rem", borderBottom: "1px solid var(--border-color)", paddingBottom: "1rem", fontSize: "1.8rem", fontWeight: "700" }}>Resumen de Venta</h3>
                 
                 <div style={{ minHeight: "150px", marginBottom: "2rem" }}>
                   {cart.length === 0 ? <p style={{ color: "var(--gray)", textAlign: "center" }}>Carrito vacío</p> : 
@@ -280,11 +284,11 @@ export function VentasClient({ userId }: { userId: string }) {
                               onChange={(e) => updateCartQty(item.producto_id, Number(e.target.value))}
                               style={{ width: "60px", padding: "0.2rem" }}
                             />
-                            <span>x ${item.precio_unitario}</span>
+                            <span>x L. {item.precio_unitario}</span>
                           </div>
                         </div>
-                        <div style={{ fontWeight: "bold" }}>${(item.cantidad * item.precio_unitario).toFixed(2)}</div>
-                        <button type="button" onClick={() => removeFromCart(item.producto_id)} style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", marginLeft: "1rem" }}>X</button>
+                        <div style={{ fontWeight: "bold" }}>L. {(item.cantidad * item.precio_unitario).toFixed(2)}</div>
+                        <button type="button" onClick={() => removeFromCart(item.producto_id)} style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", marginLeft: "1rem", fontWeight: "bold" }}>✕</button>
                       </div>
                     ))
                   }
@@ -292,24 +296,35 @@ export function VentasClient({ userId }: { userId: string }) {
 
                 <div style={{ borderTop: "2px solid var(--border-color)", paddingTop: "1.6rem", marginBottom: "2rem", display: "flex", justifyContent: "space-between", fontSize: "2rem", fontWeight: "bold" }}>
                   <span>TOTAL:</span>
-                  <span style={{ color: "var(--success)" }}>${calcularTotalCarrito().toFixed(2)}</span>
+                  <span style={{ color: "var(--success)" }}>L. {calcularTotalCarrito().toFixed(2)}</span>
                 </div>
 
-                <div className={styles.formField} style={{ marginBottom: "1.6rem" }}>
-                  <label>Asociar a Brigada (Opcional)</label>
+                <label className={styles.formField} style={{ marginBottom: "1.6rem" }}>
+                  <span className={styles.fieldLabel}>Asociar a Brigada <span className={styles.optionalTag}>(Opcional)</span></span>
                   <select value={ventaBrigadaId} onChange={e => setVentaBrigadaId(e.target.value)}>
                     <option value="">-- Ninguna --</option>
                     {brigadas.map(b => <option key={b.id} value={b.id}>{b.nombre}</option>)}
                   </select>
-                </div>
+                </label>
 
-                <div className={styles.formField} style={{ marginBottom: "2rem" }}>
-                  <label>Observaciones</label>
+                <label className={styles.formField} style={{ marginBottom: "2rem" }}>
+                  <span className={styles.fieldLabel}>Observaciones <span className={styles.optionalTag}>(Opcional)</span></span>
                   <textarea rows={2} value={ventaObservaciones} onChange={e => setVentaObservaciones(e.target.value)} placeholder="Ej. Cliente pagó exacto..." />
-                </div>
+                </label>
 
-                <button type="submit" className={styles.btnPrimary} style={{ width: "100%", padding: "1.2rem", fontSize: "1.6rem", background: "var(--success)" }} disabled={cart.length === 0 || isSubmittingVenta}>
-                  {isSubmittingVenta ? "Procesando..." : "Confirmar Venta"}
+                <button
+                  type="submit"
+                  className={styles.btnPrimary}
+                  style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.8rem" }}
+                  disabled={cart.length === 0 || isSubmittingVenta}
+                >
+                  {isSubmittingVenta && (
+                    <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
+                    </svg>
+                  )}
+                  <span>{isSubmittingVenta ? "Procesando Venta..." : "Confirmar Venta"}</span>
                 </button>
               </form>
 
@@ -334,19 +349,11 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td>{c.descripcion}</td>
                         <td>
                           <button 
-                            className={styles.btnSecondary} 
-                            style={{ color: "var(--danger)", border: "none", padding: "0.4rem 0.8rem" }}
-                            onClick={async () => {
-                              if(confirm("¿Seguro que deseas eliminar esta categoría? (No debe tener productos asociados)")) {
-                                try {
-                                  const { deleteCategoriaProducto } = await import("@/lib/db/ventas");
-                                  await deleteCategoriaProducto(c.id);
-                                  fetchData();
-                                } catch (e: any) { alert("Error al eliminar: " + e.message); }
-                              }
-                            }}
+                            className={styles.btnDanger} 
+                            style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
+                            onClick={() => setDeleteCatTarget(c)}
                           >
-                            🗑️
+                            Eliminar
                           </button>
                         </td>
                       </tr>
@@ -368,24 +375,16 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td>{p.codigo}</td>
                         <td style={{fontWeight: "bold"}}>{p.nombre}</td>
                         <td>{p.categorias_productos?.nombre}</td>
-                        <td>${p.precio}</td>
+                        <td>L. {p.precio}</td>
                         <td style={{fontWeight: "bold", color: p.stock === 0 ? "var(--danger)" : "inherit"}}>{p.stock}</td>
-                        <td style={{ display: "flex", gap: "0.5rem" }}>
+                        <td style={{ display: "flex", gap: "0.8rem", alignItems: "center" }}>
                           <button className={styles.btnSecondary} onClick={() => { setStockForm({id: p.id, nombre: p.nombre, stock: p.stock}); setIsStockModalOpen(true); }}>Ajustar Stock</button>
                           <button 
-                            className={styles.btnSecondary} 
-                            style={{ color: "var(--danger)", border: "none" }}
-                            onClick={async () => {
-                              if(confirm("¿Seguro que deseas eliminar este producto? (No debe tener ventas asociadas)")) {
-                                try {
-                                  const { deleteProducto } = await import("@/lib/db/ventas");
-                                  await deleteProducto(p.id);
-                                  fetchData();
-                                } catch (e: any) { alert("Error al eliminar: " + e.message); }
-                              }
-                            }}
+                            className={styles.btnDanger} 
+                            style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
+                            onClick={() => setDeleteProdTarget(p)}
                           >
-                            🗑️
+                            Eliminar
                           </button>
                         </td>
                       </tr>
@@ -409,7 +408,7 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td>{new Date(v.fecha).toLocaleString()}</td>
                         <td style={{fontWeight: "bold"}}>{v.codigo}</td>
                         <td>{v.vendedor}</td>
-                        <td style={{fontWeight: "bold", fontSize: "1.4rem", color: "var(--success)"}}>${Number(v.total).toFixed(2)}</td>
+                        <td style={{fontWeight: "bold", fontSize: "1.4rem", color: "var(--success)"}}>L. {Number(v.total).toFixed(2)}</td>
                       </tr>
                     ))
                   }
@@ -422,105 +421,170 @@ export function VentasClient({ userId }: { userId: string }) {
 
       {/* MODAL CATEGORIA */}
       {isCatModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modal} ${styles.modalSm}`}>
+        <div className={styles.modalOverlay} onClick={() => setIsCatModalOpen(false)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Nueva Categoría</h3>
-              <button className={styles.modalClose} onClick={() => setIsCatModalOpen(false)}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Nueva Categoría de Producto</h3>
+              <button className={styles.modalClose} onClick={() => setIsCatModalOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "2.4rem" }}>
-              <form className={styles.adminForm} onSubmit={submitCategoria}>
-                <div className={styles.formField}>
-                  <label>Código *</label>
-                  <input value={catForm.codigo} onChange={e => setCatForm({...catForm, codigo: e.target.value.toUpperCase()})} placeholder="Ej. CAM" required maxLength={15} />
-                </div>
-                <div className={styles.formField}>
-                  <label>Nombre *</label>
-                  <input value={catForm.nombre} onChange={e => setCatForm({...catForm, nombre: e.target.value})} placeholder="Ej. Camisetas" required />
-                </div>
-                <div className={styles.formField}>
-                  <label>Descripción</label>
-                  <textarea rows={2} value={catForm.descripcion} onChange={e => setCatForm({...catForm, descripcion: e.target.value})} />
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setIsCatModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary}>Guardar</button>
-                </div>
-              </form>
-            </div>
+            <form className={styles.adminFormSingleColumn} onSubmit={submitCategoria} style={{ padding: "2.4rem" }}>
+              <div className={styles.formSectionTitle}>1. Clasificación de Recaudación</div>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Código de Categoría <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input value={catForm.codigo} onChange={e => setCatForm({...catForm, codigo: e.target.value.toUpperCase()})} placeholder="Ej. CAM" required maxLength={15} />
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nombre de Categoría <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input value={catForm.nombre} onChange={e => setCatForm({...catForm, nombre: e.target.value})} placeholder="Ej. Camisetas" required />
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Descripción <span className={styles.optionalTag}>(Opcional)</span></span>
+                <textarea rows={2} value={catForm.descripcion} onChange={e => setCatForm({...catForm, descripcion: e.target.value})} />
+              </label>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setIsCatModalOpen(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary}>Guardar Categoría</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* MODAL PRODUCTO */}
       {isProdModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modal} ${styles.modalSm}`}>
+        <div className={styles.modalOverlay} onClick={() => setIsProdModalOpen(false)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Nuevo Producto</h3>
-              <button className={styles.modalClose} onClick={() => setIsProdModalOpen(false)}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Nuevo Producto de Recaudación</h3>
+              <button className={styles.modalClose} onClick={() => setIsProdModalOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "2.4rem" }}>
-              <form className={styles.adminForm} onSubmit={submitProducto}>
-                <div className={styles.formField}>
-                  <label>Categoría *</label>
-                  <select value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} required>
-                    <option value="">-- Seleccionar --</option>
-                    {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-                  </select>
-                </div>
-                <div className={styles.formField}>
-                  <label>Código *</label>
-                  <input value={prodForm.codigo} onChange={e => setProdForm({...prodForm, codigo: e.target.value.toUpperCase()})} placeholder="Ej. CAM-001" required />
-                </div>
-                <div className={styles.formField}>
-                  <label>Nombre *</label>
-                  <input value={prodForm.nombre} onChange={e => setProdForm({...prodForm, nombre: e.target.value})} placeholder="Ej. Camiseta Oficial Blanca" required />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className={styles.formField}>
-                    <label>Precio ($) *</label>
-                    <input type="number" step="0.01" min="0" value={prodForm.precio} onChange={e => setProdForm({...prodForm, precio: Number(e.target.value)})} required />
-                  </div>
-                  <div className={styles.formField}>
-                    <label>Stock Inicial *</label>
-                    <input type="number" min="0" value={prodForm.stock} onChange={e => setProdForm({...prodForm, stock: Number(e.target.value)})} required />
-                  </div>
-                </div>
-                <div className={styles.formField}>
-                  <label>Descripción</label>
-                  <textarea rows={2} value={prodForm.descripcion} onChange={e => setProdForm({...prodForm, descripcion: e.target.value})} />
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setIsProdModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary}>Guardar Producto</button>
-                </div>
-              </form>
-            </div>
+            <form className={styles.adminFormSingleColumn} onSubmit={submitProducto} style={{ padding: "2.4rem" }}>
+              <div className={styles.formSectionTitle}>1. Información del Producto</div>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Categoría <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <select value={prodForm.categoria_id} onChange={e => setProdForm({...prodForm, categoria_id: e.target.value})} required>
+                  <option value="">-- Seleccionar --</option>
+                  {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Código Identificador <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input value={prodForm.codigo} onChange={e => setProdForm({...prodForm, codigo: e.target.value.toUpperCase()})} placeholder="Ej. CAM-001" required />
+              </label>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nombre del Producto <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input value={prodForm.nombre} onChange={e => setProdForm({...prodForm, nombre: e.target.value})} placeholder="Ej. Camiseta Oficial Blanca" required />
+              </label>
+              <div className={styles.formSectionTitle}>2. Precio y Existencias</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
+                <label className={styles.formField}>
+                  <span className={styles.fieldLabel}>Precio (L.) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                  <input type="number" step="0.01" min="0" value={prodForm.precio} onChange={e => setProdForm({...prodForm, precio: Number(e.target.value)})} required />
+                </label>
+                <label className={styles.formField}>
+                  <span className={styles.fieldLabel}>Stock Inicial <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                  <input type="number" min="0" value={prodForm.stock} onChange={e => setProdForm({...prodForm, stock: Number(e.target.value)})} required />
+                </label>
+              </div>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Descripción <span className={styles.optionalTag}>(Opcional)</span></span>
+                <textarea rows={2} value={prodForm.descripcion} onChange={e => setProdForm({...prodForm, descripcion: e.target.value})} />
+              </label>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setIsProdModalOpen(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary}>Guardar Producto</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
       {/* MODAL AJUSTAR STOCK */}
       {isStockModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={`${styles.modal} ${styles.modalSm}`}>
+        <div className={styles.modalOverlay} onClick={() => setIsStockModalOpen(false)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Ajustar Stock</h3>
-              <button className={styles.modalClose} onClick={() => setIsStockModalOpen(false)}>&times;</button>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Ajustar Stock Físico</h3>
+              <button className={styles.modalClose} onClick={() => setIsStockModalOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "2.4rem" }}>
-              <p style={{ marginBottom: "1rem" }}>Actualizando stock para: <strong>{stockForm.nombre}</strong></p>
-              <form className={styles.adminForm} onSubmit={submitStock}>
-                <div className={styles.formField}>
-                  <label>Nuevo Nivel de Stock (Físico) *</label>
-                  <input type="number" min="0" value={stockForm.stock} onChange={e => setStockForm({...stockForm, stock: Number(e.target.value)})} required />
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setIsStockModalOpen(false)}>Cancelar</button>
-                  <button type="submit" className={styles.btnPrimary}>Actualizar Stock</button>
-                </div>
-              </form>
+            <form className={styles.adminFormSingleColumn} onSubmit={submitStock} style={{ padding: "2.4rem" }}>
+              <p style={{ marginBottom: "1.6rem", fontSize: "1.4rem", color: "var(--text-muted)" }}>
+                Actualizando existencias para: <strong>{stockForm.nombre}</strong>
+              </p>
+              <label className={styles.formField}>
+                <span className={styles.fieldLabel}>Nuevo Nivel de Stock <strong className={styles.requiredStar}>* (Requerido)</strong></span>
+                <input type="number" min="0" value={stockForm.stock} onChange={e => setStockForm({...stockForm, stock: Number(e.target.value)})} required />
+              </label>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setIsStockModalOpen(false)}>Cancelar</button>
+                <button type="submit" className={styles.btnPrimary}>Actualizar Stock</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ADVERTENCIA ELIMINAR CATEGORÍA */}
+      {deleteCatTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteCatTarget(null)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className={styles.modalHeader}>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#dc2626" }}>¿Eliminar Categoría?</h3>
+            </div>
+            <p style={{ padding: "1.6rem 0", color: "var(--text-color)", fontSize: "1.4rem", lineHeight: "1.6" }}>
+              ¿Estás seguro de que deseas eliminar la categoría <strong>{deleteCatTarget.nombre}</strong>? (No debe tener productos asociados). Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={() => setDeleteCatTarget(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={async () => {
+                  try {
+                    const { deleteCategoriaProducto } = await import("@/lib/db/ventas");
+                    await deleteCategoriaProducto(deleteCatTarget.id);
+                    setDeleteCatTarget(null);
+                    fetchData();
+                  } catch (e: any) { alert("Error al eliminar: " + e.message); }
+                }}
+              >
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ADVERTENCIA ELIMINAR PRODUCTO */}
+      {deleteProdTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteProdTarget(null)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className={styles.modalHeader}>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#dc2626" }}>¿Eliminar Producto?</h3>
+            </div>
+            <p style={{ padding: "1.6rem 0", color: "var(--text-color)", fontSize: "1.4rem", lineHeight: "1.6" }}>
+              ¿Estás seguro de que deseas eliminar el producto <strong>{deleteProdTarget.nombre}</strong>? (No debe tener ventas asociadas). Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={() => setDeleteProdTarget(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={async () => {
+                  try {
+                    const { deleteProducto } = await import("@/lib/db/ventas");
+                    await deleteProducto(deleteProdTarget.id);
+                    setDeleteProdTarget(null);
+                    fetchData();
+                  } catch (e: any) { alert("Error al eliminar: " + e.message); }
+                }}
+              >
+                Sí, Eliminar
+              </button>
             </div>
           </div>
         </div>
@@ -529,3 +593,4 @@ export function VentasClient({ userId }: { userId: string }) {
     </div>
   );
 }
+

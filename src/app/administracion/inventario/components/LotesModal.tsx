@@ -90,21 +90,25 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
     }
   };
 
-  const handleDelete = async (lote: LoteMedicamento) => {
+  const [deleteTarget, setDeleteTarget] = useState<LoteMedicamento | null>(null);
+
+  const handleDelete = (lote: LoteMedicamento) => {
     if (lote.cantidad_actual !== lote.cantidad_inicial) {
       alert("No se puede eliminar un lote que ya ha sido utilizado (cantidad actual difiere de inicial).");
       return;
     }
-    
-    if (confirm(`¿Estás seguro de eliminar el lote ${lote.numero_lote}?`)) {
-      try {
-        await deleteLote(lote.id);
-        alert("Lote eliminado exitosamente");
-        fetchLotes();
-        if (onLotesChanged) onLotesChanged();
-      } catch (_error) {
-        alert("Error al eliminar el lote");
-      }
+    setDeleteTarget(lote);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteLote(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchLotes();
+      if (onLotesChanged) onLotesChanged();
+    } catch (_error) {
+      alert("Error al eliminar el lote");
     }
   };
 
@@ -225,6 +229,29 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
           )}
         </div>
       </div>
+
+      {/* Modal Confirmación de Eliminación de Lote */}
+      {deleteTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteTarget(null)}>
+          <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()} role="alertdialog">
+            <div className={styles.modalHeader}>
+              <h3 style={{ fontSize: "1.8rem", fontWeight: "700", color: "#dc2626" }}>¿Eliminar Lote?</h3>
+            </div>
+            <p style={{ padding: "1.6rem 0", color: "var(--text-color)", fontSize: "1.4rem", lineHeight: "1.6" }}>
+              ¿Estás seguro de que deseas eliminar el lote <strong>{deleteTarget.numero_lote}</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.btnSecondary} onClick={() => setDeleteTarget(null)}>
+                Cancelar
+              </button>
+              <button type="button" className={styles.btnDanger} onClick={confirmDelete}>
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
