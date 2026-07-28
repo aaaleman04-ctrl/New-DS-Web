@@ -312,8 +312,19 @@ export function VentasClient({ userId }: { userId: string }) {
                   <textarea rows={2} value={ventaObservaciones} onChange={e => setVentaObservaciones(e.target.value)} placeholder="Ej. Cliente pagó exacto..." />
                 </label>
 
-                <button type="submit" className={styles.btnPrimary} style={{ width: "100%", padding: "1.2rem", fontSize: "1.6rem" }} disabled={cart.length === 0 || isSubmittingVenta}>
-                  {isSubmittingVenta ? "Procesando..." : "Confirmar Venta"}
+                <button
+                  type="submit"
+                  className={styles.btnPrimary}
+                  style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.8rem" }}
+                  disabled={cart.length === 0 || isSubmittingVenta}
+                >
+                  {isSubmittingVenta && (
+                    <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
+                    </svg>
+                  )}
+                  <span>{isSubmittingVenta ? "Procesando Venta..." : "Confirmar Venta"}</span>
                 </button>
               </form>
 

@@ -5,10 +5,11 @@ import styles from "@/styles/pages/admin.module.css";
 interface MedicamentoFormProps {
   initialData?: any;
   onSubmit: (data: InsertMedicamento) => Promise<void>;
+  onCancel?: () => void;
   isLoading: boolean;
 }
 
-export function MedicamentoForm({ initialData, onSubmit, isLoading }: MedicamentoFormProps) {
+export function MedicamentoForm({ initialData, onSubmit, onCancel, isLoading }: MedicamentoFormProps) {
   const [formData, setFormData] = useState<InsertMedicamento>({
     nombre: initialData?.nombre || "",
     descripcion: initialData?.descripcion || "",
@@ -90,8 +91,21 @@ export function MedicamentoForm({ initialData, onSubmit, isLoading }: Medicament
       </label>
 
       <div className={styles.modalActions} style={{ marginTop: "1.6rem" }}>
-        <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
-          {isLoading ? "Guardando Medicamento..." : "Guardar Medicamento"}
+        {onCancel && (
+          <button type="button" className={styles.btnSecondary} onClick={onCancel} disabled={isLoading}>
+            Cancelar
+          </button>
+        )}
+        <button type="submit" className={styles.btnPrimary} disabled={isLoading}
+          style={{ display: "inline-flex", alignItems: "center", gap: "0.8rem" }}
+        >
+          {isLoading && (
+            <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
+            </svg>
+          )}
+          <span>{isLoading ? "Guardando Medicamento..." : "Guardar Medicamento"}</span>
         </button>
       </div>
     </form>

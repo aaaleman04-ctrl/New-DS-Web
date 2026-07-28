@@ -167,7 +167,7 @@ export function ActividadesClient({ userId }: { userId: string }) {
                         <td style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{act.cantidad_regalos}</td>
                         <td style={{ fontWeight: "bold", fontSize: "1.2rem", color: "var(--primaryColor)" }}>{act.total_ninos}</td>
                         <td>
-                          <button className={styles.btnSecondary} onClick={() => openParticipantesModal(act.id)}>
+                          <button className={styles.btnPrimary} onClick={() => openParticipantesModal(act.id)}>
                             + Sumar Niños
                           </button>
                         </td>
@@ -216,7 +216,12 @@ export function ActividadesClient({ userId }: { userId: string }) {
           <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Crear Actividad Infantil</h3>
-              <button className={styles.modalClose} onClick={() => setIsActividadModalOpen(false)}>✕</button>
+              <button className={styles.modalClose} onClick={() => setIsActividadModalOpen(false)} title="Cerrar" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
             <form className={styles.adminFormSingleColumn} style={{ padding: "2.4rem" }} onSubmit={(e) => { e.preventDefault(); submitActividad(); }}>
               <div className={styles.formSectionTitle}>1. Vinculación y Datos de la Actividad</div>
@@ -263,7 +268,12 @@ export function ActividadesClient({ userId }: { userId: string }) {
           <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Registrar Asistencia de Niños</h3>
-              <button className={styles.modalClose} onClick={() => setIsParticipantesModalOpen(false)}>✕</button>
+              <button className={styles.modalClose} onClick={() => setIsParticipantesModalOpen(false)} title="Cerrar" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
             <form className={styles.adminFormSingleColumn} style={{ padding: "2.4rem" }} onSubmit={(e) => { e.preventDefault(); submitParticipantes(); }}>
               <p style={{ marginBottom: "1.6rem", color: "var(--gray)", fontSize: "1.4rem" }}>

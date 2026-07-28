@@ -106,8 +106,11 @@ export function FarmaciaClient({ userId }: { userId: string }) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", width: "95%" }}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Registrar Entrega a Paciente</h3>
-              <button className={styles.modalClose} onClick={() => setIsModalOpen(false)}>
-                ✕
+              <button className={styles.modalClose} onClick={() => setIsModalOpen(false)} title="Cerrar" aria-label="Cerrar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
@@ -316,8 +319,7 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                         </td>
                         <td>
                           <button 
-                            className={styles.btnPrimary} 
-                            style={{ background: "var(--success)" }}
+                            className={styles.btnPrimary}
                             onClick={() => openEntregaModal(p)}
                           >
                             Realizar Entrega
