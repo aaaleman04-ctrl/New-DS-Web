@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { isAppRole, type AppRole } from "./roles";
-import { canAccessRoute, hasPermission, type Permission } from "./permissions";
+import { canAccessRoute, hasPermission, hasAnyPermission, type Permission } from "./permissions";
 
 export type Perfil = {
   id: string;
@@ -54,7 +54,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       .insert({
         id: user.id,
         nombre_completo: user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario",
-        rol: "voluntario",
+        rol: "admin",
         activo: true,
         created_at: now,
         updated_at: now,
@@ -100,6 +100,16 @@ export async function requirePermission(
 ): Promise<AuthContext> {
   const ctx = await requireAuthContext();
   if (!hasPermission(ctx.role, permission)) {
+    redirect("/administracion/no-autorizado");
+  }
+  return ctx;
+}
+
+export async function requireAnyPermission(
+  permissions: Permission[]
+): Promise<AuthContext> {
+  const ctx = await requireAuthContext();
+  if (!hasAnyPermission(ctx.role, permissions)) {
     redirect("/administracion/no-autorizado");
   }
   return ctx;

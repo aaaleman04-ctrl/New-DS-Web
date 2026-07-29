@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LoteMedicamento } from "@/lib/db/inventario";
+import type { LoteMedicamento } from "@/lib/db/inventario";
 import styles from "@/styles/pages/admin.module.css";
 
 export interface LoteFormValues {

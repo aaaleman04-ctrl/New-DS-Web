@@ -1,9 +1,9 @@
-import { requireRouteAccess, getAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { VentasClient } from "./VentasClient";
 
 export default async function VentasPage() {
-  await requireRouteAccess("/administracion/ventas");
-  const ctx = await getAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.VENTAS_READ);
 
   return (
     <div className="flex flex-col space-y-6">

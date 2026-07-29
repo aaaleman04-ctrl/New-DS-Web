@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getBrigadas } from "@/lib/db/brigadas";
-import { getMedicamentos } from "@/lib/db/inventario";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
+import { getMedicamentosAction as getMedicamentos } from "@/app/administracion/inventario/actions";
 import { supabase } from "@/lib/supabase";
-import { createExpedienteCompleto } from "@/lib/db/pacientes";
+import { createExpedienteCompletoAction as createExpedienteCompleto } from "../actions";
 import styles from "@/styles/pages/admin.module.css";
 
 export function NuevoExpedienteClient() {
@@ -96,7 +96,8 @@ export function NuevoExpedienteClient() {
           const activeBrigadas =
             bRes.data?.filter((b: any) => b.estado !== "finalizada" && b.estado !== "cancelada") || [];
           setBrigadas(activeBrigadas);
-          setMedicamentosList(mRes || []);
+          const prescribibles = (mRes || []).filter((m: any) => m.tipo_recurso !== "material_brigada");
+          setMedicamentosList(prescribibles);
 
           const allProfiles = pRes.data || [];
           const activeMedicos = allProfiles.filter((v: any) => {
@@ -107,7 +108,7 @@ export function NuevoExpedienteClient() {
             const espNombre = (v.especialidades?.nombre || "").toLowerCase();
             const nombre = (v.nombre_completo || "").toLowerCase();
 
-            if (rol === "medico" || rol === "odontologo" || rol === "enfermero" || rol === "doctor") {
+            if (rol === "atencion_pacientes" || rol === "admin" || rol === "coordinador") {
               return true;
             }
 

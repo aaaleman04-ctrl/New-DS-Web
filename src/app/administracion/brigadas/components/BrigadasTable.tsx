@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from "react";
 import type { Brigada, EstadoBrigada } from "@/lib/db/brigadas";
 import styles from "@/styles/pages/admin.module.css";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 type BrigadasTableProps = {
   brigadas: Brigada[];
@@ -39,6 +41,7 @@ export default function BrigadasTable({
   onEdit,
   onDelete,
 }: BrigadasTableProps) {
+  const { can } = usePermissions();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
@@ -257,20 +260,24 @@ export default function BrigadasTable({
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         <div className={styles.tableActions}>
-                          <button
-                            type="button"
-                            className={styles.linkBtn}
-                            onClick={() => onEdit(b)}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.linkBtnDanger}
-                            onClick={() => onDelete(b)}
-                          >
-                            Eliminar
-                          </button>
+                          {can(PERMISSIONS.BRIGADAS_UPDATE) && (
+                            <button
+                              type="button"
+                              className={styles.linkBtn}
+                              onClick={() => onEdit(b)}
+                            >
+                              Editar
+                            </button>
+                          )}
+                          {can(PERMISSIONS.BRIGADAS_DELETE) && (
+                            <button
+                              type="button"
+                              className={styles.linkBtnDanger}
+                              onClick={() => onDelete(b)}
+                            >
+                              Eliminar
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

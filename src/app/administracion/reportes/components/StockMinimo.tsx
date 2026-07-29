@@ -36,34 +36,25 @@ export default function StockMinimo() {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from("medicamentos")
+          .from("stock_actual")
           .select(`
-            id,
-            codigo,
+            medicamento_id,
             nombre,
+            descripcion,
             unidad_medida,
             stock_minimo,
-            stock_actual,
-            categorias_inventario (
-              nombre
-            )
+            stock_total,
+            estado_stock,
+            tipo_recurso
           `);
         if (error) throw error;
 
-        let formatted: StockMinimoData[] = (data || []).map((m: {
-          id: string;
-          codigo: string | null;
-          nombre: string;
-          unidad_medida: string | null;
-          stock_minimo: number | null;
-          stock_actual: number | null;
-          categorias_inventario: { nombre: string } | null;
-        }) => {
+        let formatted: StockMinimoData[] = (data || []).map((m: any) => {
           return {
-            id: m.codigo || m.id.slice(0, 8).toUpperCase(),
+            id: m.medicamento_id?.slice(0, 8).toUpperCase(),
             nombre: m.nombre,
-            categoria: m.categorias_inventario?.nombre || "Sin Categoría",
-            stockActual: m.stock_actual || 0,
+            categoria: m.tipo_recurso === "insumo_medico" ? "Insumos Médicos" : (m.tipo_recurso === "material_brigada" ? "Material Brigada" : "Medicamentos"),
+            stockActual: m.stock_total || 0,
             stockMinimo: m.stock_minimo || 0,
             unidad: m.unidad_medida || "uds",
             ubicacion: "Farmacia Central",

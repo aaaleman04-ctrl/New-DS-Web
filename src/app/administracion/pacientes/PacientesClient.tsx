@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getPacientesAtendidos, getPacientesDashboard } from "@/lib/db/pacientes";
-import { getBrigadas } from "@/lib/db/brigadas";
+import {
+  getPacientesAtendidosAction as getPacientesAtendidos,
+  getPacientesDashboardAction as getPacientesDashboard,
+} from "./actions";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
 import styles from "@/styles/pages/admin.module.css";
 import { useRouter } from "next/navigation";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function PacientesClient() {
+  const { can } = usePermissions();
   const router = useRouter();
   const [pacientes, setPacientes] = useState<any[]>([]);
   const [dashboard, setDashboard] = useState<any>(null);
@@ -82,12 +88,14 @@ export function PacientesClient() {
             </p>
           </div>
           <div>
-            <button 
-              className={styles.btnPrimary} 
-              onClick={() => router.push("/administracion/pacientes/nuevo")}
-            >
-              + Nuevo Expediente
-            </button>
+            {can(PERMISSIONS.PACIENTES_CREATE) && (
+              <button 
+                className={styles.btnPrimary} 
+                onClick={() => router.push("/administracion/pacientes/nuevo")}
+              >
+                + Nuevo Expediente
+              </button>
+            )}
           </div>
         </div>
 

@@ -16,8 +16,14 @@ export default function RoleBadge({ role }: RoleBadgeProps) {
     case "coordinador":
       badgeClass = styles.badgeInfo;
       break;
-    case "voluntario":
-      badgeClass = styles.badgeSuccess;
+    case "atencion_pacientes":
+      badgeClass = styles.badgePrimary;
+      break;
+    case "encargado_farmacia":
+      badgeClass = styles.badgeWarning;
+      break;
+    case "encargado_bodega":
+      badgeClass = styles.badgeSecondary;
       break;
   }
 

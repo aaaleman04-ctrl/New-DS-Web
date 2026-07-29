@@ -1,7 +1,9 @@
 import { supabase } from "../supabase";
+import { assertPermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
-export async function getDashboardActividades() {
-  const { data, error } = await supabase
+export async function getDashboardActividades(client: any = supabase) {
+  const { data, error } = await client
     .from("dashboard_actividades")
     .select("*")
     .single();
@@ -13,9 +15,8 @@ export async function getDashboardActividades() {
   return data;
 }
 
-export async function getActividades() {
-  // Query actividades and calculate the sum of niños from participantes_actividad
-  const { data, error } = await supabase
+export async function getActividades(client: any = supabase) {
+  const { data, error } = await client
     .from("actividades_infantiles")
     .select(`
       id,
@@ -34,7 +35,6 @@ export async function getActividades() {
     return [];
   }
 
-  // Calculate sum in memory for each activity
   return data.map((act: any) => {
     const totalNinos = act.participantes_actividad?.reduce((sum: number, p: any) => sum + p.cantidad_ninos, 0) || 0;
     return {
@@ -44,8 +44,9 @@ export async function getActividades() {
   });
 }
 
-export async function createActividad(actividad: { brigada_id: string, nombre: string, descripcion: string, cantidad_regalos: number, responsable_id: string }) {
-  const { data, error } = await supabase
+export async function createActividad(actividad: { brigada_id: string, nombre: string, descripcion: string, cantidad_regalos: number, responsable_id: string }, client: any = supabase) {
+  await assertPermission(PERMISSIONS.ACTIVIDADES_CREATE);
+  const { data, error } = await client
     .from("actividades_infantiles")
     .insert([actividad])
     .select()
@@ -57,12 +58,13 @@ export async function createActividad(actividad: { brigada_id: string, nombre: s
   return data;
 }
 
-export async function addParticipantesActividad(actividadId: string, cantidadNinos: number) {
+export async function addParticipantesActividad(actividadId: string, cantidadNinos: number, client: any = supabase) {
+  await assertPermission(PERMISSIONS.ACTIVIDADES_UPDATE);
   if (cantidadNinos <= 0) {
     throw new Error("La cantidad de niños debe ser mayor a 0");
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("participantes_actividad")
     .insert([{ actividad_id: actividadId, cantidad_ninos: cantidadNinos }])
     .select()

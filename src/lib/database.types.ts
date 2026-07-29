@@ -936,6 +936,7 @@ export type Database = {
           requiere_receta: boolean | null
           stock_actual: number
           stock_minimo: number | null
+          tipo_recurso: "medicamento" | "insumo_medico" | "material_brigada"
           unidad_medida: string | null
           updated_at: string | null
         }
@@ -951,6 +952,7 @@ export type Database = {
           requiere_receta?: boolean | null
           stock_actual?: number
           stock_minimo?: number | null
+          tipo_recurso?: "medicamento" | "insumo_medico" | "material_brigada"
           unidad_medida?: string | null
           updated_at?: string | null
         }
@@ -966,6 +968,7 @@ export type Database = {
           requiere_receta?: boolean | null
           stock_actual?: number
           stock_minimo?: number | null
+          tipo_recurso?: "medicamento" | "insumo_medico" | "material_brigada"
           unidad_medida?: string | null
           updated_at?: string | null
         }
@@ -1668,6 +1671,7 @@ export type Database = {
           nombre: string | null
           stock_minimo: number | null
           stock_total: number | null
+          tipo_recurso: "medicamento" | "insumo_medico" | "material_brigada" | null
           unidad_medida: string | null
         }
         Relationships: []
@@ -1809,15 +1813,9 @@ export type Database = {
       user_role:
         | "admin"
         | "coordinador"
-        | "medico"
-        | "odontologo"
-        | "enfermero"
-        | "farmacia"
-        | "inventario"
-        | "donaciones"
-        | "actividades"
-        | "ventas"
-        | "voluntario"
+        | "atencion_pacientes"
+        | "encargado_farmacia"
+        | "encargado_bodega"
     }
     CompositeTypes: {
       [_ in never]: never

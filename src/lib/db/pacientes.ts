@@ -1,5 +1,7 @@
 import { supabase } from "../supabase";
 import { Database } from "../database.types";
+import { assertPermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export type Paciente = Database["public"]["Tables"]["pacientes"]["Row"];
 export type InsertPaciente = Database["public"]["Tables"]["pacientes"]["Insert"];
@@ -17,8 +19,8 @@ export type InsertDiagnostico = Database["public"]["Tables"]["diagnosticos_consu
 export type MedicamentoConsulta = Database["public"]["Tables"]["medicamentos_consulta"]["Row"];
 export type InsertMedicamentoConsulta = Database["public"]["Tables"]["medicamentos_consulta"]["Insert"];
 
-export async function getPacientesDashboard() {
-  const { data, error } = await supabase
+export async function getPacientesDashboard(client: any = supabase) {
+  const { data, error } = await client
     .from("dashboard_pacientes")
     .select("*")
     .single();
@@ -30,8 +32,8 @@ export async function getPacientesDashboard() {
   return data;
 }
 
-export async function getPacientesAtendidos() {
-  const { data, error } = await supabase
+export async function getPacientesAtendidos(client: any = supabase) {
+  const { data, error } = await client
     .from("v_pacientes_atendidos")
     .select("*")
     .order("created_at", { ascending: false });
@@ -43,8 +45,8 @@ export async function getPacientesAtendidos() {
   return data;
 }
 
-export async function getPacienteDetalle(id: string) {
-  const { data: paciente, error: errorPaciente } = await supabase
+export async function getPacienteDetalle(id: string, client: any = supabase) {
+  const { data: paciente, error: errorPaciente } = await client
     .from("pacientes")
     .select("*")
     .eq("id", id)
@@ -52,13 +54,13 @@ export async function getPacienteDetalle(id: string) {
 
   if (errorPaciente) throw errorPaciente;
 
-  const { data: signos } = await supabase
+  const { data: signos } = await client
     .from("signos_vitales")
     .select("*")
     .eq("paciente_id", id)
     .single();
 
-  const { data: consultas } = await supabase
+  const { data: consultas } = await client
     .from("consultas")
     .select(`
       *,
@@ -71,17 +73,17 @@ export async function getPacienteDetalle(id: string) {
   return { paciente, signos, consultas: consultas || [] };
 }
 
-// Transaction-like approach for creating a full patient record
 export async function createExpedienteCompleto(
   paciente: InsertPaciente,
   signos: Partial<InsertSignosVitales> | null,
   consulta: Partial<InsertConsulta> | null,
   diagnosticos: string[],
-  medicamentos: Partial<InsertMedicamentoConsulta>[]
+  medicamentos: Partial<InsertMedicamentoConsulta>[],
+  client: any = supabase
 ) {
-  // 1. Auto-generate PAC-B{num}{corr} patient code
+  await assertPermission(PERMISSIONS.PACIENTES_CREATE);
   if (paciente.brigada_id) {
-    const { data: brigada } = await supabase
+    const { data: brigada } = await client
       .from("brigadas")
       .select("codigo")
       .eq("id", paciente.brigada_id)
@@ -90,7 +92,7 @@ export async function createExpedienteCompleto(
     const parsedNum = brigada?.codigo?.replace(/\D/g, "") || "1";
     const numInt = parseInt(parsedNum, 10) || 1;
 
-    const { count } = await supabase
+    const { count } = await client
       .from("pacientes")
       .select("*", { count: "exact", head: true })
       .eq("brigada_id", paciente.brigada_id);
@@ -99,7 +101,7 @@ export async function createExpedienteCompleto(
     paciente.codigo = `PAC-B${numInt}${String(correlativo).padStart(3, "0")}`;
   }
 
-  const { data: newPaciente, error: errPac } = await supabase
+  const { data: newPaciente, error: errPac } = await client
     .from("pacientes")
     .insert(paciente)
     .select()
@@ -109,18 +111,16 @@ export async function createExpedienteCompleto(
 
   const pacienteId = newPaciente.id;
 
-  // 2. Create Signos Vitales
   if (signos && Object.keys(signos).length > 0) {
-    const { error: errSig } = await supabase
+    const { error: errSig } = await client
       .from("signos_vitales")
       .insert({ ...signos, paciente_id: pacienteId } as InsertSignosVitales);
     
     if (errSig) console.error("Error signos:", errSig);
   }
 
-  // 3. Create Consulta
   if (consulta && consulta.tipo_consulta && consulta.brigada_id && consulta.medico_id) {
-    const { data: newConsulta, error: errCons } = await supabase
+    const { data: newConsulta, error: errCons } = await client
       .from("consultas")
       .insert({ ...consulta, paciente_id: pacienteId } as InsertConsulta)
       .select()
@@ -130,30 +130,29 @@ export async function createExpedienteCompleto(
 
     const consultaId = newConsulta.id;
 
-    // 4. Create Diagnosticos
     if (diagnosticos.length > 0) {
       const diagInserts = diagnosticos.map(d => ({
         consulta_id: consultaId,
         diagnostico: d
       }));
-      await supabase.from("diagnosticos_consulta").insert(diagInserts);
+      await client.from("diagnosticos_consulta").insert(diagInserts);
     }
 
-    // 5. Create Medicamentos
     if (medicamentos.length > 0) {
       const medInserts = medicamentos.map(m => ({
         ...m,
         consulta_id: consultaId
       })) as InsertMedicamentoConsulta[];
-      await supabase.from("medicamentos_consulta").insert(medInserts);
+      await client.from("medicamentos_consulta").insert(medInserts);
     }
   }
 
   return newPaciente;
 }
 
-export async function deletePaciente(id: string) {
-  const { error } = await supabase
+export async function deletePaciente(id: string, client: any = supabase) {
+  await assertPermission(PERMISSIONS.PACIENTES_DELETE);
+  const { error } = await client
     .from("pacientes")
     .delete()
     .eq("id", id);

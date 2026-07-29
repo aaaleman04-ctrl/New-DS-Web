@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/auth/actions";
 import { adminModules } from "./navModules";
 import { usePermissions } from "./PermissionsProvider";
-import { canAccessRoute } from "@/lib/auth/permissions";
+import {
+  hasPermission,
+  hasAnyPermission,
+  MODULE_PERMISSIONS,
+} from "@/lib/auth/permissions";
 import styles from "@/styles/pages/admin.module.css";
 
 interface SideBarProps {
@@ -17,11 +21,15 @@ interface SideBarProps {
 
 export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: SideBarProps) {
   const pathname = usePathname();
-  const { role, specialtyName } = usePermissions();
+  const { role } = usePermissions();
 
-  const visibleModules = adminModules.filter((link) =>
-    canAccessRoute(role, link.href, specialtyName)
-  );
+  const visibleModules = adminModules.filter((link) => {
+    const required = MODULE_PERMISSIONS[link.href];
+    if (!required) return true;
+    return Array.isArray(required)
+      ? hasAnyPermission(role, required)
+      : hasPermission(role, required);
+  });
 
   return (
     <>

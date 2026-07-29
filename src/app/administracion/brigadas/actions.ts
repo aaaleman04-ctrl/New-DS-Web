@@ -28,6 +28,16 @@ function revalidateBrigadas() {
   revalidatePath("/voluntariado");
 }
 
+export async function getBrigadasAction() {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("brigadas")
+    .select("*")
+    .order("fecha_brigada", { ascending: false });
+
+  return { data: data ?? null, error: error?.message ?? null };
+}
+
 // Helper para autogenerar código consecutivo de brigada (Capítulo 15 - Regla de comparación y composición)
 export async function generarCodigoBrigada(): Promise<{ codigo: string; error: string | null }> {
   try {

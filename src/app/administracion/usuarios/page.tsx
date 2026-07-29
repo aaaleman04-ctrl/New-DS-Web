@@ -30,7 +30,7 @@ export type SpecialtyRow = {
 };
 
 export default async function UsuariosPage() {
-  await requirePermission(PERMISSIONS.USERS_MANAGE);
+  await requirePermission(PERMISSIONS.USUARIOS_READ);
 
   const [supabase, ctx] = await Promise.all([
     createSupabaseServerClient(),

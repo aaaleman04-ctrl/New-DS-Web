@@ -1,20 +1,18 @@
 import Link from "next/link";
 import styles from "@/styles/pages/admin.module.css";
 import { AppRole } from "@/lib/auth/roles";
-import { getPermissionsForRole, PERMISSIONS } from "@/lib/auth/permissions";
+import { hasPermission, PERMISSIONS } from "@/lib/auth/permissions";
 
 export default function QuickActions({ role }: { role: AppRole }) {
-  const permissions = getPermissionsForRole(role);
-
   const actions = [
-    { label: "Nueva Brigada", href: "/administracion/brigadas", icon: "", perm: PERMISSIONS.BRIGADAS_CREATE },
-    { label: "Registrar Paciente", href: "/administracion/pacientes/nuevo", icon: "", perm: PERMISSIONS.PACIENTES_REGISTER },
-    { label: "Agregar Inventario", href: "/administracion/inventario", icon: "", perm: PERMISSIONS.INVENTORY_MANAGE },
-    { label: "Registrar Venta", href: "/administracion/ventas", icon: "", perm: PERMISSIONS.SALES_MANAGE },
-    { label: "Registrar Donación", href: "/administracion/donaciones", icon: "", perm: PERMISSIONS.DONATIONS_MANAGE },
+    { label: "Nueva Brigada", href: "/administracion/brigadas", icon: "🩺", perm: PERMISSIONS.BRIGADAS_CREATE },
+    { label: "Registrar Paciente", href: "/administracion/pacientes/nuevo", icon: "📋", perm: PERMISSIONS.PACIENTES_CREATE },
+    { label: "Agregar Inventario", href: "/administracion/inventario", icon: "📦", perm: PERMISSIONS.INVENTARIO_CREATE },
+    { label: "Registrar Venta", href: "/administracion/ventas", icon: "💰", perm: PERMISSIONS.VENTAS_CREATE },
+    { label: "Registrar Donación", href: "/administracion/donaciones", icon: "🎁", perm: PERMISSIONS.DONACIONES_CREATE },
   ];
 
-  const visibleActions = actions.filter(a => permissions.includes(a.perm));
+  const visibleActions = actions.filter((a) => hasPermission(role, a.perm));
 
   if (visibleActions.length === 0) return null;
 

@@ -1,4 +1,5 @@
-import { requireRouteAccess } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import styles from "@/styles/pages/admin.module.css";
 import { obtenerVoluntarios } from "./actions";
 import VoluntariosTable from "./components/VoluntariosTable";
@@ -6,7 +7,7 @@ import VolunteerStatsCards from "./components/VolunteerStatsCards";
 import Link from "next/link";
 
 export default async function VoluntariosPage() {
-  await requireRouteAccess("/administracion/voluntarios");
+  await requirePermission(PERMISSIONS.VOLUNTARIADO_READ);
   
   const voluntarios = await obtenerVoluntarios();
 

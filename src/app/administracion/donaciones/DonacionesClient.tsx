@@ -1,11 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getDonacionesRopa, getEntregasRopa, getResumenRopa, getDashboardRopa, createDonacionRopa, createEntregaRopa, getPacientesBrigadaParaRopa } from "@/lib/db/ropa";
-import { getBrigadas } from "@/lib/db/brigadas";
+import {
+  getDonacionesRopaAction as getDonacionesRopa,
+  getEntregasRopaAction as getEntregasRopa,
+  getDashboardRopaAction as getDashboardRopa,
+  getResumenRopaAction as getResumenRopa,
+  getPacientesBrigadaParaRopaAction as getPacientesBrigadaParaRopa,
+  registrarDonacionRopaAction as createDonacionRopa,
+  registrarEntregaRopaAction as createEntregaRopa,
+} from "./actions";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
 import styles from "@/styles/pages/admin.module.css";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function DonacionesClient({ userId }: { userId: string }) {
+  const { can } = usePermissions();
   const [resumen, setResumen] = useState<any>(null);
   const [dashboard, setDashboard] = useState<any>(null);
   const [donaciones, setDonaciones] = useState<any[]>([]);
@@ -182,12 +193,16 @@ export function DonacionesClient({ userId }: { userId: string }) {
         <div className={styles.tableHeader}>
           <h3>{activeTab === "donaciones" ? "Historial de Donaciones" : "Ropa Entregada en Brigadas"}</h3>
           <div style={{ display: "flex", gap: "1rem" }}>
-            <button className={styles.btnSecondary} onClick={openDonacionModal}>
-              + Nueva Donación
-            </button>
-            <button className={styles.btnPrimary} onClick={openEntregaModal}>
-              + Registrar Entrega
-            </button>
+            {can(PERMISSIONS.DONACIONES_CREATE) && (
+              <button className={styles.btnSecondary} onClick={openDonacionModal}>
+                + Nueva Donación
+              </button>
+            )}
+            {can(PERMISSIONS.DONACIONES_CREATE) && (
+              <button className={styles.btnPrimary} onClick={openEntregaModal}>
+                + Registrar Entrega
+              </button>
+            )}
           </div>
         </div>
 

@@ -1289,6 +1289,19 @@
   gap: 0.8rem;
 }
 
+.formSuccessBanner {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 1.2rem 1.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
 .spinIcon {
   animation: spin 1s linear infinite;
 }

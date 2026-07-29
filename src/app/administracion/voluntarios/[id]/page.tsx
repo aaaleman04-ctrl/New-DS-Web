@@ -9,7 +9,7 @@ import AsignacionesCard from "../components/AsignacionesCard";
 import ParticipacionesTable from "../components/ParticipacionesTable";
 
 export default async function VoluntarioDetallePage({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission(PERMISSIONS.USERS_MANAGE);
+  await requirePermission(PERMISSIONS.VOLUNTARIADO_READ);
   const id = (await params).id;
 
   const supabase = await createSupabaseServerClient();

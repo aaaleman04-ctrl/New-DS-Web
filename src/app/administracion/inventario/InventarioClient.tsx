@@ -1,16 +1,38 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getMedicamentos, createMedicamento, updateMedicamento } from "@/lib/db/inventario";
+import {
+  getMedicamentosAction as getMedicamentos,
+  getCategoriasInventarioAction as getCategoriasInventario,
+  createMedicamentoAction as createMedicamento,
+  updateMedicamentoAction as updateMedicamento,
+} from "./actions";
 import { LotesModal } from "./components/LotesModal";
 import { MedicamentoForm } from "./components/MedicamentoForm";
 import styles from "@/styles/pages/admin.module.css";
 
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+
+/**
+ * Algoritmo generador de código de recurso que garantiza un formato estructurado
+ * de un máximo absoluto de 20 caracteres (compatible con varchar(20)).
+ */
+function generarCodigoRecurso(nombre: string, tipo: string): string {
+  const prefijo = tipo === "insumo_medico" ? "INS" : (tipo === "material_brigada" ? "MAT" : "MED");
+  const nombreSanitizado = nombre.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 10);
+  const randomDigits = Math.floor(100 + Math.random() * 900); // 3 dígitos
+  return `${prefijo}_${nombreSanitizado}_${randomDigits}`.substring(0, 20);
+}
+
 export function InventarioClient() {
+  const { can } = usePermissions();
   const [medicamentos, setMedicamentos] = useState<Record<string, unknown>[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMedLotes, setSelectedMedLotes] = useState<{ id: string; nombre: string } | null>(null);
-  
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "medicamento" | "insumo_medico" | "material_brigada">("todos");
+
   // States for Medicamento Form
   const [isMedModalOpen, setIsMedModalOpen] = useState(false);
   const [selectedMedForEdit, setSelectedMedForEdit] = useState<any>(null);
@@ -19,7 +41,8 @@ export function InventarioClient() {
   const fetchMedicamentos = async () => {
     try {
       setIsLoading(true);
-      const data = await getMedicamentos();
+      console.log("fetchMedicamentos ejecutado, refrescando lista desde stock_actual");
+      const data = await getMedicamentos(filtroTipo);
       setMedicamentos(data);
     } catch (_error) {
       console.error("Error al cargar el inventario");
@@ -28,15 +51,23 @@ export function InventarioClient() {
     }
   };
 
+  const fetchCategorias = async () => {
+    try {
+      const data = await getCategoriasInventario();
+      setCategorias(data);
+    } catch (_error) {
+      console.error("Error al cargar categorías");
+    }
+  };
+
   useEffect(() => {
-    let mounted = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (mounted) fetchMedicamentos();
-    return () => { mounted = false; };
+    fetchMedicamentos();
+    fetchCategorias();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filtroTipo]);
 
   const handleOpenMedForm = (med: any = null) => {
+    console.log("Medicamento seleccionado:", med);
     setSelectedMedForEdit(med);
     setIsMedModalOpen(true);
   };
@@ -46,26 +77,57 @@ export function InventarioClient() {
     setSelectedMedForEdit(null);
   };
 
-  const handleSubmitMed = async (data: any) => {
+  const handleSubmitMed = async (data: any, cantidadInicial: number = 0) => {
     try {
       setIsSubmitting(true);
       
       const payload = { ...data };
-      if (!payload.codigo) {
-        payload.codigo = payload.nombre.trim().toUpperCase().replace(/\s+/g, "_") + "_" + Math.floor(Math.random() * 1000);
-      }
 
       if (selectedMedForEdit) {
-        await updateMedicamento(selectedMedForEdit.medicamento_id || selectedMedForEdit.id, payload);
+        // EDICIÓN: Conservar el código almacenado o el ingresado por el usuario. NO REGENERAR.
+        payload.codigo = data.codigo || selectedMedForEdit.codigo || generarCodigoRecurso(payload.nombre, payload.tipo_recurso);
       } else {
-        await createMedicamento(payload);
+        // CREACIÓN: Generar únicamente cuando es un nuevo recurso y no se ingresó código manual
+        if (!payload.codigo || payload.codigo.trim() === "") {
+          payload.codigo = generarCodigoRecurso(payload.nombre, payload.tipo_recurso);
+        }
       }
+
+      // Garantizar que la longitud final no exceda los 20 caracteres del campo varchar(20)
+      if (payload.codigo && payload.codigo.length > 20) {
+        payload.codigo = payload.codigo.substring(0, 20);
+      }
+
+      const targetId = selectedMedForEdit ? (selectedMedForEdit.medicamento_id || selectedMedForEdit.id) : null;
+
+      // Depuración temporal requerida por las instrucciones
+      console.log("Payload enviado:", payload);
+      console.log("ID utilizado:", targetId);
+      console.log("Medicamento seleccionado:", selectedMedForEdit);
+
+      if (selectedMedForEdit && targetId) {
+        await updateMedicamento(targetId, payload);
+      } else {
+        await createMedicamento(payload, cantidadInicial);
+      }
+
       handleCloseMedForm();
       fetchMedicamentos();
     } catch (error: any) {
-      alert(error.message || "Error al guardar el medicamento.");
+      alert(error.message || "Error al guardar el recurso.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getTipoBadge = (tipo?: string) => {
+    switch (tipo) {
+      case "insumo_medico":
+        return <span style={{ background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>🩹 Insumo Médico</span>;
+      case "material_brigada":
+        return <span style={{ background: "#f3e8ff", color: "#6b21a8", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>⛺ Material Brigada</span>;
+      default:
+        return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>💊 Medicamento</span>;
     }
   };
 
@@ -76,7 +138,7 @@ export function InventarioClient() {
     if (estado === "Sin Existencias") {
       bgColor = "var(--danger)";
       color = "white";
-    } else if (estado === "Stock Bajo") {
+    } else if (estado === "Stock Bajo" || estado === "Stock Crítico") {
       bgColor = "#fef08a"; // yellow-200
       color = "#854d0e"; // yellow-800
     } else {
@@ -89,10 +151,11 @@ export function InventarioClient() {
         style={{
           background: bgColor,
           color: color,
-          padding: "0.2rem 0.8rem",
-          borderRadius: "12px",
-          fontSize: "1.1rem",
+          padding: "0.4rem 0.8rem",
+          borderRadius: "4px",
           fontWeight: "bold",
+          fontSize: "1.2rem",
+          display: "inline-block",
         }}
       >
         {estado}
@@ -101,19 +164,53 @@ export function InventarioClient() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-      <div className={styles.tableContainer}>
-        <div className={styles.tableHeader}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2.4rem" }}>
+      <div className={styles.adminCard}>
+        <div className={styles.adminCardHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <h3>Listado de Medicamentos</h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "1.4rem", marginTop: "0.4rem" }}>
-              Inventario general consolidado. Administra los lotes de cada medicamento para actualizar el stock real.
+            <h2 className={styles.adminCardTitle}>Gestión Global de Inventario</h2>
+            <p style={{ color: "var(--text-muted)", fontSize: "1.3rem", marginTop: "0.4rem" }}>
+              Control unificado de medicamentos, insumos médicos y material de brigadas
             </p>
           </div>
-          <div>
-            <button className={styles.btnPrimary} onClick={() => handleOpenMedForm()}>
-              + Nuevo Medicamento
-            </button>
+
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            <div style={{ display: "flex", background: "var(--bg-light)", padding: "0.4rem", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+              <button 
+                className={`${styles.btnSecondary} ${filtroTipo === "todos" ? styles.btnActive : ""}`}
+                style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "todos" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "todos" ? "white" : "inherit" }}
+                onClick={() => setFiltroTipo("todos")}
+              >
+                Todos
+              </button>
+              <button 
+                className={`${styles.btnSecondary} ${filtroTipo === "medicamento" ? styles.btnActive : ""}`}
+                style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "medicamento" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "medicamento" ? "white" : "inherit" }}
+                onClick={() => setFiltroTipo("medicamento")}
+              >
+                💊 Fármacos
+              </button>
+              <button 
+                className={`${styles.btnSecondary} ${filtroTipo === "insumo_medico" ? styles.btnActive : ""}`}
+                style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "insumo_medico" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "insumo_medico" ? "white" : "inherit" }}
+                onClick={() => setFiltroTipo("insumo_medico")}
+              >
+                🩹 Insumos
+              </button>
+              <button 
+                className={`${styles.btnSecondary} ${filtroTipo === "material_brigada" ? styles.btnActive : ""}`}
+                style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "material_brigada" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "material_brigada" ? "white" : "inherit" }}
+                onClick={() => setFiltroTipo("material_brigada")}
+              >
+                ⛺ Brigada
+              </button>
+            </div>
+
+            {can(PERMISSIONS.INVENTARIO_CREATE) && (
+              <button className={styles.btnPrimary} onClick={() => handleOpenMedForm()}>
+                + Nuevo Recurso
+              </button>
+            )}
           </div>
         </div>
         
@@ -121,7 +218,8 @@ export function InventarioClient() {
           <table className={styles.adminTable}>
             <thead>
               <tr>
-                <th>Medicamento</th>
+                <th>Tipo</th>
+                <th>Nombre del Recurso</th>
                 <th>Descripción</th>
                 <th>Unidad</th>
                 <th>Stock Mínimo</th>
@@ -133,19 +231,20 @@ export function InventarioClient() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: "2rem" }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "2rem" }}>
                     Cargando inventario...
                   </td>
                 </tr>
               ) : medicamentos.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
-                    No hay medicamentos registrados en el inventario.
+                  <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+                    No hay recursos registrados en esta categoría de inventario.
                   </td>
                 </tr>
               ) : (
                 medicamentos.map((med: any) => (
                   <tr key={med.medicamento_id || med.id}>
+                    <td>{getTipoBadge(med.tipo_recurso)}</td>
                     <td style={{ fontWeight: "bold", color: "var(--primaryColor)" }}>{med.nombre}</td>
                     <td style={{ maxWidth: "200px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={med.descripcion}>{med.descripcion || "-"}</td>
                     <td>{med.unidad_medida || "-"}</td>
@@ -154,13 +253,15 @@ export function InventarioClient() {
                     <td>{getStockBadge(med.estado_stock || "Sin Existencias")}</td>
                     <td>
                         <div className={styles.tableActions}>
-                          <button 
-                            className={styles.btnSecondary}
-                            style={{ fontSize: "1.3rem" }}
-                            onClick={() => handleOpenMedForm(med)}
-                          >
-                            Editar
-                          </button>
+                          {can(PERMISSIONS.INVENTARIO_UPDATE) && (
+                            <button 
+                              className={styles.btnSecondary}
+                              style={{ fontSize: "1.3rem" }}
+                              onClick={() => handleOpenMedForm(med)}
+                            >
+                              Editar
+                            </button>
+                          )}
                           <button 
                             className={styles.btnSecondary}
                             onClick={() => setSelectedMedLotes({ id: med.medicamento_id || med.id, nombre: med.nombre })}
@@ -196,7 +297,7 @@ export function InventarioClient() {
           >
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>
-                {selectedMedForEdit ? "Editar Medicamento o Insumo" : "Nuevo Medicamento o Insumo"}
+                {selectedMedForEdit ? "Editar medicamento" : "Nuevo Medicamento o Insumo"}
               </h3>
               <button className={styles.modalClose} onClick={handleCloseMedForm} title="Cerrar" aria-label="Cerrar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -208,6 +309,7 @@ export function InventarioClient() {
             <div style={{ padding: "2.4rem" }}>
               <MedicamentoForm 
                 initialData={selectedMedForEdit} 
+                categorias={categorias}
                 onSubmit={handleSubmitMed}
                 onCancel={handleCloseMedForm}
                 isLoading={isSubmitting} 

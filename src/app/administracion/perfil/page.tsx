@@ -1,4 +1,5 @@
-import { requireAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import PerfilClient from "./PerfilClient";
 
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function PerfilPage() {
-  const ctx = await requireAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.PERFIL_READ);
   const supabase = await createSupabaseServerClient();
 
   // Fetch the specialty name if the user has one

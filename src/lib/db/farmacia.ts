@@ -1,7 +1,9 @@
 import { supabase } from "../supabase";
+import { assertPermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
-export async function getDashboardFarmacia() {
-  const { data, error } = await supabase
+export async function getDashboardFarmacia(client: any = supabase) {
+  const { data, error } = await client
     .from("dashboard_farmacia")
     .select("*")
     .single();
@@ -13,8 +15,8 @@ export async function getDashboardFarmacia() {
   return data;
 }
 
-export async function getEntregasFarmacia() {
-  const { data, error } = await supabase
+export async function getEntregasFarmacia(client: any = supabase) {
+  const { data, error } = await client
     .from("v_entregas_farmacia")
     .select("*")
     .order("fecha_entrega", { ascending: false });
@@ -26,8 +28,8 @@ export async function getEntregasFarmacia() {
   return data;
 }
 
-export async function getRecetasPendientes() {
-  const { data: consultas, error: errorConsultas } = await supabase
+export async function getRecetasPendientes(client: any = supabase) {
+  const { data: consultas, error: errorConsultas } = await client
     .from("consultas")
     .select(`
       id, created_at, tipo_consulta, brigada_id,
@@ -41,7 +43,7 @@ export async function getRecetasPendientes() {
     return [];
   }
 
-  const { data: entregas, error: errorEntregas } = await supabase
+  const { data: entregas, error: errorEntregas } = await client
     .from("entregas_farmacia")
     .select("consulta_id");
 
@@ -50,17 +52,17 @@ export async function getRecetasPendientes() {
     return [];
   }
 
-  const entregadasSet = new Set(entregas.map(e => e.consulta_id));
+  const entregadasSet = new Set(entregas.map((e: any) => e.consulta_id));
 
-  const pendientes = consultas.filter(c => {
+  const pendientes = consultas.filter((c: any) => {
     return c.medicamentos_consulta && c.medicamentos_consulta.length > 0 && !entregadasSet.has(c.id);
   });
 
   return pendientes;
 }
 
-export async function getFefoSuggestions(consultaId: string) {
-  const { data: medsReq, error: errMeds } = await supabase
+export async function getFefoSuggestions(consultaId: string, client: any = supabase) {
+  const { data: medsReq, error: errMeds } = await client
     .from("medicamentos_consulta")
     .select("medicamento_id, cantidad, indicaciones, medicamentos(nombre)")
     .eq("consulta_id", consultaId);
@@ -69,98 +71,116 @@ export async function getFefoSuggestions(consultaId: string) {
     throw new Error("No se encontraron medicamentos para esta receta.");
   }
 
-  const suggestions: any[] = [];
+  // Agrupar y consolidar las solicitudes por medicamento_id
+  const mapMeds = new Map<string, { medicamento_id: string; cantidad: number; indicaciones: string; medicamento_nombre: string }>();
 
   for (const req of medsReq) {
-    let requiredQty = req.cantidad;
     const medId = req.medicamento_id;
+    const qty = Number(req.cantidad) || 0;
     const medNombre = (req.medicamentos as any)?.nombre || "Medicamento Desconocido";
+    const indic = req.indicaciones || "";
 
-    const { data: lotes, error: errLotes } = await supabase
+    if (mapMeds.has(medId)) {
+      const prev = mapMeds.get(medId)!;
+      prev.cantidad += qty;
+      if (indic) prev.indicaciones += ` / ${indic}`;
+    } else {
+      mapMeds.set(medId, {
+        medicamento_id: medId,
+        cantidad: qty,
+        indicaciones: indic,
+        medicamento_nombre: medNombre
+      });
+    }
+  }
+
+  const suggestions: any[] = [];
+
+  for (const [medId, item] of mapMeds.entries()) {
+    const requiredQty = item.cantidad;
+    const medNombre = item.medicamento_nombre;
+
+    const { data: lotes } = await client
       .from("lotes_medicamentos")
       .select("id, numero_lote, cantidad_actual, fecha_vencimiento")
       .eq("medicamento_id", medId)
       .gt("cantidad_actual", 0)
       .order("fecha_vencimiento", { ascending: true });
 
-    if (errLotes || !lotes) {
-      throw new Error(`Error al obtener lotes para el medicamento ${medNombre}`);
-    }
+    const totalStock = (lotes || []).reduce((acc: number, l: any) => acc + Number(l.cantidad_actual), 0);
+    const primerLote = lotes && lotes.length > 0 ? lotes[0] : null;
 
-    const totalStock = lotes.reduce((acc, l) => acc + l.cantidad_actual, 0);
-    
-    if (totalStock === 0) {
-      suggestions.push({
-        medicamento_id: medId,
-        medicamento_nombre: medNombre,
-        lote_id: "",
-        lote_numero: "AGOTADO",
-        cantidad_requerida: requiredQty,
-        cantidad_sugerida: 0,
-        stock_disponible: 0,
-        error: "Agotado en inventario"
-      });
-      continue;
-    }
-
-    if (totalStock < requiredQty) {
-      // Partially fulfill
-      let remainingToSuggest = totalStock;
-      for (const lote of lotes) {
-        if (remainingToSuggest <= 0) break;
-        const takeFromLote = Math.min(lote.cantidad_actual, remainingToSuggest);
-        remainingToSuggest -= takeFromLote;
-
-        suggestions.push({
-          medicamento_id: medId,
-          medicamento_nombre: medNombre,
-          lote_id: lote.id,
-          lote_numero: lote.numero_lote,
-          cantidad_requerida: requiredQty,
-          cantidad_sugerida: takeFromLote,
-          stock_disponible: lote.cantidad_actual,
-          warning: "Entrega parcial por stock insuficiente"
-        });
-      }
-      continue;
-    }
-
-    // Fully fulfill
-    for (const lote of lotes) {
-      if (requiredQty <= 0) break;
-      const takeFromLote = Math.min(lote.cantidad_actual, requiredQty);
-      requiredQty -= takeFromLote;
-
-      suggestions.push({
-        medicamento_id: medId,
-        medicamento_nombre: medNombre,
-        lote_id: lote.id,
-        lote_numero: lote.numero_lote,
-        cantidad_requerida: req.cantidad,
-        cantidad_sugerida: takeFromLote,
-        stock_disponible: lote.cantidad_actual
-      });
-    }
+    suggestions.push({
+      medicamento_id: medId,
+      medicamento_nombre: medNombre,
+      lote_id: primerLote ? primerLote.id : "",
+      lote_numero: primerLote ? primerLote.numero_lote : "SIN STOCK",
+      cantidad_requerida: requiredQty,
+      cantidad_sugerida: Math.min(requiredQty, totalStock),
+      stock_disponible: totalStock,
+      error: totalStock === 0 ? "Agotado en inventario" : undefined,
+      warning: totalStock > 0 && totalStock < requiredQty ? "Stock insuficiente para entrega completa" : undefined
+    });
   }
 
   return suggestions;
 }
 
-export async function registrarEntregaManual(entregas: any[], observaciones: string, consultaId: string, entregadoPor: string) {
-  const inserts = entregas.filter(e => e.cantidad_sugerida > 0).map(e => ({
-    consulta_id: consultaId,
-    medicamento_id: e.medicamento_id,
-    lote_id: e.lote_id,
-    cantidad: e.cantidad_sugerida,
-    entregado_por: entregadoPor,
-    observaciones: observaciones || "Entregado en farmacia",
-  }));
+export async function registrarEntregaManual(entregas: any[], observaciones: string, consultaId: string, entregadoPor: string, client: any = supabase) {
+  await assertPermission(PERMISSIONS.FARMACIA_PROCESS);
+
+  // 1. Verificación idempotente: Evitar entregas duplicadas para la misma receta
+  const { data: entregasPrevias } = await client
+    .from("entregas_farmacia")
+    .select("id")
+    .eq("consulta_id", consultaId);
+
+  if (entregasPrevias && entregasPrevias.length > 0) {
+    throw new Error("Esta receta ya fue procesada y entregada anteriormente.");
+  }
+
+  const inserts: any[] = [];
+
+  for (const item of entregas) {
+    const cantidadEntregadaReal = Number(item.cantidad_sugerida);
+    if (!cantidadEntregadaReal || cantidadEntregadaReal <= 0) continue;
+
+    // Validar disponibilidad de stock en los lotes activos FEFO
+    const { data: lotes } = await client
+      .from("lotes_medicamentos")
+      .select("id, cantidad_actual")
+      .eq("medicamento_id", item.medicamento_id)
+      .gt("cantidad_actual", 0)
+      .order("fecha_vencimiento", { ascending: true });
+
+    if (!lotes || lotes.length === 0) {
+      throw new Error(`El medicamento ${item.medicamento_nombre} no cuenta con stock suficiente en lotes.`);
+    }
+
+    const totalDisponible = lotes.reduce((sum: number, l: any) => sum + Number(l.cantidad_actual), 0);
+    if (totalDisponible < cantidadEntregadaReal) {
+      throw new Error(`El medicamento ${item.medicamento_nombre} solo cuenta con ${totalDisponible} unidades disponibles en inventario.`);
+    }
+
+    const lotePrincipalId = item.lote_id || lotes[0].id;
+
+    // Unica insercion en la aplicacion.
+    // El trigger PostgreSQL `trg_entrega_farmacia_after_insert` descontara del lote y registrara en movimientos_inventario.
+    inserts.push({
+      consulta_id: consultaId,
+      medicamento_id: item.medicamento_id,
+      lote_id: lotePrincipalId,
+      cantidad: cantidadEntregadaReal,
+      entregado_por: entregadoPor,
+      observaciones: observaciones || "Entregado en farmacia",
+    });
+  }
 
   if (inserts.length === 0) {
     throw new Error("No hay cantidades válidas para entregar.");
   }
 
-  const { error } = await supabase.from("entregas_farmacia").insert(inserts);
+  const { error } = await client.from("entregas_farmacia").insert(inserts);
 
   if (error) {
     throw new Error(`Error al registrar la entrega: ${error.message}`);

@@ -1,13 +1,23 @@
-export const APP_ROLES = ["admin", "coordinador", "voluntario"] as const;
+export const APP_ROLES = [
+  "admin",
+  "coordinador",
+  "atencion_pacientes",
+  "encargado_farmacia",
+  "encargado_bodega",
+] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
 
 export const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Administrador",
   coordinador: "Coordinador",
-  voluntario: "Voluntario",
+  atencion_pacientes: "Atención de Pacientes",
+  encargado_farmacia: "Encargado de Farmacia",
+  encargado_bodega: "Encargado de Bodega",
 };
 
 export function isAppRole(value: string | null | undefined): value is AppRole {
-  return APP_ROLES.includes(value as AppRole);
+  if (!value) return false;
+  return (APP_ROLES as readonly string[]).includes(value.toLowerCase());
 }
+

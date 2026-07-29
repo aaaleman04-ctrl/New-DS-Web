@@ -1,8 +1,9 @@
-import { requireRouteAccess } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { InventarioClient } from "./InventarioClient";
 
 export default async function InventarioPage() {
-  await requireRouteAccess("/administracion/inventario");
+  await requirePermission(PERMISSIONS.INVENTARIO_READ);
 
   return (
     <div className="flex flex-col space-y-6">

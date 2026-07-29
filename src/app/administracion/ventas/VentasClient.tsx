@@ -1,21 +1,26 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  getDashboardVentas, 
-  getHistorialVentas, 
-  getBajoStock, 
-  getCategoriasProductos, 
-  getProductos, 
-  createCategoriaProducto, 
-  createProducto, 
-  updateStockProducto, 
-  registrarVenta 
-} from "@/lib/db/ventas";
-import { getBrigadas } from "@/lib/db/brigadas";
+import {
+  getDashboardVentasAction as getDashboardVentas,
+  getCategoriasProductosAction as getCategoriasProductos,
+  getProductosAction as getProductos,
+  getHistorialVentasAction as getHistorialVentas,
+  getBajoStockAction as getBajoStock,
+  crearCategoriaProductoAction as createCategoriaProducto,
+  crearProductoAction as createProducto,
+  updateStockProductoAction as updateStockProducto,
+  registrarVentaAction as registrarVenta,
+  deleteCategoriaProductoAction as deleteCategoriaProducto,
+  deleteProductoAction as deleteProducto,
+} from "./actions";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
 import styles from "@/styles/pages/admin.module.css";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function VentasClient({ userId }: { userId: string }) {
+  const { can } = usePermissions();
   const [activeTab, setActiveTab] = useState<"dashboard" | "nueva_venta" | "inventario" | "historial">("dashboard");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -312,20 +317,22 @@ export function VentasClient({ userId }: { userId: string }) {
                   <textarea rows={2} value={ventaObservaciones} onChange={e => setVentaObservaciones(e.target.value)} placeholder="Ej. Cliente pagó exacto..." />
                 </label>
 
-                <button
-                  type="submit"
-                  className={styles.btnPrimary}
-                  style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.8rem" }}
-                  disabled={cart.length === 0 || isSubmittingVenta}
-                >
-                  {isSubmittingVenta && (
-                    <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
-                    </svg>
-                  )}
-                  <span>{isSubmittingVenta ? "Procesando Venta..." : "Confirmar Venta"}</span>
-                </button>
+                {can(PERMISSIONS.VENTAS_CREATE) && (
+                  <button
+                    type="submit"
+                    className={styles.btnPrimary}
+                    style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.8rem" }}
+                    disabled={cart.length === 0 || isSubmittingVenta}
+                  >
+                    {isSubmittingVenta && (
+                      <svg style={{ width: "1.6rem", height: "1.6rem", animation: "spin 1s linear infinite" }} viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                        <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
+                      </svg>
+                    )}
+                    <span>{isSubmittingVenta ? "Procesando Venta..." : "Confirmar Venta"}</span>
+                  </button>
+                )}
               </form>
 
             </div>
@@ -337,7 +344,9 @@ export function VentasClient({ userId }: { userId: string }) {
               <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
                   <h3>Categorías</h3>
-                  <button className={styles.btnSecondary} onClick={() => { setCatForm({codigo: "", nombre: "", descripcion: ""}); setIsCatModalOpen(true); }}>+ Nueva Categoría</button>
+                  {can(PERMISSIONS.VENTAS_CREATE) && (
+                    <button className={styles.btnSecondary} onClick={() => { setCatForm({codigo: "", nombre: "", descripcion: ""}); setIsCatModalOpen(true); }}>+ Nueva Categoría</button>
+                  )}
                 </div>
                 <table className={styles.adminTable}>
                   <thead><tr><th>Código</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr></thead>
@@ -348,13 +357,15 @@ export function VentasClient({ userId }: { userId: string }) {
                         <td style={{fontWeight: "bold"}}>{c.nombre}</td>
                         <td>{c.descripcion}</td>
                         <td>
-                          <button 
-                            className={styles.btnDanger} 
-                            style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
-                            onClick={() => setDeleteCatTarget(c)}
-                          >
-                            Eliminar
-                          </button>
+                          {can(PERMISSIONS.VENTAS_DELETE) && (
+                            <button 
+                              className={styles.btnDanger} 
+                              style={{ padding: "0.4rem 1rem", fontSize: "1.3rem" }}
+                              onClick={() => setDeleteCatTarget(c)}
+                            >
+                              Eliminar
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -365,7 +376,9 @@ export function VentasClient({ userId }: { userId: string }) {
               <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
                   <h3>Productos</h3>
-                  <button className={styles.btnPrimary} onClick={() => { setProdForm({categoria_id: "", codigo: "", nombre: "", descripcion: "", precio: 0, stock: 0}); setIsProdModalOpen(true); }}>+ Nuevo Producto</button>
+                  {can(PERMISSIONS.VENTAS_CREATE) && (
+                    <button className={styles.btnPrimary} onClick={() => { setProdForm({categoria_id: "", codigo: "", nombre: "", descripcion: "", precio: 0, stock: 0}); setIsProdModalOpen(true); }}>+ Nuevo Producto</button>
+                  )}
                 </div>
                 <table className={styles.adminTable}>
                   <thead><tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr></thead>
@@ -543,7 +556,6 @@ export function VentasClient({ userId }: { userId: string }) {
                 className={styles.btnDanger}
                 onClick={async () => {
                   try {
-                    const { deleteCategoriaProducto } = await import("@/lib/db/ventas");
                     await deleteCategoriaProducto(deleteCatTarget.id);
                     setDeleteCatTarget(null);
                     fetchData();
@@ -576,7 +588,6 @@ export function VentasClient({ userId }: { userId: string }) {
                 className={styles.btnDanger}
                 onClick={async () => {
                   try {
-                    const { deleteProducto } = await import("@/lib/db/ventas");
                     await deleteProducto(deleteProdTarget.id);
                     setDeleteProdTarget(null);
                     fetchData();

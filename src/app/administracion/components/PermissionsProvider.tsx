@@ -30,21 +30,6 @@ export function PermissionsProvider({
 }) {
   const value = useMemo<PermissionsContextValue>(() => {
     const permissions = [...getPermissionsForRole(role)];
-    if (role === "voluntario" && specialtyName) {
-      if (
-        specialtyName === "Médico General" ||
-        specialtyName === "Odontólogo" ||
-        specialtyName === "Enfermería"
-      ) {
-        permissions.push(
-          PERMISSIONS.PACIENTES_READ,
-          PERMISSIONS.PACIENTES_REGISTER,
-          PERMISSIONS.MEDICAMENTOS_READ
-        );
-      } else if (specialtyName === "Farmacia") {
-        permissions.push(PERMISSIONS.MEDICAMENTOS_READ);
-      }
-    }
     return {
       role,
       specialtyName,

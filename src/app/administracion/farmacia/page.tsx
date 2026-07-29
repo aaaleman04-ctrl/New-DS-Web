@@ -1,9 +1,9 @@
-import { requireRouteAccess, getAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { FarmaciaClient } from "./FarmaciaClient";
 
 export default async function FarmaciaPage() {
-  await requireRouteAccess("/administracion/farmacia");
-  const ctx = await getAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.FARMACIA_READ);
 
   return (
     <div className="flex flex-col space-y-6">
