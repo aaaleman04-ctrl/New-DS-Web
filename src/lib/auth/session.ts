@@ -7,7 +7,7 @@ import { canAccessRoute, hasPermission, hasAnyPermission, type Permission } from
 export type Perfil = {
   id: string;
   nombre_completo: string | null;
-  rol: AppRole;
+  rol: AppRole | null;
   avatar_url: string | null;
   activo: boolean;
   telefono: string | null;
@@ -22,7 +22,7 @@ export type Perfil = {
 export type AuthContext = {
   user: User;
   role: AppRole;
-  profile: Perfil;
+  profile: Omit<Perfil, "rol"> & { rol: AppRole };
 };
 
 export async function getAuthContext(): Promise<AuthContext | null> {
@@ -54,7 +54,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       .insert({
         id: user.id,
         nombre_completo: user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario",
-        rol: "admin",
+        rol: null,
         activo: true,
         created_at: now,
         updated_at: now,
@@ -79,7 +79,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     return null;
   }
 
-  return { user, role: profile.rol, profile: profile as Perfil };
+  return { user, role: profile.rol, profile: profile as unknown as (Omit<Perfil, "rol"> & { rol: AppRole }) };
 }
 
 export async function getCurrentUserRole(): Promise<AppRole | null> {

@@ -397,7 +397,13 @@ export default function PerfilClient({
                 >
                   Rol:
                 </span>
-                <RoleBadge role={profile.rol} />
+                {profile.rol ? (
+                  <RoleBadge role={profile.rol} />
+                ) : (
+                  <span style={{ fontSize: "1.2rem", padding: "0.2rem 0.8rem", borderRadius: "1.2rem", background: "#fef3c7", color: "#92400e", fontWeight: 600 }}>
+                    Pendiente
+                  </span>
+                )}
               </div>
               <div
                 style={{

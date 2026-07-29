@@ -33,7 +33,7 @@ export default async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/administracion");
-  const isLoginPage = pathname.startsWith("/auth/login");
+  const isAuthPage = pathname.startsWith("/auth/login") || pathname.startsWith("/auth/registro");
 
   if (isAdminRoute && !user) {
     const loginUrl = new URL("/auth/login", request.url);
@@ -41,7 +41,7 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoginPage && user) {
+  if (isAuthPage && user) {
     return NextResponse.redirect(new URL("/administracion", request.url));
   }
 

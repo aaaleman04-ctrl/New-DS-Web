@@ -1273,7 +1273,7 @@ export type Database = {
           fecha_nacimiento: string | null
           id: string
           nombre_completo: string
-          rol: Database["public"]["Enums"]["user_role"]
+          rol: Database["public"]["Enums"]["user_role"] | null
           sexo: string | null
           telefono: string | null
           updated_at: string
@@ -1287,7 +1287,7 @@ export type Database = {
           fecha_nacimiento?: string | null
           id: string
           nombre_completo: string
-          rol?: Database["public"]["Enums"]["user_role"]
+          rol?: Database["public"]["Enums"]["user_role"] | null
           sexo?: string | null
           telefono?: string | null
           updated_at?: string
@@ -1301,7 +1301,7 @@ export type Database = {
           fecha_nacimiento?: string | null
           id?: string
           nombre_completo?: string
-          rol?: Database["public"]["Enums"]["user_role"]
+          rol?: Database["public"]["Enums"]["user_role"] | null
           sexo?: string | null
           telefono?: string | null
           updated_at?: string

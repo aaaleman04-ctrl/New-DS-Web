@@ -8,7 +8,7 @@ import VolunteerFilters from "./VolunteerFilters";
 export type VoluntarioRow = {
   id: string;
   nombre_completo: string | null;
-  rol: string;
+  rol: string | null;
   avatar_url: string | null;
   activo: boolean;
   cargo: string | null;

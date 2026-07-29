@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { useSearchParams } from "next/navigation";
-import { loginAction } from "@/app/auth/actions";
-import styles from "../../../styles/pages/auth.module.css";
+import { signUpAction } from "@/app/auth/actions";
+import styles from "@/styles/pages/auth.module.css";
 
-export default function LoginForm() {
-  const [state, formAction, isPending] = useActionState(loginAction, null);
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "";
+export default function RegistroForm() {
+  const [state, formAction, isPending] = useActionState(signUpAction, null);
 
   return (
     <main className={styles.authPage}>
@@ -26,13 +23,13 @@ export default function LoginForm() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
               />
             </svg>
           </div>
-          <h1 className={styles.authTitle}>Iniciar Sesión</h1>
+          <h1 className={styles.authTitle}>Crear Cuenta</h1>
           <p className={styles.authSubtitle}>
-            Bienvenido de vuelta. Ingresa tus credenciales para continuar.
+            Completa tus datos para registrarte en el portal de la fundación.
           </p>
         </div>
 
@@ -56,11 +53,43 @@ export default function LoginForm() {
         )}
 
         <form className={styles.authForm} action={formAction} noValidate>
-          {next ? <input type="hidden" name="next" value={next} /> : null}
+          {/* Nombre Completo */}
+          <div className={styles.fieldGroup}>
+            <label htmlFor="fullName" className={styles.fieldLabel}>
+              Nombre completo <strong style={{ color: "#e74c3c" }}>*</strong>
+            </label>
+            <div className={styles.fieldWrapper}>
+              <span className={styles.fieldIcon}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.8}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                  />
+                </svg>
+              </span>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder="Ej. María Josefa Rodríguez"
+                className={styles.fieldInput}
+                required
+                disabled={isPending}
+              />
+            </div>
+          </div>
 
+          {/* Correo Electrónico */}
           <div className={styles.fieldGroup}>
             <label htmlFor="email" className={styles.fieldLabel}>
-              Correo electrónico
+              Correo electrónico <strong style={{ color: "#e74c3c" }}>*</strong>
             </label>
             <div className={styles.fieldWrapper}>
               <span className={styles.fieldIcon}>
@@ -82,7 +111,6 @@ export default function LoginForm() {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
                 placeholder="tu@correo.com"
                 className={styles.fieldInput}
                 required
@@ -91,9 +119,10 @@ export default function LoginForm() {
             </div>
           </div>
 
+          {/* Contraseña */}
           <div className={styles.fieldGroup}>
             <label htmlFor="password" className={styles.fieldLabel}>
-              Contraseña
+              Contraseña <strong style={{ color: "#e74c3c" }}>*</strong>
             </label>
             <div className={styles.fieldWrapper}>
               <span className={styles.fieldIcon}>
@@ -115,8 +144,7 @@ export default function LoginForm() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder="Mínimo 8 caracteres"
                 className={styles.fieldInput}
                 required
                 disabled={isPending}
@@ -124,23 +152,37 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <div className={styles.fieldRow}>
-            <label className={styles.checkboxLabel}>
+          {/* Confirmar Contraseña */}
+          <div className={styles.fieldGroup}>
+            <label htmlFor="confirmPassword" className={styles.fieldLabel}>
+              Confirmar contraseña <strong style={{ color: "#e74c3c" }}>*</strong>
+            </label>
+            <div className={styles.fieldWrapper}>
+              <span className={styles.fieldIcon}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.8}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0 1 12 2.714Z"
+                  />
+                </svg>
+              </span>
               <input
-                id="remember"
-                name="remember"
-                type="checkbox"
-                className={styles.checkboxInput}
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Repite tu contraseña"
+                className={styles.fieldInput}
+                required
                 disabled={isPending}
               />
-              Recordar sesión
-            </label>
-            <Link
-              href="/auth/recuperar-contrasena"
-              className={styles.forgotLink}
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
+            </div>
           </div>
 
           <button
@@ -148,37 +190,25 @@ export default function LoginForm() {
             className={styles.submitBtn}
             disabled={isPending}
           >
-            {isPending ? (
-              <>
-                <span className={styles.spinner} aria-hidden="true" />
-                Ingresando...
-              </>
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
-                  />
-                </svg>
-                Ingresar
-              </>
-            )}
+            {isPending ? "Registrando cuenta..." : "Crear mi cuenta"}
           </button>
+
+          <div style={{ textAlign: "center", marginTop: "1rem" }}>
+            <span style={{ fontSize: "1.4rem", color: "var(--text-light)" }}>
+              ¿Ya tienes una cuenta?{" "}
+            </span>
+            <Link
+              href="/auth/login"
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 600,
+                color: "var(--primaryColor)",
+              }}
+            >
+              Iniciar sesión aquí
+            </Link>
+          </div>
         </form>
-
-        <div className={styles.divider}>o</div>
-
-        <p className={styles.authFooter}>
-          ¿No tienes una cuenta? <Link href="/auth/registro" style={{ fontWeight: 600, color: "var(--primaryColor)" }}>Regístrate aquí</Link>
-        </p>
       </div>
     </main>
   );
