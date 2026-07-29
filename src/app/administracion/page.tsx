@@ -60,32 +60,34 @@ export default async function DashboardPage() {
     <div>
       {/* Sección de Bienvenida */}
       <div
-        className={styles.tableContainer}
         style={{
-          padding: "2.4rem",
+          padding: "2.8rem 3.2rem",
           marginBottom: "3.2rem",
-          background: "linear-gradient(135deg, var(--white) 0%, #f0f7fc 100%)",
+          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: "2rem",
+          gap: "2.4rem",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "1.6rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <UserAvatar
             avatarUrl={ctx.profile.avatar_url}
             nombres={ctx.profile.nombre_completo}
             email={ctx.user.email}
-            size={64}
+            size={68}
           />
           <div>
-            <h2 style={{ fontSize: "2.4rem", margin: 0, color: "var(--dark)" }}>
+            <h2 style={{ fontSize: "2.6rem", fontWeight: 700, margin: 0, color: "var(--dark)", letterSpacing: "-0.01em" }}>
               Bienvenido, {nameDisplay}
             </h2>
             <p
               style={{
-                margin: "0.4rem 0 0",
+                margin: "0.5rem 0 0",
                 color: "var(--gray)",
                 fontSize: "1.5rem",
               }}
@@ -99,39 +101,42 @@ export default async function DashboardPage() {
         <div
           style={{
             backgroundColor: "var(--white)",
-            borderRadius: "var(--radius-sm)",
+            borderRadius: "var(--radius-md)",
             border: "1px solid var(--border-color)",
-            padding: "1.6rem 2rem",
-            minWidth: "280px",
+            padding: "1.6rem 2.2rem",
+            minWidth: "290px",
             boxShadow: "var(--shadow-sm)",
           }}
         >
           <h4
             style={{
-              fontSize: "1.4rem",
-              color: "var(--gray)",
-              marginBottom: "1rem",
+              fontSize: "1.2rem",
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              marginBottom: "1.2rem",
               textTransform: "uppercase",
-              letterSpacing: "0.05em",
+              letterSpacing: "0.08em",
             }}
           >
-            Detalles de tu Perfil
+            Perfil de Usuario
           </h4>
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "0.8rem",
+              gap: "1rem",
               fontSize: "1.3rem",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: 600, color: "var(--dark)" }}>Rol:</span>
+              <span style={{ fontWeight: 600, color: "var(--dark)" }}>Rol Asignado:</span>
               <RoleBadge role={ctx.profile.rol} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
               <span style={{ fontWeight: 600, color: "var(--dark)" }}>Especialidad:</span>
-              <span style={{ color: "var(--gray)" }}>{specialtyName}</span>
+              <span style={{ color: "var(--primaryDark)", fontWeight: 600, background: "#e0f2fe", padding: "0.2rem 0.8rem", borderRadius: "1rem", fontSize: "1.2rem" }}>
+                {specialtyName}
+              </span>
             </div>
           </div>
         </div>

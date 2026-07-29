@@ -7,6 +7,7 @@ import { logoutAction } from "@/app/auth/actions";
 import { adminModules } from "./navModules";
 import { usePermissions } from "./PermissionsProvider";
 import {
+  canAccessRoute,
   hasPermission,
   hasAnyPermission,
   MODULE_PERMISSIONS,
@@ -21,14 +22,10 @@ interface SideBarProps {
 
 export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: SideBarProps) {
   const pathname = usePathname();
-  const { role } = usePermissions();
+  const { role, specialtyName } = usePermissions();
 
   const visibleModules = adminModules.filter((link) => {
-    const required = MODULE_PERMISSIONS[link.href];
-    if (!required) return true;
-    return Array.isArray(required)
-      ? hasAnyPermission(role, required)
-      : hasPermission(role, required);
+    return canAccessRoute(role, link.href, specialtyName);
   });
 
   return (

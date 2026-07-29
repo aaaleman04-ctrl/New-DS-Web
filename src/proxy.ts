@@ -58,7 +58,7 @@ export default async function proxy(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("perfiles")
-      .select("rol, activo")
+      .select("rol, activo, especialidad_id, especialidades:especialidad_id(nombre)")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -66,7 +66,9 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/auth/sin-acceso", request.url));
     }
 
-    if (!canAccessRoute(profile.rol, pathname)) {
+    const specialtyName = (profile.especialidades as any)?.nombre || null;
+
+    if (!canAccessRoute(profile.rol, pathname, specialtyName)) {
       return NextResponse.redirect(
         new URL("/administracion/no-autorizado", request.url)
       );

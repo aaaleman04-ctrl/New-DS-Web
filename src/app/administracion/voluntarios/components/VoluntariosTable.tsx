@@ -12,6 +12,7 @@ export type VoluntarioRow = {
   avatar_url: string | null;
   activo: boolean;
   cargo: string | null;
+  telefono?: string | null;
   especialidades?: { id: string; nombre: string } | null;
   asignaciones_voluntarios?: any[];
   participaciones_voluntarios?: any[];

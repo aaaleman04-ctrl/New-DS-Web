@@ -58,14 +58,34 @@ export default async function VoluntarioDetallePage({ params }: { params: Promis
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "2.4rem" }}>
       <div>
-        <Link href="/administracion/voluntarios" style={{ color: "var(--primary)", textDecoration: "none", fontWeight: "bold", marginBottom: "1rem", display: "inline-block" }}>
-          &larr; Volver al Listado
+        <Link
+          href="/administracion/voluntarios"
+          style={{
+            color: "var(--primaryDark)",
+            textDecoration: "none",
+            fontWeight: 600,
+            marginBottom: "1.6rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            fontSize: "1.4rem",
+            background: "var(--white)",
+            padding: "0.6rem 1.2rem",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--border-color)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: "1.6rem", height: "1.6rem" }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+          <span>Volver al Listado de Voluntarios</span>
         </Link>
-        <div className={styles.pageIntro} style={{ marginBottom: "0" }}>
+        <div className={styles.pageIntro} style={{ marginBottom: "0", marginTop: "1rem" }}>
           <h2>Perfil del Voluntario</h2>
-          <p>Consulta la información, edita sus áreas asignadas o registra la participación del voluntario en las brigadas.</p>
+          <p>Consulta la información institucional, edita sus áreas asignadas y revisa el registro de participaciones en brigadas.</p>
         </div>
       </div>
 

@@ -238,17 +238,126 @@ export const MODULE_PERMISSIONS: Record<string, Permission | Permission[]> = {
 };
 
 /**
- * Verifica si un rol puede acceder a una ruta protegida.
- * REGLA ESTRICTA: El módulo de Brigadas está reservado EXCLUSIVAMENTE para el Administrador.
+ * Evaluador de permisos por Especialidad (filtro secundario de seguridad).
+ * Si el usuario no tiene una especialidad vinculada (y no es admin), solo se permite
+ * el acceso a los módulos generales (Dashboard /administracion y Perfil /administracion/perfil).
+ */
+export function evaluarEspecialidad(
+  role: AppRole | null | undefined,
+  specialtyName: string | null | undefined,
+  pathname: string
+): boolean {
+  // REGLA CRÍTICA: Los permisos basados en Especialidad se aplican ÚNICAMENTE al rol de Voluntario.
+  // Para los demás roles (admin, coordinador, atención de pacientes, farmacia, bodega),
+  // sus permisos de rol se mantienen globales e intactos sin filtro de especialidad.
+  if (role !== "voluntario") return true;
+
+  // Rutas generales permitidas para todo usuario autenticado con rol
+  if (pathname === "/administracion" || pathname.startsWith("/administracion/perfil")) {
+    return true;
+  }
+
+  // Módulo de Brigadas reservado EXCLUSIVAMENTE para Administrador
+  if (pathname.startsWith("/administracion/brigadas")) {
+    return false;
+  }
+
+  // Si no tiene especialidad vinculada, se restringe a solo Dashboard y Perfil
+  if (!specialtyName || specialtyName.trim() === "" || specialtyName.includes("Ninguna")) {
+    return false;
+  }
+
+  const specLower = specialtyName.toLowerCase();
+
+  // Mapeo de palabras clave por Especialidad / Área
+  if (pathname.startsWith("/administracion/pacientes")) {
+    return (
+      specLower.includes("médic") ||
+      specLower.includes("medic") ||
+      specLower.includes("odontól") ||
+      specLower.includes("odontol") ||
+      specLower.includes("salud") ||
+      specLower.includes("atención") ||
+      specLower.includes("atencion") ||
+      specLower.includes("enfermer") ||
+      specLower.includes("paciente")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/farmacia")) {
+    return (
+      specLower.includes("farmac") ||
+      specLower.includes("fármac") ||
+      specLower.includes("médic") ||
+      specLower.includes("medic") ||
+      specLower.includes("salud")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/inventario")) {
+    return (
+      specLower.includes("farmac") ||
+      specLower.includes("bodeg") ||
+      specLower.includes("inventari") ||
+      specLower.includes("logístic") ||
+      specLower.includes("logistica")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/donaciones")) {
+    return (
+      specLower.includes("donac") ||
+      specLower.includes("ropa") ||
+      specLower.includes("vestuari") ||
+      specLower.includes("apoyo") ||
+      specLower.includes("coordinac")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/actividades-infantiles")) {
+    return (
+      specLower.includes("activida") ||
+      specLower.includes("infantil") ||
+      specLower.includes("niñ") ||
+      specLower.includes("recreac") ||
+      specLower.includes("piñat")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/ventas")) {
+    return (
+      specLower.includes("ventas") ||
+      specLower.includes("bazar") ||
+      specLower.includes("comerc") ||
+      specLower.includes("finanz") ||
+      specLower.includes("tienda")
+    );
+  }
+
+  if (pathname.startsWith("/administracion/voluntarios") || pathname.startsWith("/administracion/reportes")) {
+    return (
+      specLower.includes("coordinac") ||
+      specLower.includes("gestión") ||
+      specLower.includes("gestion") ||
+      specLower.includes("voluntari") ||
+      specLower.includes("logístic")
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Verifica si un usuario (combinando Rol + Especialidad) puede acceder a una ruta protegida.
  */
 export function canAccessRoute(
   role: AppRole | null | undefined,
   pathname: string,
-  _specialtyName?: string | null
+  specialtyName?: string | null
 ): boolean {
-  // Restricción EXCLUSIVA del módulo de Brigadas para Administrador
+  // 1. Restricción de Brigadas EXCLUSIVAMENTE para Administrador
   if (pathname.startsWith("/administracion/brigadas")) {
-    return role === "admin";
+    if (role !== "admin") return false;
   }
 
   const entry = Object.entries(MODULE_PERMISSIONS).find(([route]) =>
@@ -263,5 +372,9 @@ export function canAccessRoute(
   const permissions = [...getPermissionsForRole(role || "voluntario")];
   const requiredArray = Array.isArray(required) ? required : [required];
 
-  return requiredArray.some((p) => permissions.includes(p));
+  const hasRolePermission = requiredArray.some((p) => permissions.includes(p));
+  if (!hasRolePermission) return false;
+
+  // 2. Filtro Secundario por Especialidad
+  return evaluarEspecialidad(role, specialtyName, pathname);
 }
