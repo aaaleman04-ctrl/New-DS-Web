@@ -5,7 +5,7 @@ import styles from "@/styles/pages/admin.module.css";
 import EspecialidadesTable from "../components/EspecialidadesTable";
 
 export default async function EspecialidadesPage() {
-  await requirePermission(PERMISSIONS.USERS_MANAGE);
+  await requirePermission(PERMISSIONS.VOLUNTARIADO_READ);
 
   const supabase = await createSupabaseServerClient();
   const { data: especialidades, error } = await supabase

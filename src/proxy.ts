@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { isAppRole } from "@/lib/auth/roles";
+import { canAccessRoute } from "@/lib/auth/permissions";
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -45,6 +47,30 @@ export default async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/auth/sin-acceso")) {
     return response;
+  }
+
+  // Validación RBAC de autorización para rutas en /administracion
+  if (isAdminRoute && user) {
+    // Permitir acceso siempre a la página de no-autorizado para evitar bucles de redirección
+    if (pathname === "/administracion/no-autorizado") {
+      return response;
+    }
+
+    const { data: profile } = await supabase
+      .from("perfiles")
+      .select("rol, activo")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!profile || !profile.activo || !isAppRole(profile.rol)) {
+      return NextResponse.redirect(new URL("/auth/sin-acceso", request.url));
+    }
+
+    if (!canAccessRoute(profile.rol, pathname)) {
+      return NextResponse.redirect(
+        new URL("/administracion/no-autorizado", request.url)
+      );
+    }
   }
 
   return response;

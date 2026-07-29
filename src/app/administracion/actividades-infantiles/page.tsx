@@ -1,9 +1,9 @@
-import { requireRouteAccess, getAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { ActividadesClient } from "./ActividadesClient";
 
 export default async function ActividadesPage() {
-  await requireRouteAccess("/administracion/actividades-infantiles");
-  const ctx = await getAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.ACTIVIDADES_READ);
 
   return (
     <div className="flex flex-col space-y-6">

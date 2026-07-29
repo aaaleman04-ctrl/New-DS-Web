@@ -1,10 +1,10 @@
-import { requireRouteAccess, getAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 // Client component for donations management
 import { DonacionesClient } from "./DonacionesClient";
 
 export default async function DonacionesPage() {
-  await requireRouteAccess("/administracion/donaciones");
-  const ctx = await getAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.DONACIONES_READ);
 
   return (
     <div className="flex flex-col space-y-6">

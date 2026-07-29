@@ -213,6 +213,16 @@ CREATE POLICY "Admin delete medicamentos"
   ON public.medicamentos FOR DELETE TO authenticated
   USING (public.is_admin());
 
+-- ── Movimientos de Inventario ──
+
+ALTER TABLE public.movimientos_inventario ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Panel insert movimientos_inventario" ON public.movimientos_inventario;
+
+CREATE POLICY "Panel insert movimientos_inventario"
+  ON public.movimientos_inventario FOR INSERT TO authenticated
+  WITH CHECK (public.is_panel_user());
+
 -- ── Atenciones (estadísticas simples, sin EMR) ──
 
 CREATE TABLE IF NOT EXISTS public.atenciones_pacientes (

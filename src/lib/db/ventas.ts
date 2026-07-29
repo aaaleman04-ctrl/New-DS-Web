@@ -1,8 +1,10 @@
 import { supabase } from "../supabase";
+import { assertPermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 // Categorías
-export async function getCategoriasProductos() {
-  const { data, error } = await supabase
+export async function getCategoriasProductos(client: any = supabase) {
+  const { data, error } = await client
     .from("categorias_productos")
     .select("*")
     .order("nombre", { ascending: true });
@@ -10,8 +12,9 @@ export async function getCategoriasProductos() {
   return data;
 }
 
-export async function createCategoriaProducto(categoria: any) {
-  const { data, error } = await supabase
+export async function createCategoriaProducto(categoria: any, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_CREATE);
+  const { data, error } = await client
     .from("categorias_productos")
     .insert([categoria])
     .select()
@@ -20,8 +23,9 @@ export async function createCategoriaProducto(categoria: any) {
   return data;
 }
 
-export async function deleteCategoriaProducto(id: string) {
-  const { error } = await supabase
+export async function deleteCategoriaProducto(id: string, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_DELETE);
+  const { error } = await client
     .from("categorias_productos")
     .delete()
     .eq("id", id);
@@ -29,8 +33,8 @@ export async function deleteCategoriaProducto(id: string) {
 }
 
 // Productos
-export async function getProductos() {
-  const { data, error } = await supabase
+export async function getProductos(client: any = supabase) {
+  const { data, error } = await client
     .from("productos")
     .select(`
       id, codigo, nombre, descripcion, precio, stock, activo,
@@ -41,8 +45,9 @@ export async function getProductos() {
   return data;
 }
 
-export async function createProducto(producto: any) {
-  const { data, error } = await supabase
+export async function createProducto(producto: any, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_CREATE);
+  const { data, error } = await client
     .from("productos")
     .insert([producto])
     .select()
@@ -51,9 +56,10 @@ export async function createProducto(producto: any) {
   return data;
 }
 
-export async function updateStockProducto(id: string, nuevoStock: number) {
+export async function updateStockProducto(id: string, nuevoStock: number, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_UPDATE);
   if (nuevoStock < 0) throw new Error("El stock no puede ser negativo");
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("productos")
     .update({ stock: nuevoStock })
     .eq("id", id)
@@ -63,8 +69,9 @@ export async function updateStockProducto(id: string, nuevoStock: number) {
   return data;
 }
 
-export async function deleteProducto(id: string) {
-  const { error } = await supabase
+export async function deleteProducto(id: string, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_DELETE);
+  const { error } = await client
     .from("productos")
     .delete()
     .eq("id", id);
@@ -72,8 +79,8 @@ export async function deleteProducto(id: string) {
 }
 
 // Ventas Dashboard e Historial
-export async function getDashboardVentas() {
-  const { data, error } = await supabase
+export async function getDashboardVentas(client: any = supabase) {
+  const { data, error } = await client
     .from("dashboard_ventas")
     .select("*")
     .single();
@@ -81,8 +88,8 @@ export async function getDashboardVentas() {
   return data;
 }
 
-export async function getHistorialVentas() {
-  const { data, error } = await supabase
+export async function getHistorialVentas(client: any = supabase) {
+  const { data, error } = await client
     .from("v_ventas")
     .select("*")
     .order("fecha", { ascending: false });
@@ -90,8 +97,8 @@ export async function getHistorialVentas() {
   return data;
 }
 
-export async function getBajoStock() {
-  const { data, error } = await supabase
+export async function getBajoStock(client: any = supabase) {
+  const { data, error } = await client
     .from("productos")
     .select("id, codigo, nombre, stock")
     .lte("stock", 5)
@@ -107,17 +114,16 @@ export async function registrarVenta(ventaParams: {
   brigada_id?: string, 
   observaciones?: string, 
   detalles: Array<{ producto_id: string, cantidad: number, precio_unitario: number }> 
-}) {
+}, client: any = supabase) {
+  await assertPermission(PERMISSIONS.VENTAS_CREATE);
   
   if (!ventaParams.detalles || ventaParams.detalles.length === 0) {
     throw new Error("La venta debe tener al menos un producto.");
   }
 
-  // Generate code e.g., VTA-XXXX-XXXX
   const codigo = `VTA-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
 
-  // 1. Insert Venta header
-  const { data: venta, error: errVenta } = await supabase
+  const { data: venta, error: errVenta } = await client
     .from("ventas")
     .insert([{
       codigo,
@@ -130,7 +136,6 @@ export async function registrarVenta(ventaParams: {
 
   if (errVenta) throw new Error(`Error creando la venta: ${errVenta.message}`);
 
-  // 2. Prepare detalles array
   const detallesInsert = ventaParams.detalles.map(d => ({
     venta_id: venta.id,
     producto_id: d.producto_id,
@@ -139,14 +144,12 @@ export async function registrarVenta(ventaParams: {
     subtotal: d.cantidad * d.precio_unitario
   }));
 
-  // 3. Insert detalles (this will trigger Triggers for updating total and stock)
-  const { error: errDetalles } = await supabase
+  const { error: errDetalles } = await client
     .from("detalle_ventas")
     .insert(detallesInsert);
 
   if (errDetalles) {
-    // If it fails, ideally we'd want a transaction, but via REST we just delete the header to rollback manually
-    await supabase.from("ventas").delete().eq("id", venta.id);
+    await client.from("ventas").delete().eq("id", venta.id);
     throw new Error(`Error guardando detalles de venta: ${errDetalles.message}`);
   }
 

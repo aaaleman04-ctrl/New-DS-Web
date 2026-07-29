@@ -37,7 +37,7 @@ export default function UsuariosAdminClient({
   const [editTarget, setEditTarget] = useState<ProfileWithSpecialty | null>(
     null
   );
-  const [selectedRole, setSelectedRole] = useState<AppRole>("voluntario");
+  const [selectedRole, setSelectedRole] = useState<AppRole>("admin");
   const [selectedSpecialtyId, setSelectedSpecialtyId] =
     useState<string>("none");
   const [selectedActive, setSelectedActive] = useState<boolean>(true);

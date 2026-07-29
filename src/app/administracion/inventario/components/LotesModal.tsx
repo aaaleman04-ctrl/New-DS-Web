@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LoteMedicamento, getLotesByMedicamento, createLote, updateLote, deleteLote } from "@/lib/db/inventario";
+import type { LoteMedicamento } from "@/lib/db/inventario";
+import {
+  getLotesByMedicamentoAction as getLotesByMedicamento,
+  createLoteAction as createLote,
+  updateLoteAction as updateLote,
+  deleteLoteAction as deleteLote,
+} from "../actions";
 import { LoteForm, LoteFormValues } from "./LoteForm";
 import styles from "@/styles/pages/admin.module.css";
 
@@ -49,12 +55,15 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
     setIsFormOpen(true);
   };
 
+  const [feedbackMessage, setFeedbackMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const handleCloseForm = () => {
     setSelectedLote(null);
     setIsFormOpen(false);
   };
 
   const onSubmitForm = async (data: LoteFormValues) => {
+    setFeedbackMessage(null);
     try {
       setIsSubmitting(true);
       if (selectedLote) {
@@ -64,7 +73,7 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
           fecha_vencimiento: data.fecha_vencimiento,
           cantidad_actual: data.cantidad_actual,
         });
-        alert("Lote actualizado exitosamente");
+        setFeedbackMessage({ type: "success", text: "¡Lote actualizado exitosamente!" });
       } else {
         await createLote({
           medicamento_id: medicamentoId,
@@ -74,16 +83,18 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
           cantidad_actual: data.cantidad_actual,
           cantidad_inicial: data.cantidad_actual,
         });
-        alert("Lote creado exitosamente");
+        setFeedbackMessage({ type: "success", text: "¡Lote registrado exitosamente!" });
       }
-      handleCloseForm();
-      fetchLotes();
-      if (onLotesChanged) onLotesChanged();
+      setTimeout(() => {
+        handleCloseForm();
+        fetchLotes();
+        if (onLotesChanged) onLotesChanged();
+      }, 1200);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        alert(error.message);
+        setFeedbackMessage({ type: "error", text: error.message });
       } else {
-        alert("Error al guardar el lote");
+        setFeedbackMessage({ type: "error", text: "Error al guardar el lote" });
       }
     } finally {
       setIsSubmitting(false);
@@ -94,7 +105,7 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
 
   const handleDelete = (lote: LoteMedicamento) => {
     if (lote.cantidad_actual !== lote.cantidad_inicial) {
-      alert("No se puede eliminar un lote que ya ha sido utilizado (cantidad actual difiere de inicial).");
+      setFeedbackMessage({ type: "error", text: "No se puede eliminar un lote que ya ha sido utilizado." });
       return;
     }
     setDeleteTarget(lote);
@@ -102,13 +113,15 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
+    setFeedbackMessage(null);
     try {
       await deleteLote(deleteTarget.id);
       setDeleteTarget(null);
+      setFeedbackMessage({ type: "success", text: "Lote eliminado correctamente." });
       fetchLotes();
       if (onLotesChanged) onLotesChanged();
     } catch (_error) {
-      alert("Error al eliminar el lote");
+      setFeedbackMessage({ type: "error", text: "Error al eliminar el lote" });
     }
   };
 
@@ -155,6 +168,12 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
           <p style={{ color: "var(--text-muted)", marginBottom: "2rem", fontSize: "1.4rem" }}>
             Gestiona los lotes para este medicamento. Política FEFO.
           </p>
+
+          {feedbackMessage && (
+            <div className={feedbackMessage.type === "success" ? styles.formSuccessBanner : styles.formErrorBanner} style={{ marginBottom: "1.6rem" }}>
+              <span>{feedbackMessage.type === "success" ? "✅" : "⚠️"} {feedbackMessage.text}</span>
+            </div>
+          )}
 
           {!isFormOpen ? (
             <>

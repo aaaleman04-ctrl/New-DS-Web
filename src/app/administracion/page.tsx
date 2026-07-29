@@ -1,5 +1,6 @@
 import styles from "@/styles/pages/admin.module.css";
-import { requireAuthContext } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import RoleBadge from "./components/RoleBadge";
 import UserAvatar from "./components/UserAvatar";
@@ -21,7 +22,7 @@ function DashboardSkeleton() {
 }
 
 export default async function DashboardPage() {
-  const ctx = await requireAuthContext();
+  const ctx = await requirePermission(PERMISSIONS.PERFIL_READ);
   const supabase = await createSupabaseServerClient();
 
   // Fetch user's specialty name if set
@@ -42,15 +43,15 @@ export default async function DashboardPage() {
   const role = ctx.profile.rol;
 
   // Determine what dashboard to show
-  let view = "voluntario";
+  let view = "admin";
   if (role === "admin" || role === "coordinador") {
     view = "admin";
-  } else if (specialtyName === "Médico General" || specialtyName === "Odontólogo") {
+  } else if (role === "atencion_pacientes") {
     view = "clinico";
-  } else if (specialtyName === "Enfermería") {
-    view = "enfermeria";
-  } else if (specialtyName === "Farmacia") {
+  } else if (role === "encargado_farmacia") {
     view = "farmacia";
+  } else if (role === "encargado_bodega") {
+    view = "bodega";
   }
 
   return (

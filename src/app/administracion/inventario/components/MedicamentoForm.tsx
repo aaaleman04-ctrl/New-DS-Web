@@ -1,51 +1,120 @@
-import React, { useState } from "react";
-import { InsertMedicamento } from "@/lib/db/inventario";
+import React, { useState, useEffect } from "react";
+import type { InsertMedicamento } from "@/lib/db/inventario";
 import styles from "@/styles/pages/admin.module.css";
 
 interface MedicamentoFormProps {
   initialData?: any;
-  onSubmit: (data: InsertMedicamento) => Promise<void>;
+  categorias?: any[];
+  onSubmit: (data: InsertMedicamento, cantidadInicial?: number) => Promise<void>;
   onCancel?: () => void;
   isLoading: boolean;
 }
 
-export function MedicamentoForm({ initialData, onSubmit, onCancel, isLoading }: MedicamentoFormProps) {
+export function MedicamentoForm({ initialData, categorias = [], onSubmit, onCancel, isLoading }: MedicamentoFormProps) {
+  const isEditing = Boolean(initialData?.id || initialData?.medicamento_id);
+
+  console.log("MedicamentoForm - categorias prop:", categorias);
+
+  const [cantidadInicial, setCantidadInicial] = useState<number>(0);
   const [formData, setFormData] = useState<InsertMedicamento>({
     nombre: initialData?.nombre || "",
+    tipo_recurso: initialData?.tipo_recurso || "medicamento",
     descripcion: initialData?.descripcion || "",
     unidad_medida: initialData?.unidad_medida || "",
-    stock_minimo: initialData?.stock_minimo || 0,
-    categoria_id: initialData?.categoria_id || "75c602aa-0c58-450f-aa9d-fb7d0abcc7f9", // Placeholder UUID or null
+    stock_minimo: initialData?.stock_minimo !== undefined ? Number(initialData.stock_minimo) : 10,
+    categoria_id: initialData?.categoria_id || (categorias[0]?.id || ""),
     codigo: initialData?.codigo || "",
   } as any);
 
+  useEffect(() => {
+    if (categorias && categorias.length > 0) {
+      const exists = categorias.some((c) => c.id === formData.categoria_id);
+      if (!exists || !formData.categoria_id) {
+        setFormData((prev: any) => ({ ...prev, categoria_id: categorias[0].id }));
+      }
+    }
+  }, [categorias, formData.categoria_id]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: InsertMedicamento) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev: InsertMedicamento) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const finalCategoriaId = formData.categoria_id || (categorias[0]?.id || "");
     await onSubmit({
       ...formData,
+      categoria_id: finalCategoriaId,
       stock_minimo: Number(formData.stock_minimo),
-    });
+    }, cantidadInicial);
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.adminFormSingleColumn}>
-      <div className={styles.formSectionTitle}>1. Información del Medicamentos e Insumos</div>
+      <div className={styles.formSectionTitle}>1. Clasificación e Información General</div>
 
       <label className={styles.formField}>
         <span className={styles.fieldLabel}>
-          Nombre del Medicamento / Insumo <strong className={styles.requiredStar}>* (Requerido)</strong>
+          Tipo de Recurso <strong className={styles.requiredStar}>* (Requerido)</strong>
+        </span>
+        <select
+          name="tipo_recurso"
+          value={formData.tipo_recurso || "medicamento"}
+          onChange={handleChange}
+          required
+        >
+          <option value="medicamento">💊 Medicamento (Fármacos)</option>
+          <option value="insumo_medico">🩹 Insumo Médico (Gasas, Jeringas, Guantes)</option>
+          <option value="material_brigada">⛺ Material de Brigada (Toldos, Sillas, Básculas)</option>
+        </select>
+      </label>
+
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Categoría de Inventario <strong className={styles.requiredStar}>* (Requerido)</strong>
+        </span>
+        <select
+          name="categoria_id"
+          value={formData.categoria_id || (categorias[0]?.id || "")}
+          onChange={handleChange}
+          required
+        >
+          {categorias && categorias.length > 0 ? (
+            categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.nombre}
+              </option>
+            ))
+          ) : (
+            <option value="">Cargando categorías...</option>
+          )}
+        </select>
+      </label>
+
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Nombre del Recurso <strong className={styles.requiredStar}>* (Requerido)</strong>
         </span>
         <input 
           name="nombre"
           value={formData.nombre}
           onChange={handleChange}
-          placeholder="Ej. Paracetamol 500mg"
+          placeholder="Ej. Paracetamol 500mg, Jeringas 5ml o Toldo Plegable 3x3m"
           required
+        />
+      </label>
+
+      <label className={styles.formField}>
+        <span className={styles.fieldLabel}>
+          Código / Referencia <span className={styles.optionalTag}>(Máximo 20 caracteres)</span>
+        </span>
+        <input 
+          name="codigo"
+          maxLength={20}
+          value={formData.codigo || ""}
+          onChange={handleChange}
+          placeholder="Ej. MED_AMOX_500"
         />
       </label>
       
@@ -90,6 +159,22 @@ export function MedicamentoForm({ initialData, onSubmit, onCancel, isLoading }: 
         />
       </label>
 
+      {!isEditing && (
+        <label className={styles.formField}>
+          <span className={styles.fieldLabel}>
+            Cantidad Inicial en Stock (Lote Inicial Automático) <span className={styles.optionalTag}>(Opcional)</span>
+          </span>
+          <input 
+            type="number"
+            min="0"
+            name="cantidadInicial"
+            value={cantidadInicial}
+            onChange={(e) => setCantidadInicial(Number(e.target.value))}
+            placeholder="Ingrese la cantidad inicial para crear su primer lote..."
+          />
+        </label>
+      )}
+
       <div className={styles.modalActions} style={{ marginTop: "1.6rem" }}>
         {onCancel && (
           <button type="button" className={styles.btnSecondary} onClick={onCancel} disabled={isLoading}>
@@ -105,7 +190,7 @@ export function MedicamentoForm({ initialData, onSubmit, onCancel, isLoading }: 
               <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75" />
             </svg>
           )}
-          <span>{isLoading ? "Guardando Medicamento..." : "Guardar Medicamento"}</span>
+          <span>{isLoading ? "Guardando Cambios..." : (isEditing ? "Guardar cambios" : "Crear Recurso")}</span>
         </button>
       </div>
     </form>

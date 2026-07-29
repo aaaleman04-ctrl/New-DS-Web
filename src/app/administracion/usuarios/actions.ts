@@ -25,9 +25,11 @@ export async function updateProfileAction(
     const ctx = await getAuthContext();
     if (!ctx) throw new Error("Debes iniciar sesión.");
 
-    // Only allow updating own profile, unless they are admin
-    if (ctx.user.id !== userId && ctx.role !== "admin") {
-      throw new Error("No tienes autorización para editar este perfil.");
+    // Allow updating own profile with PERFIL_UPDATE, or other profiles with USUARIOS_UPDATE
+    if (ctx.user.id !== userId) {
+      await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
+    } else {
+      await assertPermission(PERMISSIONS.PERFIL_UPDATE);
     }
 
     const supabase = await createSupabaseServerClient();
@@ -66,8 +68,10 @@ export async function updateAvatarAction(
     const ctx = await getAuthContext();
     if (!ctx) throw new Error("Debes iniciar sesión.");
 
-    if (ctx.user.id !== userId && ctx.role !== "admin") {
-      throw new Error("No tienes autorización para editar este avatar.");
+    if (ctx.user.id !== userId) {
+      await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
+    } else {
+      await assertPermission(PERMISSIONS.PERFIL_UPDATE);
     }
 
     const supabase = await createSupabaseServerClient();
@@ -106,7 +110,7 @@ export async function changeRoleAction(
       throw new Error("No puedes cambiar tu propio rol de administrador.");
     }
 
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
@@ -137,7 +141,7 @@ export async function changeSpecialtyAction(
   specialtyId: string | null
 ): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
@@ -167,7 +171,7 @@ export async function activateUserAction(
   userId: string
 ): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
@@ -203,7 +207,7 @@ export async function deactivateUserAction(
       throw new Error("No puedes desactivar tu propia cuenta.");
     }
 
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.USUARIOS_UPDATE);
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase

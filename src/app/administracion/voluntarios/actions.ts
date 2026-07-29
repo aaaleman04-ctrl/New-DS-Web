@@ -19,7 +19,7 @@ export type ActionResponse = {
 // -----------------------------------------------------------------------------
 export async function crearEspecialidad(nombre: string): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.VOLUNTARIADO_UPDATE);
     const supabase = await createSupabaseServerClient();
 
     const nombreTrim = nombre.trim();
@@ -41,7 +41,7 @@ export async function crearEspecialidad(nombre: string): Promise<ActionResponse>
 
 export async function editarEspecialidad(id: string, nombre: string): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.VOLUNTARIADO_UPDATE);
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase
@@ -60,7 +60,7 @@ export async function editarEspecialidad(id: string, nombre: string): Promise<Ac
 
 export async function activarEspecialidad(id: string): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.VOLUNTARIADO_UPDATE);
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase.from("especialidades").update({ activo: true }).eq("id", id);
@@ -82,7 +82,7 @@ export async function activarEspecialidad(id: string): Promise<ActionResponse> {
 
 export async function desactivarEspecialidad(id: string): Promise<ActionResponse> {
   try {
-    await assertPermission(PERMISSIONS.USERS_MANAGE);
+    await assertPermission(PERMISSIONS.VOLUNTARIADO_UPDATE);
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase
@@ -114,7 +114,6 @@ export async function obtenerVoluntarios() {
   const { data, error } = await supabase
     .from("perfiles")
     .select("*, especialidades:especialidad_id(id, nombre), asignaciones_voluntarios!asignaciones_voluntarios_perfil_id_fkey(id, brigada_id), participaciones_voluntarios!participaciones_voluntarios_perfil_id_fkey(id, brigada_id)")
-    .eq("rol", "voluntario")
     .order("nombre_completo", { ascending: true });
 
   if (error) {

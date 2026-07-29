@@ -9,7 +9,7 @@ DROP POLICY IF EXISTS "Admin delete presupuestos_brigada" ON public.presupuestos
 
 CREATE POLICY "Panel read presupuestos_brigada"
   ON public.presupuestos_brigada FOR SELECT TO authenticated
-  USING (public.has_any_role(ARRAY['admin', 'staff']));
+  USING (public.is_panel_user());
 
 CREATE POLICY "Admin insert presupuestos_brigada"
   ON public.presupuestos_brigada FOR INSERT TO authenticated

@@ -1,8 +1,9 @@
-import { requireRouteAccess } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/session";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { PacientesClient } from "./PacientesClient";
 
 export default async function PacientesPage() {
-  await requireRouteAccess("/administracion/pacientes");
+  await requirePermission(PERMISSIONS.PACIENTES_READ);
 
   return (
     <div className="flex flex-col space-y-6">

@@ -64,6 +64,9 @@ type BrigadasAdminClientProps = {
   fetchError: string | null;
 };
 
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
+
 export default function BrigadasAdminClient({
   initialBrigadas,
   initialBudgets,
@@ -74,6 +77,7 @@ export default function BrigadasAdminClient({
   initialImages,
   fetchError,
 }: BrigadasAdminClientProps) {
+  const { can } = usePermissions();
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(
     initialBrigadas.length > 0 ? initialBrigadas[0].id : null
@@ -302,16 +306,18 @@ export default function BrigadasAdminClient({
       {/* 1. Tabla de listado y filtros */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h3 style={{ fontSize: "1.8rem", fontWeight: "bold" }}>Planificación de Brigadas</h3>
-        <button
-          type="button"
-          className={styles.btnPrimary}
-          onClick={() => {
-            setEditingBrigada(null);
-            setModalMode("create");
-          }}
-        >
-          + Nueva Brigada
-        </button>
+        {can(PERMISSIONS.BRIGADAS_CREATE) && (
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={() => {
+              setEditingBrigada(null);
+              setModalMode("create");
+            }}
+          >
+            + Nueva Brigada
+          </button>
+        )}
       </div>
 
       <BrigadasTable

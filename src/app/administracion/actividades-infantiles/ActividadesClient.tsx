@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getActividades, getDashboardActividades, createActividad, addParticipantesActividad } from "@/lib/db/actividades";
-import { getBrigadas } from "@/lib/db/brigadas";
+import {
+  getActividadesInfantilesAction as getActividades,
+  getDashboardActividadesAction as getDashboardActividades,
+  crearActividadInfantilAction as createActividad,
+  registrarParticipacionNinosAction as addParticipantesActividad,
+} from "./actions";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
 import styles from "@/styles/pages/admin.module.css";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function ActividadesClient({ userId }: { userId: string }) {
+  const { can } = usePermissions();
   const [dashboard, setDashboard] = useState<any>(null);
   const [actividades, setActividades] = useState<any[]>([]);
   const [brigadas, setBrigadas] = useState<any[]>([]);
@@ -38,7 +46,7 @@ export function ActividadesClient({ userId }: { userId: string }) {
       setDashboard(dash);
       setActividades(acts);
       setTodasLasBrigadas(brigs.data || []);
-      setBrigadas(brigs.data?.filter(b => b.estado !== "finalizada" && b.estado !== "cancelada") || []);
+      setBrigadas(brigs.data?.filter((b: any) => b.estado !== "finalizada" && b.estado !== "cancelada") || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -105,12 +113,14 @@ export function ActividadesClient({ userId }: { userId: string }) {
       <div className={styles.tableContainer}>
         <div className={styles.tableHeader}>
           <h3>Historial de Actividades</h3>
-          <button className={styles.btnPrimary} onClick={() => {
-            setActividadForm({ brigada_id: "", nombre: "", descripcion: "", cantidad_regalos: 0 });
-            setIsActividadModalOpen(true);
-          }}>
-            + Nueva Actividad
-          </button>
+          {can(PERMISSIONS.ACTIVIDADES_CREATE) && (
+            <button className={styles.btnPrimary} onClick={() => {
+              setActividadForm({ brigada_id: "", nombre: "", descripcion: "", cantidad_regalos: 0 });
+              setIsActividadModalOpen(true);
+            }}>
+              + Nueva Actividad
+            </button>
+          )}
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.6rem", padding: "0 2.4rem" }}>
@@ -167,9 +177,11 @@ export function ActividadesClient({ userId }: { userId: string }) {
                         <td style={{ fontWeight: "bold", fontSize: "1.2rem" }}>{act.cantidad_regalos}</td>
                         <td style={{ fontWeight: "bold", fontSize: "1.2rem", color: "var(--primaryColor)" }}>{act.total_ninos}</td>
                         <td>
-                          <button className={styles.btnPrimary} onClick={() => openParticipantesModal(act.id)}>
-                            + Sumar Niños
-                          </button>
+                          {can(PERMISSIONS.ACTIVIDADES_UPDATE) && (
+                            <button className={styles.btnPrimary} onClick={() => openParticipantesModal(act.id)}>
+                              + Sumar Niños
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))

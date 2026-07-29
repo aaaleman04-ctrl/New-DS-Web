@@ -1,11 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getDashboardFarmacia, getEntregasFarmacia, getRecetasPendientes, getFefoSuggestions, registrarEntregaManual } from "@/lib/db/farmacia";
-import { getBrigadas } from "@/lib/db/brigadas";
+import {
+  getDashboardFarmaciaAction,
+  getEntregasFarmaciaAction,
+  getRecetasPendientesAction,
+  getFefoSuggestionsAction,
+  registrarEntregaManualAction,
+} from "./actions";
+import { getBrigadasAction as getBrigadas } from "@/app/administracion/brigadas/actions";
 import styles from "@/styles/pages/admin.module.css";
+import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 
 export function FarmaciaClient({ userId }: { userId: string }) {
+  const { can } = usePermissions();
   const [dashboard, setDashboard] = useState<any>(null);
   const [entregas, setEntregas] = useState<any[]>([]);
   const [pendientes, setPendientes] = useState<any[]>([]);
@@ -30,14 +39,16 @@ export function FarmaciaClient({ userId }: { userId: string }) {
   const [observaciones, setObservaciones] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState("");
+  const [modalSuccess, setModalSuccess] = useState("");
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const [dash, hist, pend, brigs] = await Promise.all([
-        getDashboardFarmacia(),
-        getEntregasFarmacia(),
-        getRecetasPendientes(),
+        getDashboardFarmaciaAction(),
+        getEntregasFarmaciaAction(),
+        getRecetasPendientesAction(),
         getBrigadas()
       ]);
       setDashboard(dash);
@@ -59,14 +70,15 @@ export function FarmaciaClient({ userId }: { userId: string }) {
   const openEntregaModal = async (receta: any) => {
     setSelectedConsulta(receta);
     setObservaciones("");
+    setModalError("");
+    setModalSuccess("");
     setIsModalOpen(true);
     setIsSubmitting(true);
     try {
-      const suggestions = await getFefoSuggestions(receta.id);
+      const suggestions = await getFefoSuggestionsAction(receta.id);
       setFefoSuggestions(suggestions);
     } catch (e: any) {
-      alert("Error al calcular FEFO: " + e.message);
-      setIsModalOpen(false);
+      setModalError("Error al calcular FEFO: " + e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -79,19 +91,24 @@ export function FarmaciaClient({ userId }: { userId: string }) {
   };
 
   const handleConfirmarEntrega = async () => {
+    setModalError("");
+    setModalSuccess("");
+
     if (fefoSuggestions.some(s => s.error)) {
-      alert("No se puede entregar. Hay medicamentos agotados. Ajusta las cantidades.");
+      setModalError("No se puede entregar. Hay medicamentos agotados. Ajusta las cantidades.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await registrarEntregaManual(fefoSuggestions, observaciones, selectedConsulta.id, entregadoPorId);
-      alert("Entrega registrada exitosamente. Inventario actualizado.");
-      setIsModalOpen(false);
-      fetchData();
+      await registrarEntregaManualAction(fefoSuggestions, observaciones, selectedConsulta.id, entregadoPorId);
+      setModalSuccess("¡Entrega registrada exitosamente! El inventario ha sido actualizado.");
+      setTimeout(() => {
+        setIsModalOpen(false);
+        fetchData();
+      }, 1500);
     } catch (e: any) {
-      alert("Error al procesar la entrega: " + e.message);
+      setModalError("Error al procesar la entrega: " + e.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +131,18 @@ export function FarmaciaClient({ userId }: { userId: string }) {
               </button>
             </div>
 
-            <div style={{ padding: "2.4rem" }}>
+            <div style={{ padding: "2.4rem", display: "flex", flexDirection: "column", gap: "1.6rem" }}>
+              {modalError && (
+                <div className={styles.formErrorBanner}>
+                  <span>⚠️ {modalError}</span>
+                </div>
+              )}
+              {modalSuccess && (
+                <div className={styles.formSuccessBanner}>
+                  <span>✅ {modalSuccess}</span>
+                </div>
+              )}
+
               <div className={styles.formSectionTitle}>1. Información del Paciente y Receta</div>
               <div style={{ marginBottom: "2rem", color: "var(--gray)", fontSize: "1.4rem", background: "var(--bg-secondary)", padding: "1.2rem", borderRadius: "var(--radius-sm)" }}>
                 <strong>Paciente:</strong> {selectedConsulta.pacientes?.nombres} {selectedConsulta.pacientes?.apellidos} <br />
@@ -318,12 +346,14 @@ export function FarmaciaClient({ userId }: { userId: string }) {
                           </ul>
                         </td>
                         <td>
-                          <button 
-                            className={styles.btnPrimary}
-                            onClick={() => openEntregaModal(p)}
-                          >
-                            Realizar Entrega
-                          </button>
+                          {(can(PERMISSIONS.FARMACIA_PROCESS) || can(PERMISSIONS.FARMACIA_CREATE)) && (
+                            <button 
+                              className={styles.btnPrimary}
+                              onClick={() => openEntregaModal(p)}
+                            >
+                              Realizar Entrega
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))
