@@ -379,7 +379,7 @@ export function DonacionesClient({ userId }: { userId: string }) {
                 <div className={styles.formField}>
                   <label>Brigada Activa *</label>
                   <select value={entregaForm.brigada_id} onChange={e => handleBrigadaChange(e.target.value)} required>
-                    <option value="">-- Seleccionar Brigada --</option>
+                    <option value="" disabled>-- Seleccionar Brigada --</option>
                     {brigadasActivas.map(b => (
                       <option key={b.id} value={b.id}>{b.nombre}</option>
                     ))}
@@ -392,7 +392,7 @@ export function DonacionesClient({ userId }: { userId: string }) {
                   <div className={styles.formField}>
                     <label>Paciente (Elegibles para Ropa) *</label>
                     <select value={entregaForm.paciente_id} onChange={e => setEntregaForm({...entregaForm, paciente_id: e.target.value})} required>
-                      <option value="">-- Seleccionar Paciente --</option>
+                      <option value="" disabled>-- Seleccionar Paciente --</option>
                       {pacientesElegibles.map(p => (
                         <option key={p.id} value={p.id}>
                           {p.nombres} {p.apellidos} (Max. disp: {p.prendasDisponibles})

@@ -1,6 +1,7 @@
 import { supabase } from "../supabase";
 import { assertPermission } from "@/lib/auth/session";
 import { PERMISSIONS } from "@/lib/auth/permissions";
+import { generateCleanToken } from "../coding/codingUtils";
 
 // Categorías
 export async function getCategoriasProductos(client: any = supabase) {
@@ -121,7 +122,8 @@ export async function registrarVenta(ventaParams: {
     throw new Error("La venta debe tener al menos un producto.");
   }
 
-  const codigo = `VTA-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
+  const anio = new Date().getFullYear();
+  const codigo = `VTA-${anio}-${generateCleanToken(5)}`;
 
   const { data: venta, error: errVenta } = await client
     .from("ventas")

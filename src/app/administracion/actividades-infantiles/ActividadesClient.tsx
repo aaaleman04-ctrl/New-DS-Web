@@ -241,7 +241,7 @@ export function ActividadesClient({ userId }: { userId: string }) {
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Brigada Médica <strong className={styles.requiredStar}>* (Requerido)</strong></span>
                 <select value={actividadForm.brigada_id} onChange={e => setActividadForm({ ...actividadForm, brigada_id: e.target.value })} required>
-                  <option value="">-- Seleccionar Brigada --</option>
+                  <option value="" disabled>-- Seleccionar Brigada --</option>
                   {brigadas.map(b => (
                     <option key={b.id} value={b.id}>{b.nombre}</option>
                   ))}

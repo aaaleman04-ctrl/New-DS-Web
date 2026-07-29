@@ -1,6 +1,7 @@
 import { supabase } from "../supabase";
 import { assertPermission } from "@/lib/auth/session";
 import { PERMISSIONS } from "@/lib/auth/permissions";
+import { generateCleanToken } from "../coding/codingUtils";
 
 export async function getDashboardRopa(client: any = supabase) {
   const { data, error } = await client
@@ -43,7 +44,8 @@ export async function getDonacionesRopa(client: any = supabase) {
 
 export async function createDonacionRopa(donacion: any, client: any = supabase) {
   await assertPermission(PERMISSIONS.DONACIONES_CREATE);
-  const codigo = `DON-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
+  const anio = new Date().getFullYear();
+  const codigo = `DON-ROP-${anio}-${generateCleanToken(5)}`;
   const { data, error } = await client
     .from("donaciones_ropa")
     .insert([{ ...donacion, codigo }])
