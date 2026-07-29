@@ -1735,6 +1735,41 @@ export type Database = {
         }
         Relationships: []
       }
+      v_reporte_insumos_brigada: {
+        Row: {
+          brigada_id: string | null
+          brigada_nombre: string | null
+          fecha: string | null
+          comunidad: string | null
+          total_medicamentos: number | null
+          total_ropa: number | null
+          total_juguetes: number | null
+          total_general: number | null
+        }
+        Relationships: []
+      }
+      v_resumen_financiero_mensual: {
+        Row: {
+          anio: number | null
+          mes: number | null
+          total_ventas: number | null
+          total_donaciones: number | null
+          cantidad_ventas: number | null
+          cantidad_donaciones: number | null
+          total_general: number | null
+        }
+        Relationships: []
+      }
+      v_resumen_brigadas_anual: {
+        Row: {
+          anio: number | null
+          total_brigadas: number | null
+          comunidades_atendidas: number | null
+          total_pacientes: number | null
+          promedio_pacientes_por_brigada: number | null
+        }
+        Relationships: []
+      }
       v_ventas: {
         Row: {
           brigada_id: string | null

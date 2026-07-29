@@ -1,102 +1,101 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
 import PrintReportDocument from "./PrintReportDocument";
 
-export interface BrigadaResumenData {
-  id: string;
-  nombre: string;
-  fecha: string;
-  comunidad: string;
-  departamento: string;
-  pacientesAtendidos: number;
-  medicosParticipantes: number;
-  odontologosParticipantes: number;
-  recetasEntregadas: number;
+export interface BrigadaAnualData {
+  anio: number;
+  total_brigadas: number;
+  comunidades_atendidas: number;
+  total_pacientes: number;
+  promedio_pacientes_por_brigada: number;
 }
 
 export default function ResumenBrigadas() {
   const { role } = usePermissions();
   const userRole = role ? ROLE_LABELS[role] : "ADMINISTRADOR";
   const [anio, setAnio] = useState<string>("todos");
-  const [brigadasList, setBrigadasList] = useState<BrigadaResumenData[]>([]);
+  const [brigadasAnuales, setBrigadasAnuales] = useState<BrigadaAnualData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchBrigadasSummary() {
       setLoading(true);
       try {
-        // 1. Fetch all brigadas
-        const { data: brigadasData, error: brigadasError } = await supabase
-          .from("brigadas")
-          .select("id, codigo, nombre, fecha_brigada, municipio, departamento, lugar");
-        if (brigadasError) throw brigadasError;
+        // 1. Consultar directamente la View optimizada v_resumen_brigadas_anual
+        const { data: viewData, error: viewError } = await supabase
+          .from("v_resumen_brigadas_anual")
+          .select("*")
+          .order("anio", { ascending: false });
 
-        // 2. Fetch all patients to calculate counts
-        const { data: patientsData, error: patientsError } = await supabase
-          .from("pacientes")
-          .select("id, brigada_id");
-        if (patientsError) throw patientsError;
+        if (!viewError && viewData) {
+          const formatted: BrigadaAnualData[] = viewData.map((row: any) => ({
+            anio: Number(row.anio || 0),
+            total_brigadas: Number(row.total_brigadas || 0),
+            comunidades_atendidas: Number(row.comunidades_atendidas || 0),
+            total_pacientes: Number(row.total_pacientes || 0),
+            promedio_pacientes_por_brigada: Number(row.promedio_pacientes_por_brigada || 0),
+          }));
+          setBrigadasAnuales(formatted);
+          return;
+        }
 
-        const patientCounts: Record<string, number> = {};
-        (patientsData || []).forEach((p) => {
-          if (p.brigada_id) {
-            patientCounts[p.brigada_id] = (patientCounts[p.brigada_id] || 0) + 1;
+        // Fallback optimizado por si la View aún no ha sido aplicada en la base de datos
+        console.warn("View v_resumen_brigadas_anual no disponible, ejecutando fallback:", viewError?.message);
+
+        const [
+          { data: brigadasData },
+          { data: patientsData },
+        ] = await Promise.all([
+          supabase.from("brigadas").select("id, fecha_brigada, lugar, municipio"),
+          supabase.from("pacientes").select("id, brigada_id"),
+        ]);
+
+        const map: Record<number, { brigadas: Set<string>; comunidades: Set<string>; pacientesCount: number }> = {};
+
+        (brigadasData || []).forEach((b: any) => {
+          if (!b.fecha_brigada) return;
+          const yr = new Date(b.fecha_brigada).getFullYear();
+          if (!map[yr]) {
+            map[yr] = { brigadas: new Set(), comunidades: new Set(), pacientesCount: 0 };
+          }
+          map[yr].brigadas.add(b.id);
+          const com = (b.municipio || b.lugar || "").trim();
+          if (com) map[yr].comunidades.add(com);
+        });
+
+        const brigadaYearMap: Record<string, number> = {};
+        (brigadasData || []).forEach((b: any) => {
+          if (b.fecha_brigada) {
+            brigadaYearMap[b.id] = new Date(b.fecha_brigada).getFullYear();
           }
         });
 
-        // 3. Fetch assignments to calculate medical / dental counts
-        const { data: assignmentsData, error: assignmentsError } = await supabase
-          .from("asignaciones_voluntarios")
-          .select("id, brigada_id, area_asignada");
-        if (assignmentsError) throw assignmentsError;
-
-        const medicoCounts: Record<string, number> = {};
-        const odontologoCounts: Record<string, number> = {};
-        (assignmentsData || []).forEach((a) => {
-          if (a.brigada_id) {
-            if (a.area_asignada === "consulta_medica") {
-              medicoCounts[a.brigada_id] = (medicoCounts[a.brigada_id] || 0) + 1;
-            } else if (a.area_asignada === "consulta_odontologica") {
-              odontologoCounts[a.brigada_id] = (odontologoCounts[a.brigada_id] || 0) + 1;
-            }
+        (patientsData || []).forEach((p: any) => {
+          const yr = brigadaYearMap[p.brigada_id];
+          if (yr && map[yr]) {
+            map[yr].pacientesCount += 1;
           }
         });
 
-        // 4. Fetch deliveries to calculate prescriptions
-        const { data: deliveriesData, error: deliveriesError } = await supabase
-          .from("entregas_farmacia")
-          .select("id, consultas (brigada_id)");
-        if (deliveriesError) throw deliveriesError;
-
-        const deliveryCounts: Record<string, number> = {};
-        (deliveriesData || []).forEach((d: { id: string; consultas: { brigada_id: string | null } | null }) => {
-          const bId = d.consultas?.brigada_id;
-          if (bId) {
-            deliveryCounts[bId] = (deliveryCounts[bId] || 0) + 1;
-          }
-        });
-
-        const formatted: BrigadaResumenData[] = (brigadasData || []).map((b) => {
+        const list: BrigadaAnualData[] = Object.keys(map).map((yrStr) => {
+          const yr = Number(yrStr);
+          const tBrig = map[yr].brigadas.size;
+          const tPac = map[yr].pacientesCount;
           return {
-            id: b.codigo || b.id.slice(0, 8).toUpperCase(),
-            nombre: b.nombre || "Brigada sin Nombre",
-            fecha: b.fecha_brigada,
-            comunidad: b.municipio || b.lugar || "Comunidad N/A",
-            departamento: b.departamento || "N/A",
-            pacientesAtendidos: patientCounts[b.id] || 0,
-            medicosParticipantes: medicoCounts[b.id] || 0,
-            odontologosParticipantes: odontologoCounts[b.id] || 0,
-            recetasEntregadas: deliveryCounts[b.id] || 0,
+            anio: yr,
+            total_brigadas: tBrig,
+            comunidades_atendidas: map[yr].comunidades.size,
+            total_pacientes: tPac,
+            promedio_pacientes_por_brigada: tBrig > 0 ? Number((tPac / tBrig).toFixed(1)) : 0,
           };
-        });
+        }).sort((a, b) => b.anio - a.anio);
 
-        setBrigadasList(formatted);
+        setBrigadasAnuales(list);
       } catch (err) {
         console.error("Error loading brigadas report:", err);
       } finally {
@@ -106,58 +105,65 @@ export default function ResumenBrigadas() {
     fetchBrigadasSummary();
   }, []);
 
-  // Dynamically extract unique years
+  // Extraer años dinámicos disponibles
   const aniosDisponibles = Array.from(
-    new Set(
-      brigadasList
-        .map((b) => {
-          try {
-            return new Date(b.fecha).getFullYear().toString();
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean)
-    )
-  ).sort() as string[];
+    new Set(brigadasAnuales.map((b) => b.anio.toString()).filter(Boolean))
+  ).sort((a, b) => b.localeCompare(a));
 
-  const datos = [...brigadasList]
-    .filter((b) => {
-      if (anio === "todos") return true;
-      try {
-        return new Date(b.fecha).getFullYear().toString() === anio;
-      } catch {
-        return false;
-      }
-    })
-    .sort((a, b) => a.id.localeCompare(b.id));
+  // Filtrar datos según el año seleccionado
+  const datosFiltrados = brigadasAnuales.filter((b) => {
+    if (anio === "todos") return true;
+    return b.anio.toString() === anio;
+  });
 
-  // Totales
-  const totalPacientes = datos.reduce((acc, b) => acc + b.pacientesAtendidos, 0);
-  const totalRecetas = datos.reduce((acc, b) => acc + b.recetasEntregadas, 0);
-  const totalMedicos = datos.reduce((acc, b) => acc + b.medicosParticipantes, 0);
-  const totalOdontologos = datos.reduce((acc, b) => acc + b.odontologosParticipantes, 0);
+  // Totales acumulados
+  const totalBrigadas = datosFiltrados.reduce((acc, b) => acc + b.total_brigadas, 0);
+  const comunidadesAtendidas = datosFiltrados.reduce((acc, b) => acc + b.comunidades_atendidas, 0);
+  const totalPacientes = datosFiltrados.reduce((acc, b) => acc + b.total_pacientes, 0);
+  const promedioPacientes = totalBrigadas > 0 ? (totalPacientes / totalBrigadas).toFixed(1) : "0";
 
-  // Max value for visual bar chart
-  const maxPacientes = Math.max(...datos.map((b) => b.pacientesAtendidos), 1);
+  const displayPeriodo = anio === "todos" ? "Todos los años" : `Año ${anio}`;
 
-  const [fechaActualCompleta, setFechaActualCompleta] = useState("");
+  // Elementos de la gráfica (Brigadas realizadas, Comunidades atendidas, Pacientes registrados)
+  const chartItems = [
+    {
+      id: "brigadas",
+      label: "Brigadas Realizadas",
+      nombreCorto: "Brigadas",
+      valor: totalBrigadas,
+      color: "#3498db",
+    },
+    {
+      id: "comunidades",
+      label: "Comunidades Atendidas",
+      nombreCorto: "Comunidades",
+      valor: comunidadesAtendidas,
+      color: "#1abc9c",
+    },
+    {
+      id: "pacientes",
+      label: "Pacientes Registrados",
+      nombreCorto: "Pacientes",
+      valor: totalPacientes,
+      color: "#2980b9",
+    },
+  ];
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFechaActualCompleta(
-      new Date().toLocaleDateString("es-HN", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
-  }, []);
+  const maxValorChart = Math.max(...chartItems.map((c) => c.valor), 1);
 
-  // Prepare sorted data for print view (chronologically by date ascending)
-  const printData = [...datos].sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = `Resumen de Brigadas Realizadas - ${displayPeriodo}`;
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+    setTimeout(restoreTitle, 1000);
+  };
 
   return (
     <div>
@@ -169,8 +175,7 @@ export default function ResumenBrigadas() {
             <div className={styles.reportHeaderText}>
               <h3>Resumen de Brigadas Realizadas</h3>
               <p>
-                Informe consolidado de brigadas médicas de atención, especialistas
-                en campo e impacto social.
+                Informe sintetizado anual del impacto y cobertura de las brigadas ejecutadas.
               </p>
             </div>
           </div>
@@ -178,7 +183,7 @@ export default function ResumenBrigadas() {
             <button
               type="button"
               className={styles.btnActionSecondary}
-              onClick={() => window.print()}
+              onClick={handlePrint}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -206,6 +211,7 @@ export default function ResumenBrigadas() {
               id="brigadas-anio"
               value={anio}
               onChange={(e) => setAnio(e.target.value)}
+              disabled={loading}
             >
               <option value="todos">Todos los años</option>
               {aniosDisponibles.map((a) => (
@@ -223,7 +229,7 @@ export default function ResumenBrigadas() {
               fontStyle: "italic",
             }}
           >
-            Datos de atención acumulados de la base de datos de brigadas.
+            Resumen consolidado anual del impacto de brigadas.
           </p>
         </div>
 
@@ -231,37 +237,36 @@ export default function ResumenBrigadas() {
         <div className={styles.kpiGrid}>
           <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
             <p className={styles.kpiLabel}>Brigadas Realizadas</p>
-            <p className={styles.kpiValue}>{loading ? "..." : datos.length}</p>
+            <p className={styles.kpiValue}>{loading ? "..." : totalBrigadas.toLocaleString()}</p>
             <p className={styles.kpiChange}>Eventos de atención completados</p>
           </div>
+
+          <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
+            <p className={styles.kpiLabel}>Comunidades Atendidas</p>
+            <p className={styles.kpiValue}>{loading ? "..." : comunidadesAtendidas.toLocaleString()}</p>
+            <p className={styles.kpiChange}>Sectores y municipios cubiertos</p>
+          </div>
+
           <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
-            <p className={styles.kpiLabel}>Total Pacientes Atendidos</p>
+            <p className={styles.kpiLabel}>Total Pacientes Registrados</p>
             <p className={styles.kpiValue}>
               {loading ? "..." : totalPacientes.toLocaleString()}
             </p>
             <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
-              Atenciones clínicas & odontológicas
+              Beneficiarios atendidos
             </p>
           </div>
-          <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
-            <p className={styles.kpiLabel}>Especialistas Aportados</p>
-            <p className={styles.kpiValue}>
-              {loading ? "..." : totalMedicos + totalOdontologos}
-            </p>
-            <p className={styles.kpiChange}>
-              {totalMedicos} Médicos | {totalOdontologos} Odontólogos
-            </p>
-          </div>
+
           <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
-            <p className={styles.kpiLabel}>Recetas Surtidas</p>
+            <p className={styles.kpiLabel}>Promedio Pacientes / Brigada</p>
             <p className={styles.kpiValue}>
-              {loading ? "..." : totalRecetas.toLocaleString()}
+              {loading ? "..." : promedioPacientes}
             </p>
-            <p className={styles.kpiChange}>Medicamentos entregados sin costo</p>
+            <p className={styles.kpiChange}>Pacientes promedio por evento</p>
           </div>
         </div>
 
-        {/* Gráfico y Tabla */}
+        {/* Gráfico y Tabla Resumen Ejecutivo */}
         <div className={styles.financeSection} style={{ padding: "2.4rem" }}>
           <h4
             style={{
@@ -271,7 +276,7 @@ export default function ResumenBrigadas() {
               gap: "0.8rem",
             }}
           >
-            Pacientes Atendidos por Brigada
+            Impacto de Brigadas Realizadas ({displayPeriodo})
           </h4>
 
           {/* Gráfico SVG de Barras Interactivo */}
@@ -287,172 +292,160 @@ export default function ResumenBrigadas() {
               <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
                 Cargando gráfico...
               </div>
-          ) : datos.length === 0 ? (
-            <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
-              No hay brigadas registradas para este periodo.
-            </div>
-          ) : (
-            <div className={styles.barChartGrid}>
-              {datos.map((b) => {
-                const alturaPorcentaje = Math.max(
-                  (b.pacientesAtendidos / maxPacientes) * 80,
-                  10
-                );
-                return (
-                  <div key={b.id} className={styles.barCol}>
-                    <div className={styles.barColTooltip}>
-                      {b.pacientesAtendidos} pacientes ({b.recetasEntregadas}{" "}
-                      recetas)
+            ) : totalBrigadas === 0 ? (
+              <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
+                No hay brigadas registradas para este periodo.
+              </div>
+            ) : (
+              <div className={styles.barChartGrid}>
+                {chartItems.map((item) => {
+                  const alturaPorcentaje = Math.max(
+                    (item.valor / maxValorChart) * 80,
+                    8
+                  );
+                  return (
+                    <div key={item.id} className={styles.barCol}>
+                      <div className={styles.barColTooltip}>
+                        {item.label}: {item.valor.toLocaleString()}
+                      </div>
+                      <div
+                        className={styles.chartBarElement}
+                        style={{
+                          height: `${alturaPorcentaje}%`,
+                          backgroundColor: item.color,
+                          width: "3.6rem",
+                        }}
+                      />
+                      <span className={styles.barLabel}>{item.nombreCorto}</span>
                     </div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{
-                        height: `${alturaPorcentaje}%`,
-                        backgroundColor: "var(--primaryColor)",
-                        width: "4.8rem",
-                      }}
-                    />
-                    <span
-                      className={styles.barLabel}
-                      style={{ fontSize: "1rem" }}
-                    >
-                      {b.nombre.replace("Brigada", "").trim()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        {/* Tabla desglosada */}
-        <div style={{ overflowX: "auto" }}>
-          <table className={styles.financeTable}>
-            <thead>
-              <tr>
-                <th style={{ width: "3rem" }}>#</th>
-                <th>Código</th>
-                <th>Nombre de la Brigada</th>
-                <th>Fecha de Ejecución</th>
-                <th>Ubicación</th>
-                <th>Pacientes Atendidos</th>
-                <th>Médicos</th>
-                <th>Odontólogos</th>
-                <th>Recetas Entregadas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+          {/* Tabla Resumen Ejecutivo */}
+          <div style={{ overflowX: "auto" }}>
+            <table className={styles.financeTable}>
+              <thead>
                 <tr>
-                  <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
-                    Cargando listado de brigadas...
-                  </td>
+                  <th>Métrica de Cobertura / Impacto</th>
+                  <th style={{ textAlign: "right" }}>Valor Consolidado</th>
                 </tr>
-              ) : datos.length === 0 ? (
-                <tr>
-                  <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
-                    No se encontraron brigadas registradas.
-                  </td>
-                </tr>
-              ) : (
-                datos.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td style={{ color: "var(--grayLight)", fontWeight: 600 }}>
-                      {idx + 1}
-                    </td>
-                    <td style={{ fontWeight: 600, color: "var(--gray)" }}>
-                      {item.id}
-                    </td>
-                    <td style={{ fontWeight: 700 }}>{item.nombre}</td>
-                    <td>
-                      {new Date(item.fecha).toLocaleDateString("es-HN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td>
-                      {item.comunidad} ({item.departamento})
-                    </td>
-                    <td
-                      style={{
-                        fontWeight: 700,
-                        color: "var(--primaryDark)",
-                        textAlign: "center",
-                      }}
-                    >
-                      {item.pacientesAtendidos}
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      {item.medicosParticipantes}
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      {item.odontologosParticipantes}
-                    </td>
-                    <td style={{ fontWeight: 600, textAlign: "center" }}>
-                      {item.recetasEntregadas}
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={2} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                      Cargando resumen de brigadas...
                     </td>
                   </tr>
-                ))
-              )}
-              {!loading && datos.length > 0 && (
-                <tr className={styles.financeTotalsRow}>
-                  <td colSpan={5}>TOTAL ACUMULADO</td>
-                  <td style={{ textAlign: "center" }}>{totalPacientes}</td>
-                  <td style={{ textAlign: "center" }}>{totalMedicos}</td>
-                  <td style={{ textAlign: "center" }}>{totalOdontologos}</td>
-                  <td style={{ textAlign: "center" }}>{totalRecetas}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ) : totalBrigadas === 0 ? (
+                  <tr>
+                    <td colSpan={2} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                      No se encontraron brigadas para este periodo.
+                    </td>
+                  </tr>
+                ) : (
+                  <>
+                    <tr>
+                      <td style={{ fontWeight: 700 }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "50%",
+                            backgroundColor: "#3498db",
+                            marginRight: "0.8rem",
+                          }}
+                        />
+                        Cantidad Total de Brigadas Realizadas
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1.4rem" }}>
+                        {totalBrigadas.toLocaleString()} brigadas
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: 700 }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "50%",
+                            backgroundColor: "#1abc9c",
+                            marginRight: "0.8rem",
+                          }}
+                        />
+                        Cantidad de Comunidades Atendidas
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1.4rem" }}>
+                        {comunidadesAtendidas.toLocaleString()} comunidades
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: 700 }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "50%",
+                            backgroundColor: "#2980b9",
+                            marginRight: "0.8rem",
+                          }}
+                        />
+                        Cantidad Total de Pacientes Registrados
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1.4rem", color: "var(--primaryDark)" }}>
+                        {totalPacientes.toLocaleString()} pacientes
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: 700 }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "50%",
+                            backgroundColor: "#5dade2",
+                            marginRight: "0.8rem",
+                          }}
+                        />
+                        Promedio de Pacientes por Brigada
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1.4rem" }}>
+                        {promedioPacientes} pacientes/brigada
+                      </td>
+                    </tr>
+                  </>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
 
-      {/* ── VISTA DE IMPRESIÓN (SIN PAGINAR, CONTINUA) ── */}
+      {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
-        {/* Encabezado Oficial Institucional */}
-        <div style={{ borderBottom: "3px double #000000", paddingBottom: "1rem", marginBottom: "2rem", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.5rem" }}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={35}
-              height={35}
-              style={{ objectFit: "contain" }}
-            />
-            <h1 style={{ fontSize: "18pt", fontWeight: "bold", margin: 0, color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Fundación Dibujando Sonrisas
-            </h1>
-          </div>
-          <h2 style={{ fontSize: "13pt", fontWeight: "bold", margin: "0.5rem 0", color: "#000000", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            RESUMEN DE BRIGADAS REALIZADAS
-          </h2>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", color: "#000000", borderTop: "1px solid #000000", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
-            <span><strong>Solicitado por:</strong> {userRole}</span>
-            <span><strong>Periodo Anual:</strong> {anio === "todos" ? "Todos los años" : anio}</span>
-            <span><strong>Ordenamiento:</strong> Cronológico Ascendente</span>
-            <span><strong>Fecha de Generación:</strong> {fechaActualCompleta}</span>
-          </div>
-        </div>
-
         <PrintReportDocument
           title="Resumen de Brigadas Realizadas"
           userRole={userRole}
           metaItems={[
-            { label: "Periodo Anual", value: anio === "todos" ? "Todos los Años" : `Año ${anio}` },
-            { label: "Total Brigadas", value: printData.length },
+            { label: "Periodo Anual", value: displayPeriodo },
+            { label: "Frecuencia", value: "Anual / Consolidado" },
           ]}
           summaryCards={[
-            { label: "Total Atenciones", value: totalPacientes },
-            { label: "Médicos Voluntarios", value: totalMedicos },
-            { label: "Odontólogos", value: totalOdontologos },
-            { label: "Recetas Despachadas", value: totalRecetas },
+            { label: "Brigadas Realizadas", value: totalBrigadas.toLocaleString() },
+            { label: "Comunidades Atendidas", value: comunidadesAtendidas.toLocaleString() },
+            { label: "Pacientes Registrados", value: totalPacientes.toLocaleString() },
+            { label: "Promedio Pacientes/Brigada", value: promedioPacientes },
           ]}
           footerNote="Reporte de impacto y cobertura — Fundación Dibujando Sonrisas"
         >
-          {/* Gráfico de Barras en Impresión sin cortes */}
+          {/* Gráfico de Barras en Impresión */}
           <div
             style={{
               pageBreakInside: "avoid",
@@ -476,7 +469,7 @@ export default function ResumenBrigadas() {
                 textAlign: "center",
               }}
             >
-              Pacientes Atendidos por Brigada
+              Impacto de Brigadas Realizadas
             </h3>
 
             <div style={{ height: "180px", width: "100%", maxWidth: "680px", margin: "0 auto" }}>
@@ -484,36 +477,70 @@ export default function ResumenBrigadas() {
                 <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
                   Cargando gráfico...
                 </div>
-              ) : printData.length === 0 ? (
+              ) : totalBrigadas === 0 ? (
                 <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
                   No hay brigadas registradas para este periodo.
                 </div>
               ) : (
-                <div className={styles.barChartGrid} style={{ height: "100%", borderBottom: "2px solid #000000", display: "flex", alignItems: "flex-end", justifyContent: "space-around", paddingBottom: "4px" }}>
-                  {printData.map((b) => {
+                <div
+                  className={styles.barChartGrid}
+                  style={{
+                    height: "100%",
+                    borderBottom: "2px solid #000000",
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "space-around",
+                    paddingBottom: "4px",
+                  }}
+                >
+                  {chartItems.map((item) => {
                     const alturaPorcentaje = Math.max(
-                      (b.pacientesAtendidos / maxPacientes) * 75,
+                      (item.valor / maxValorChart) * 75,
                       10
                     );
                     return (
-                      <div key={b.id} className={styles.barCol} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                        <span style={{ fontSize: "7.5pt", fontWeight: "bold", color: "#1e293b", marginBottom: "2px" }}>
-                          {b.pacientesAtendidos}
+                      <div
+                        key={item.id}
+                        className={styles.barCol}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          height: "100%",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "8.5pt",
+                            fontWeight: "bold",
+                            color: "#1e293b",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          {item.valor.toLocaleString()}
                         </span>
                         <div
                           style={{
                             height: `${alturaPorcentaje}%`,
-                            backgroundColor: "#2563eb",
-                            width: "2.2rem",
+                            backgroundColor: item.color,
+                            width: "2.8rem",
                             borderRadius: "3px 3px 0 0",
                             WebkitPrintColorAdjust: "exact",
                             printColorAdjust: "exact",
                           }}
                         />
                         <span
-                          style={{ fontSize: "8pt", color: "#000000", fontWeight: 600, marginTop: "4px", textAlign: "center", whiteSpace: "nowrap" }}
+                          style={{
+                            fontSize: "8.5pt",
+                            color: "#000000",
+                            fontWeight: 600,
+                            marginTop: "4px",
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                          }}
                         >
-                          {b.nombre.replace("Brigada", "").trim()}
+                          {item.nombreCorto}
                         </span>
                       </div>
                     );
@@ -526,59 +553,55 @@ export default function ResumenBrigadas() {
           <table className={styles.printTable}>
             <thead>
               <tr>
-                <th style={{ width: "4%" }}>#</th>
-                <th style={{ width: "10%" }}>Código</th>
-                <th style={{ width: "24%" }}>Nombre de la Brigada</th>
-                <th style={{ width: "14%" }}>Fecha</th>
-                <th style={{ width: "20%" }}>Ubicación / Comunidad</th>
-                <th style={{ width: "7%", textAlign: "center" }}>Pacientes</th>
-                <th style={{ width: "7%", textAlign: "center" }}>Médicos</th>
-                <th style={{ width: "7%", textAlign: "center" }}>Odont.</th>
-                <th style={{ width: "7%", textAlign: "center" }}>Recetas</th>
+                <th style={{ width: "8%", textAlign: "center" }}>#</th>
+                <th style={{ width: "62%" }}>Métrica de Cobertura / Impacto</th>
+                <th style={{ width: "30%", textAlign: "right" }}>Valor Consolidado</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                    Cargando listado de brigadas...
+                  <td colSpan={3} style={{ textAlign: "center", padding: "1.5rem" }}>
+                    Cargando resumen de brigadas...
                   </td>
                 </tr>
-              ) : printData.length === 0 ? (
+              ) : totalBrigadas === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: "center", padding: "1.5rem", color: "#000000" }}>
-                    No se encontraron brigadas registradas para el periodo seleccionado.
+                  <td colSpan={3} style={{ textAlign: "center", padding: "1.5rem" }}>
+                    No hay brigadas registradas para el periodo seleccionado.
                   </td>
                 </tr>
               ) : (
-                printData.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
-                    <td style={{ fontWeight: "bold" }}>{item.id}</td>
-                    <td style={{ fontWeight: "bold" }}>{item.nombre}</td>
-                    <td>
-                      {new Date(item.fecha).toLocaleDateString("es-HN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                <>
+                  <tr>
+                    <td style={{ textAlign: "center" }}>1</td>
+                    <td style={{ fontWeight: "bold" }}>Cantidad Total de Brigadas Realizadas</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                      {totalBrigadas.toLocaleString()} brigadas
                     </td>
-                    <td>{item.comunidad} ({item.departamento})</td>
-                    <td style={{ textAlign: "center", fontWeight: "bold" }}>{item.pacientesAtendidos}</td>
-                    <td style={{ textAlign: "center" }}>{item.medicosParticipantes}</td>
-                    <td style={{ textAlign: "center" }}>{item.odontologosParticipantes}</td>
-                    <td style={{ textAlign: "center", fontWeight: "bold" }}>{item.recetasEntregadas}</td>
                   </tr>
-                ))
-              )}
-              {!loading && printData.length > 0 && (
-                <tr style={{ fontWeight: "bold", borderTop: "2px solid #000000", background: "#f1f5f9" }}>
-                  <td colSpan={5}>TOTAL ACUMULADO</td>
-                  <td style={{ textAlign: "center" }}>{totalPacientes}</td>
-                  <td style={{ textAlign: "center" }}>{totalMedicos}</td>
-                  <td style={{ textAlign: "center" }}>{totalOdontologos}</td>
-                  <td style={{ textAlign: "center" }}>{totalRecetas}</td>
-                </tr>
+                  <tr>
+                    <td style={{ textAlign: "center" }}>2</td>
+                    <td style={{ fontWeight: "bold" }}>Cantidad de Comunidades Atendidas</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                      {comunidadesAtendidas.toLocaleString()} comunidades
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ textAlign: "center" }}>3</td>
+                    <td style={{ fontWeight: "bold" }}>Cantidad Total de Pacientes Registrados</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                      {totalPacientes.toLocaleString()} pacientes
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ textAlign: "center" }}>4</td>
+                    <td style={{ fontWeight: "bold" }}>Promedio de Pacientes por Brigada</td>
+                    <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                      {promedioPacientes} pacientes/brigada
+                    </td>
+                  </tr>
+                </>
               )}
             </tbody>
           </table>

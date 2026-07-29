@@ -1,262 +1,193 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import styles from "@/styles/pages/reportes.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { supabase } from "@/lib/supabase";
 import PrintReportDocument from "./PrintReportDocument";
 
-export interface InsumoConsumoData {
-  categoria: string;
-  totalEntregado: number;
-  unidad: string;
-  valorEstimadoHNL: number;
-  topItem: string;
-  fecha: string; // ISO date string to filter by period
+export interface BrigadeReportData {
+  brigada_id: string;
+  brigada_nombre: string;
+  fecha: string;
+  comunidad: string;
+  total_medicamentos: number;
+  total_ropa: number;
+  total_juguetes: number;
+  total_general: number;
 }
 
 export default function ResumenInsumos() {
   const { role } = usePermissions();
   const userRole = role ? ROLE_LABELS[role] : "ADMINISTRADOR";
-  const [anioFiltro, setAnioFiltro] = useState<string>("todos");
-  const [rawInsumos, setRawInsumos] = useState<InsumoConsumoData[]>([]);
+
+  const [brigadasData, setBrigadasData] = useState<BrigadeReportData[]>([]);
+  const [selectedBrigadaId, setSelectedBrigadaId] = useState<string>("todas");
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    async function fetchInsumos() {
+    async function fetchReporteData() {
       setLoading(true);
       try {
-        // 1. Fetch pharmacy deliveries
-        const { data: farmaciaData, error: farmaciaError } = await supabase
-          .from("entregas_farmacia")
-          .select(`
-            cantidad,
-            fecha_entrega,
-            medicamentos (
-              nombre,
-              unidad_medida,
-              categorias_inventario (
-                nombre
-              )
-            )
-          `);
-        if (farmaciaError) throw farmaciaError;
+        // 1. Consultar la View optimizada v_reporte_insumos_brigada
+        const { data: viewData, error: viewError } = await supabase
+          .from("v_reporte_insumos_brigada")
+          .select("*")
+          .order("fecha", { ascending: false });
 
-        // 2. Fetch clothing deliveries
-        const { data: ropaData, error: ropaError } = await supabase
-          .from("entregas_ropa")
-          .select("cantidad_prendas, fecha_entrega");
-        if (ropaError) throw ropaError;
-
-        const list: InsumoConsumoData[] = [];
-
-        // Process pharmacy deliveries
-        const catMap: Record<string, { total: number; unit: string; topItem: string; topCount: number; itemCounts: Record<string, number>; dates: string[] }> = {};
-        (farmaciaData || []).forEach((f: {
-          cantidad: number | null;
-          fecha_entrega: string | null;
-          medicamentos: {
-            nombre: string;
-            unidad_medida: string | null;
-            categorias_inventario: { nombre: string } | null;
-          } | null;
-        }) => {
-          const quantity = f.cantidad || 0;
-          const medName = f.medicamentos?.nombre || "Otros";
-          const catName = f.medicamentos?.categorias_inventario?.nombre || "Otros";
-          const unit = f.medicamentos?.unidad_medida || "tabletas";
-          const dateStr = f.fecha_entrega || new Date().toISOString();
-
-          if (!catMap[catName]) {
-            catMap[catName] = {
-              total: 0,
-              unit: unit,
-              topItem: "",
-              topCount: 0,
-              itemCounts: {},
-              dates: [],
-            };
+        if (!viewError && viewData) {
+          const formatted: BrigadeReportData[] = viewData.map((row: any) => ({
+            brigada_id: row.brigada_id || "",
+            brigada_nombre: row.brigada_nombre || "Sin Nombre",
+            fecha: row.fecha || "",
+            comunidad: row.comunidad || "N/A",
+            total_medicamentos: Number(row.total_medicamentos || 0),
+            total_ropa: Number(row.total_ropa || 0),
+            total_juguetes: Number(row.total_juguetes || 0),
+            total_general: Number(row.total_general || 0),
+          }));
+          setBrigadasData(formatted);
+          if (formatted.length > 0) {
+            setSelectedBrigadaId(formatted[0].brigada_id);
           }
+          return;
+        }
 
-          catMap[catName].total += quantity;
-          catMap[catName].itemCounts[medName] = (catMap[catName].itemCounts[medName] || 0) + quantity;
-          catMap[catName].dates.push(dateStr);
-          if (catMap[catName].itemCounts[medName] > catMap[catName].topCount) {
-            catMap[catName].topCount = catMap[catName].itemCounts[medName];
-            catMap[catName].topItem = medName;
+        // Fallback optimizado por si la View aún no ha sido aplicada en la base de datos
+        console.warn("View v_reporte_insumos_brigada no disponible, ejecutando fallback:", viewError?.message);
+
+        const [
+          { data: brigadas },
+          { data: farmaciaData },
+          { data: ropaData },
+          { data: juguetesData },
+        ] = await Promise.all([
+          supabase.from("brigadas").select("id, nombre, fecha_brigada, lugar").order("fecha_brigada", { ascending: false }),
+          supabase.from("entregas_farmacia").select("cantidad, consultas!inner(brigada_id)"),
+          supabase.from("entregas_ropa").select("cantidad_prendas, brigada_id"),
+          supabase.from("actividades_infantiles").select("cantidad_regalos, brigada_id"),
+        ]);
+
+        const medMap: Record<string, number> = {};
+        (farmaciaData || []).forEach((f: any) => {
+          const bId = f.consultas?.brigada_id;
+          if (bId) {
+            medMap[bId] = (medMap[bId] || 0) + Number(f.cantidad || 0);
           }
         });
 
-        Object.keys(catMap).forEach((catName) => {
-          const dates = catMap[catName].dates;
-          const avgDate = dates.length > 0 ? dates[0] : new Date().toISOString();
-          list.push({
-            categoria: catName,
-            totalEntregado: catMap[catName].total,
-            unidad: catMap[catName].unit,
-            valorEstimadoHNL: catMap[catName].total * 25, // Mock valuation L. 25 per dose
-            topItem: catMap[catName].topItem,
-            fecha: avgDate,
-          });
+        const ropaMap: Record<string, number> = {};
+        (ropaData || []).forEach((r: any) => {
+          if (r.brigada_id) {
+            ropaMap[r.brigada_id] = (ropaMap[r.brigada_id] || 0) + Number(r.cantidad_prendas || 0);
+          }
         });
 
-        // Process clothing deliveries
-        (ropaData || []).forEach((r: {
-          cantidad_prendas: number | null;
-          fecha_entrega: string | null;
-          observaciones?: string | null;
-        }) => {
-          const quantity = r.cantidad_prendas || 0;
-          const dateStr = r.fecha_entrega || new Date().toISOString();
-          list.push({
-            categoria: "Ropa & Calzado",
-            totalEntregado: quantity,
-            unidad: "piezas",
-            valorEstimadoHNL: quantity * 100, // Mock valuation L. 100 per piece
-            topItem: "Ropa de Niño",
-            fecha: dateStr,
-          });
+        const jugMap: Record<string, number> = {};
+        (juguetesData || []).forEach((j: any) => {
+          if (j.brigada_id) {
+            jugMap[j.brigada_id] = (jugMap[j.brigada_id] || 0) + Number(j.cantidad_regalos || 0);
+          }
         });
 
-        // Group final list if there are multiple dates, but here we can just consolidate clothing into a single row per year if filtered, or keep them.
-        // To be safe and clean, let's group all by category for the selected year!
-        // We will store all raw entries with their exact dates, and then aggregate them dynamically in `procesarDatos`!
-        // Yes, this is much better! Let's store raw records.
-        const rawList: InsumoConsumoData[] = [];
-        (farmaciaData || []).forEach((f: {
-          cantidad: number | null;
-          fecha_entrega: string | null;
-          medicamentos: {
-            nombre: string;
-            unidad_medida: string | null;
-            categorias_inventario: { nombre: string } | null;
-          } | null;
-        }) => {
-          const catName = f.medicamentos?.categorias_inventario?.nombre || "Otros";
-          rawList.push({
-            categoria: catName,
-            totalEntregado: f.cantidad || 0,
-            unidad: f.medicamentos?.unidad_medida || "tabletas",
-            valorEstimadoHNL: (f.cantidad || 0) * 25,
-            topItem: f.medicamentos?.nombre || "N/A",
-            fecha: f.fecha_entrega || new Date().toISOString(),
-          });
+        const list: BrigadeReportData[] = (brigadas || []).map((b: any) => {
+          const tMed = medMap[b.id] || 0;
+          const tRopa = ropaMap[b.id] || 0;
+          const tJug = jugMap[b.id] || 0;
+          return {
+            brigada_id: b.id,
+            brigada_nombre: b.nombre,
+            fecha: b.fecha_brigada,
+            comunidad: b.lugar || "N/A",
+            total_medicamentos: tMed,
+            total_ropa: tRopa,
+            total_juguetes: tJug,
+            total_general: tMed + tRopa + tJug,
+          };
         });
 
-        (ropaData || []).forEach((r: {
-          cantidad_prendas: number | null;
-          fecha_entrega: string | null;
-          observaciones?: string | null;
-        }) => {
-          rawList.push({
-            categoria: "Ropa & Calzado",
-            totalEntregado: r.cantidad_prendas || 0,
-            unidad: "piezas",
-            valorEstimadoHNL: (r.cantidad_prendas || 0) * 100,
-            topItem: r.observaciones || "Ropa Infantil",
-            fecha: r.fecha_entrega || new Date().toISOString(),
-          });
-        });
-        setRawInsumos(rawList);
+        setBrigadasData(list);
+        if (list.length > 0) {
+          setSelectedBrigadaId(list[0].brigada_id);
+        }
       } catch (err) {
-        console.error("Error fetching insumos data:", err);
+        console.error("Error al cargar datos del reporte de insumos:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchInsumos();
+
+    fetchReporteData();
   }, []);
 
-  // Dynamically extract unique years from data
-  const aniosDisponibles = Array.from(
-    new Set(
-      rawInsumos.map((item) => {
-        try {
-          return new Date(item.fecha).getFullYear().toString();
-        } catch {
-          return null;
-        }
-      }).filter(Boolean)
-    )
-  ).sort() as string[];
+  // Determinar los datos a mostrar según el filtro de brigada
+  const selectedBrigada = brigadasData.find((b) => b.brigada_id === selectedBrigadaId);
 
-  const procesarDatos = () => {
-    // 1. Filter by year
-    const filtered = rawInsumos.filter((item) => {
-      if (anioFiltro === "todos") return true;
-      try {
-        const itemYear = new Date(item.fecha).getFullYear().toString();
-        return itemYear === anioFiltro;
-      } catch {
-        return false;
-      }
-    });
+  const displayNombre = selectedBrigadaId === "todas"
+    ? "Todas las Brigadas"
+    : selectedBrigada?.brigada_nombre || "Seleccionar Brigada";
 
-    // 2. Aggregate by Category
-    const agg: Record<string, { total: number; unit: string; topItem: string; topCount: number; itemCounts: Record<string, number>; valor: number }> = {};
-    filtered.forEach((item) => {
-      const cat = item.categoria;
-      if (!agg[cat]) {
-        agg[cat] = {
-          total: 0,
-          unit: item.unidad,
-          topItem: "",
-          topCount: 0,
-          itemCounts: {},
-          valor: 0,
-        };
-      }
-      agg[cat].total += item.totalEntregado;
-      agg[cat].valor += item.valorEstimadoHNL;
-      agg[cat].itemCounts[item.topItem] = (agg[cat].itemCounts[item.topItem] || 0) + item.totalEntregado;
+  const displayFecha = selectedBrigadaId === "todas"
+    ? "Consolidado General"
+    : selectedBrigada?.fecha
+      ? new Date(selectedBrigada.fecha).toLocaleDateString("es-HN", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
+      : "Fecha no registrada";
 
-      if (agg[cat].itemCounts[item.topItem] > agg[cat].topCount) {
-        agg[cat].topCount = agg[cat].itemCounts[item.topItem];
-        agg[cat].topItem = item.topItem;
-      }
-    });
+  const displayComunidad = selectedBrigadaId === "todas"
+    ? "Varias Comunidades"
+    : selectedBrigada?.comunidad || "No especificada";
 
-    return Object.keys(agg).map((catName) => ({
-      categoria: catName,
-      totalEntregado: agg[catName].total,
-      unidad: agg[catName].unit,
-      valorEstimadoHNL: agg[catName].valor,
-      topItem: agg[catName].topItem,
-    })).sort((a, b) => a.categoria.localeCompare(b.categoria, "es"));
-  };
+  let totalMedicamentos = 0;
+  let totalRopa = 0;
+  let totalJuguetes = 0;
 
-  const datos = procesarDatos();
+  if (selectedBrigadaId === "todas") {
+    totalMedicamentos = brigadasData.reduce((acc, b) => acc + b.total_medicamentos, 0);
+    totalRopa = brigadasData.reduce((acc, b) => acc + b.total_ropa, 0);
+    totalJuguetes = brigadasData.reduce((acc, b) => acc + b.total_juguetes, 0);
+  } else if (selectedBrigada) {
+    totalMedicamentos = selectedBrigada.total_medicamentos;
+    totalRopa = selectedBrigada.total_ropa;
+    totalJuguetes = selectedBrigada.total_juguetes;
+  }
 
-  // Calculations
-  const totalInsumos = datos.reduce((acc, curr) => acc + curr.totalEntregado, 0);
-  const totalValor = datos.reduce((acc, curr) => acc + curr.valorEstimadoHNL, 0);
+  const totalGeneral = totalMedicamentos + totalRopa + totalJuguetes;
 
-  // Find max value to scale visual bar chart SVG
-  const maxValor = Math.max(...datos.map((d) => d.valorEstimadoHNL), 1);
+  // Categorías sintetizadas para la tabla y gráfico
+  const categorias = [
+    {
+      id: "med",
+      nombre: "Medicamentos Entregados",
+      nombreCorto: "Medicamentos",
+      cantidad: totalMedicamentos,
+      color: "#3498db",
+    },
+    {
+      id: "ropa",
+      nombre: "Prendas de Ropa Entregadas",
+      nombreCorto: "Ropa",
+      cantidad: totalRopa,
+      color: "#1abc9c",
+    },
+    {
+      id: "jug",
+      nombre: "Juguetes Entregados",
+      nombreCorto: "Juguetes",
+      cantidad: totalJuguetes,
+      color: "#2980b9",
+    },
+  ];
 
-  // Branding colors variations array
-  const colores = ["#3498db", "#1abc9c", "#2980b9", "#16a085", "#5dade2", "#48c9b0"];
-
-  const [fechaActualCompleta, setFechaActualCompleta] = useState("");
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFechaActualCompleta(
-      new Date().toLocaleDateString("es-HN", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
-  }, []);
+  const maxCantidad = Math.max(...categorias.map((c) => c.cantidad), 1);
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    document.title = "Reporte de Entrega de Insumos";
+    document.title = `Reporte de Entrega de Insumos - ${displayNombre}`;
 
     const restoreTitle = () => {
       document.title = originalTitle;
@@ -278,8 +209,7 @@ export default function ResumenInsumos() {
             <div className={styles.reportHeaderText}>
               <h3>Resumen de Entrega de Insumos</h3>
               <p>
-                Consolidado de insumos médicos, dentales y ayuda
-                humanitaria distribuida a las comunidades.
+                Consolidado sintetizado de insumos entregados durante la brigada seleccionada.
               </p>
             </div>
           </div>
@@ -307,223 +237,218 @@ export default function ResumenInsumos() {
           </div>
         </div>
 
-      {/* Filtros */}
-      <div className={styles.reportFilters}>
-        <div className={styles.filterGroup}>
-          <label htmlFor="insumos-periodo">Periodo (Año)</label>
-          <select
-            id="insumos-periodo"
-            value={anioFiltro}
-            onChange={(e) => setAnioFiltro(e.target.value)}
+        {/* Filtros */}
+        <div className={styles.reportFilters}>
+          <div className={styles.filterGroup}>
+            <label htmlFor="insumos-brigada">Filtrar por Brigada</label>
+            <select
+              id="insumos-brigada"
+              value={selectedBrigadaId}
+              onChange={(e) => setSelectedBrigadaId(e.target.value)}
+              disabled={loading}
+            >
+              <option value="todas">Todas las brigadas</option>
+              {brigadasData.map((b) => (
+                <option key={b.brigada_id} value={b.brigada_id}>
+                  {b.brigada_nombre} {b.fecha ? `(${new Date(b.fecha).toLocaleDateString("es-HN")})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div
+            style={{
+              margin: "auto 0 0",
+              fontSize: "1.35rem",
+              color: "var(--gray)",
+              display: "flex",
+              gap: "1.5rem",
+              flexWrap: "wrap",
+            }}
           >
-            <option value="todos">Todos los años</option>
-            {aniosDisponibles.map((a) => (
-              <option key={a} value={a}>
-                Año {a}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p
-          style={{
-            margin: "auto 0 0",
-            fontSize: "1.35rem",
-            color: "var(--gray)",
-            fontStyle: "italic",
-          }}
-        >
-          Insumos valorados según costo estimado unitario de adquisición.
-        </p>
-      </div>
-
-      {/* KPIs de Insumos */}
-      <div className={styles.kpiGrid}>
-        <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
-          <p className={styles.kpiLabel}>Total Insumos Entregados</p>
-          <p className={styles.kpiValue}>
-            {loading ? "..." : totalInsumos.toLocaleString()}
-          </p>
-          <p className={styles.kpiChange}>Unidades físicas entregadas</p>
-        </div>
-        <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
-          <p className={styles.kpiLabel}>Valor Estimado Donación</p>
-          <p className={styles.kpiValue}>
-            L. {loading ? "..." : totalValor.toLocaleString()}
-          </p>
-          <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
-            Aporte social directo
-          </p>
-        </div>
-        <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
-          <p className={styles.kpiLabel}>Categorías Activas</p>
-          <p className={styles.kpiValue}>{loading ? "..." : datos.length}</p>
-          <p className={styles.kpiChange}>Grupos de insumos clasificados</p>
-        </div>
-      </div>
-
-      {/* Gráfico y Tabla lado a lado */}
-      <div className={styles.financeSection} style={{ padding: "2.4rem" }}>
-        <h4
-          style={{
-            marginBottom: "2rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.8rem",
-          }}
-        >
-          Distribución del Valor de Insumos por Categoría
-        </h4>
-
-        {/* Gráfico SVG de Barras Interactivo */}
-        <div
-          style={{
-            height: "240px",
-            width: "100%",
-            maxWidth: "800px",
-            margin: "0 auto 3.2rem",
-          }}
-        >
-          {loading ? (
-            <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
-              Cargando gráfico...
-            </div>
-          ) : datos.length === 0 ? (
-            <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
-              No hay datos para mostrar en el gráfico
-            </div>
-          ) : (
-            <div className={styles.barChartGrid}>
-              {datos.map((d, index) => {
-                const alturaPorcentaje = Math.max(
-                  (d.valorEstimadoHNL / maxValor) * 80,
-                  8
-                );
-                return (
-                  <div key={d.categoria} className={styles.barCol}>
-                    <div className={styles.barColTooltip}>
-                      L. {d.valorEstimadoHNL.toLocaleString()} ({d.totalEntregado}{" "}
-                      {d.unidad})
-                    </div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{
-                        height: `${alturaPorcentaje}%`,
-                        backgroundColor: colores[index % colores.length],
-                        width: "3.6rem",
-                      }}
-                    />
-                    <span className={styles.barLabel}>{d.categoria}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+            <span><strong>Brigada:</strong> {displayNombre}</span>
+            <span><strong>Fecha:</strong> {displayFecha}</span>
+            <span><strong>Comunidad:</strong> {displayComunidad}</span>
+          </div>
         </div>
 
-        {/* Tabla desglosada */}
-        <div style={{ overflowX: "auto" }}>
-          <table className={styles.financeTable}>
-            <thead>
-              <tr>
-                <th>Categoría de Insumo</th>
-                <th style={{ textAlign: "right" }}>Cantidad Entregada</th>
-                <th>Unidad de Medida</th>
-                <th>Artículo Más Solicitado / Entregado</th>
-                <th style={{ textAlign: "right" }}>Valor Social Estimado</th>
-                <th>Porcentaje del Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
-                    Cargando listado de insumos...
-                  </td>
-                </tr>
-              ) : datos.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
-                    No se encontraron entregas de insumos.
-                  </td>
-                </tr>
-              ) : (
-                datos.map((item, index) => {
-                  const porcentajeValor = totalValor > 0
-                    ? ((item.valorEstimadoHNL / totalValor) * 100).toFixed(1)
-                    : "0.0";
-                  return (
-                    <tr key={item.categoria}>
-                      <td style={{ fontWeight: 700 }}>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            width: "1.2rem",
-                            height: "1.2rem",
-                            borderRadius: "50%",
-                            backgroundColor: colores[index % colores.length],
-                            marginRight: "0.8rem",
-                          }}
-                        />
-                        {item.categoria}
-                      </td>
-                      <td style={{ textAlign: "right", fontWeight: 600 }}>
-                        {item.totalEntregado.toLocaleString()}
-                      </td>
-                      <td style={{ color: "var(--gray)", fontSize: "1.3rem" }}>
-                        {item.unidad}
-                      </td>
-                      <td style={{ fontStyle: "italic" }}>{item.topItem}</td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          fontWeight: 700,
-                          color: "var(--primaryDark)",
-                        }}
-                      >
-                        L. {item.valorEstimadoHNL.toLocaleString()}
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{porcentajeValor}%</td>
-                    </tr>
+        {/* KPIs de Insumos por Brigada */}
+        <div className={styles.kpiGrid}>
+          <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
+            <p className={styles.kpiLabel}>Total Insumos Entregados</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalGeneral.toLocaleString()}
+            </p>
+            <p className={styles.kpiChange}>Total general en la brigada</p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
+            <p className={styles.kpiLabel}>Medicamentos Entregados</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalMedicamentos.toLocaleString()}
+            </p>
+            <p className={styles.kpiChange}>Dosis y recetas de farmacia</p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
+            <p className={styles.kpiLabel}>Prendas de Ropa Entregadas</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalRopa.toLocaleString()}
+            </p>
+            <p className={styles.kpiChange}>Piezas de vestir distribuidas</p>
+          </div>
+          <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
+            <p className={styles.kpiLabel}>Juguetes Entregados</p>
+            <p className={styles.kpiValue}>
+              {loading ? "..." : totalJuguetes.toLocaleString()}
+            </p>
+            <p className={styles.kpiChange}>Regalos en actividades infantiles</p>
+          </div>
+        </div>
+
+        {/* Gráfico y Tabla */}
+        <div className={styles.financeSection} style={{ padding: "2.4rem" }}>
+          <h4
+            style={{
+              marginBottom: "2rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.8rem",
+            }}
+          >
+            Distribución de Insumos Entregados ({displayNombre})
+          </h4>
+
+          {/* Gráfico SVG de Barras Interactivo */}
+          <div
+            style={{
+              height: "240px",
+              width: "100%",
+              maxWidth: "800px",
+              margin: "0 auto 3.2rem",
+            }}
+          >
+            {loading ? (
+              <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
+                Cargando gráfico...
+              </div>
+            ) : totalGeneral === 0 ? (
+              <div style={{ textAlign: "center", paddingTop: "50px", color: "var(--grayLight)" }}>
+                No hay entregas registradas para esta brigada.
+              </div>
+            ) : (
+              <div className={styles.barChartGrid}>
+                {categorias.map((cat) => {
+                  const alturaPorcentaje = Math.max(
+                    (cat.cantidad / maxCantidad) * 80,
+                    8
                   );
-                })
-              )}
-              {!loading && datos.length > 0 && (
-                <tr className={styles.financeTotalsRow}>
-                  <td>TOTALES</td>
-                  <td style={{ textAlign: "right" }}>
-                    {totalInsumos.toLocaleString()}
-                  </td>
-                  <td>unidades</td>
-                  <td>—</td>
-                  <td style={{ textAlign: "right" }}>
-                    L. {totalValor.toLocaleString()}
-                  </td>
-                  <td>100%</td>
+                  return (
+                    <div key={cat.id} className={styles.barCol}>
+                      <div className={styles.barColTooltip}>
+                        {cat.cantidad.toLocaleString()} {cat.nombreCorto.toLowerCase()} entregados
+                      </div>
+                      <div
+                        className={styles.chartBarElement}
+                        style={{
+                          height: `${alturaPorcentaje}%`,
+                          backgroundColor: cat.color,
+                          width: "3.6rem",
+                        }}
+                      />
+                      <span className={styles.barLabel}>{cat.nombreCorto}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Tabla sintetizada por categoría */}
+          <div style={{ overflowX: "auto" }}>
+            <table className={styles.financeTable}>
+              <thead>
+                <tr>
+                  <th>Categoría de Insumo</th>
+                  <th style={{ textAlign: "right" }}>Total Entregado</th>
+                  <th style={{ textAlign: "right" }}>Porcentaje del Total</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                      Cargando resumen de insumos...
+                    </td>
+                  </tr>
+                ) : totalGeneral === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: "center", padding: "2rem", color: "var(--grayLight)" }}>
+                      No se encontraron entregas para esta brigada.
+                    </td>
+                  </tr>
+                ) : (
+                  categorias.map((cat) => {
+                    const porcentaje = totalGeneral > 0
+                      ? ((cat.cantidad / totalGeneral) * 100).toFixed(1)
+                      : "0.0";
+                    return (
+                      <tr key={cat.id}>
+                        <td style={{ fontWeight: 700 }}>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: "1.2rem",
+                              height: "1.2rem",
+                              borderRadius: "50%",
+                              backgroundColor: cat.color,
+                              marginRight: "0.8rem",
+                            }}
+                          />
+                          {cat.nombre}
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {cat.cantidad.toLocaleString()}
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {porcentaje}%
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+                {!loading && totalGeneral > 0 && (
+                  <tr className={styles.financeTotalsRow}>
+                    <td>TOTAL GENERAL DE INSUMOS ENTREGADOS</td>
+                    <td style={{ textAlign: "right" }}>
+                      {totalGeneral.toLocaleString()}
+                    </td>
+                    <td style={{ textAlign: "right" }}>100%</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
       </div>
       {/* ── FIN VISTA WEB ── */}
 
       {/* ── VISTA DE IMPRESIÓN REUTILIZABLE INSTITUCIONAL ── */}
       <div className={styles.printView}>
         <PrintReportDocument
-          title="Resumen de Entrega de Insumos"
+          title="Resumen de Entrega de Insumos por Brigada"
           userRole={userRole}
           metaItems={[
-            { label: "Periodo Anual", value: anioFiltro === "todos" ? "Todos los Años" : `Año ${anioFiltro}` },
-            { label: "Categorías", value: datos.length },
+            { label: "Brigada", value: displayNombre },
+            { label: "Fecha", value: displayFecha },
+            { label: "Comunidad", value: displayComunidad },
           ]}
           summaryCards={[
-            { label: "Total Unidades Entregadas", value: totalInsumos.toLocaleString() },
-            { label: "Valor Social Estimado", value: `L. ${totalValor.toLocaleString()}` },
+            { label: "Total General Insumos", value: totalGeneral.toLocaleString() },
+            { label: "Medicamentos Entregados", value: totalMedicamentos.toLocaleString() },
+            { label: "Prendas de Ropa Entregadas", value: totalRopa.toLocaleString() },
+            { label: "Juguetes Entregados", value: totalJuguetes.toLocaleString() },
           ]}
           footerNote="Consolidado de ayuda humanitaria e insumos — Fundación Dibujando Sonrisas"
         >
-          {/* Gráfico de Barras por Categoría en Impresión */}
+          {/* Gráfico de Barras en Impresión */}
           <div
             style={{
               pageBreakInside: "avoid",
@@ -547,7 +472,7 @@ export default function ResumenInsumos() {
                 textAlign: "center",
               }}
             >
-              Distribución del Valor de Insumos por Categoría
+              Distribución de Insumos Entregados
             </h3>
 
             <div style={{ height: "180px", width: "100%", maxWidth: "680px", margin: "0 auto" }}>
@@ -555,36 +480,70 @@ export default function ResumenInsumos() {
                 <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
                   Cargando gráfico...
                 </div>
-              ) : datos.length === 0 ? (
+              ) : totalGeneral === 0 ? (
                 <div style={{ textAlign: "center", paddingTop: "40px", fontSize: "9pt" }}>
-                  No hay entregas registradas para este periodo.
+                  No hay entregas registradas para esta brigada.
                 </div>
               ) : (
-                <div className={styles.barChartGrid} style={{ height: "100%", borderBottom: "2px solid #000000", display: "flex", alignItems: "flex-end", justifyContent: "space-around", paddingBottom: "4px" }}>
-                  {datos.map((d, index) => {
+                <div
+                  className={styles.barChartGrid}
+                  style={{
+                    height: "100%",
+                    borderBottom: "2px solid #000000",
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "space-around",
+                    paddingBottom: "4px",
+                  }}
+                >
+                  {categorias.map((cat) => {
                     const alturaPorcentaje = Math.max(
-                      (d.valorEstimadoHNL / maxValor) * 75,
+                      (cat.cantidad / maxCantidad) * 75,
                       10
                     );
                     return (
-                      <div key={d.categoria} className={styles.barCol} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                        <span style={{ fontSize: "7.5pt", fontWeight: "bold", color: "#1e293b", marginBottom: "2px" }}>
-                          L. {d.valorEstimadoHNL.toLocaleString()}
+                      <div
+                        key={cat.id}
+                        className={styles.barCol}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          height: "100%",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "8.5pt",
+                            fontWeight: "bold",
+                            color: "#1e293b",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          {cat.cantidad.toLocaleString()}
                         </span>
                         <div
                           style={{
                             height: `${alturaPorcentaje}%`,
-                            backgroundColor: colores[index % colores.length],
-                            width: "2.2rem",
+                            backgroundColor: cat.color,
+                            width: "2.8rem",
                             borderRadius: "3px 3px 0 0",
                             WebkitPrintColorAdjust: "exact",
                             printColorAdjust: "exact",
                           }}
                         />
                         <span
-                          style={{ fontSize: "8pt", color: "#000000", fontWeight: 600, marginTop: "4px", textAlign: "center", whiteSpace: "nowrap" }}
+                          style={{
+                            fontSize: "8.5pt",
+                            color: "#000000",
+                            fontWeight: 600,
+                            marginTop: "4px",
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                          }}
                         >
-                          {d.categoria}
+                          {cat.nombreCorto}
                         </span>
                       </div>
                     );
@@ -597,41 +556,49 @@ export default function ResumenInsumos() {
           <table className={styles.printTable}>
             <thead>
               <tr>
-                <th style={{ width: "4%" }}>#</th>
-                <th style={{ width: "26%" }}>Categoría</th>
-                <th style={{ width: "16%", textAlign: "right" }}>Total Entregado</th>
-                <th style={{ width: "12%" }}>Unidad</th>
-                <th style={{ width: "24%" }}>Ítem Más Entregado</th>
-                <th style={{ width: "18%", textAlign: "right" }}>Valor Estimado (HNL)</th>
+                <th style={{ width: "8%", textAlign: "center" }}>#</th>
+                <th style={{ width: "48%" }}>Categoría de Insumo</th>
+                <th style={{ width: "24%", textAlign: "right" }}>Total Entregado</th>
+                <th style={{ width: "20%", textAlign: "right" }}>Porcentaje</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "1.5rem" }}>Cargando insumos...</td>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "1.5rem" }}>
+                    Cargando insumos...
+                  </td>
                 </tr>
-              ) : datos.length === 0 ? (
+              ) : totalGeneral === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "1.5rem" }}>No hay entregas registradas.</td>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "1.5rem" }}>
+                    No hay entregas registradas para esta brigada.
+                  </td>
                 </tr>
               ) : (
-                datos.map((item, idx) => (
-                  <tr key={item.categoria}>
-                    <td style={{ textAlign: "center" }}>{idx + 1}</td>
-                    <td style={{ fontWeight: "bold" }}>{item.categoria}</td>
-                    <td style={{ textAlign: "right", fontWeight: "bold" }}>{item.totalEntregado.toLocaleString()}</td>
-                    <td>{item.unidad}</td>
-                    <td>{item.topItem}</td>
-                    <td style={{ textAlign: "right", fontWeight: "bold" }}>L. {item.valorEstimadoHNL.toLocaleString()}</td>
-                  </tr>
-                ))
+                categorias.map((cat, idx) => {
+                  const porcentaje = totalGeneral > 0
+                    ? ((cat.cantidad / totalGeneral) * 100).toFixed(1)
+                    : "0.0";
+                  return (
+                    <tr key={cat.id}>
+                      <td style={{ textAlign: "center" }}>{idx + 1}</td>
+                      <td style={{ fontWeight: "bold" }}>{cat.nombre}</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                        {cat.cantidad.toLocaleString()}
+                      </td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                        {porcentaje}%
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-              {!loading && datos.length > 0 && (
+              {!loading && totalGeneral > 0 && (
                 <tr style={{ fontWeight: "bold", background: "#f1f5f9" }}>
-                  <td colSpan={2}>TOTALES ACUMULADOS</td>
-                  <td style={{ textAlign: "right" }}>{totalInsumos.toLocaleString()}</td>
-                  <td colSpan={2}>—</td>
-                  <td style={{ textAlign: "right" }}>L. {totalValor.toLocaleString()}</td>
+                  <td colSpan={2}>TOTAL GENERAL DE INSUMOS ENTREGADOS</td>
+                  <td style={{ textAlign: "right" }}>{totalGeneral.toLocaleString()}</td>
+                  <td style={{ textAlign: "right" }}>100%</td>
                 </tr>
               )}
             </tbody>
