@@ -64,9 +64,9 @@ export function MedicamentoForm({ initialData, categorias = [], onSubmit, onCanc
           onChange={handleChange}
           required
         >
-          <option value="medicamento">💊 Medicamento (Fármacos)</option>
-          <option value="insumo_medico">🩹 Insumo Médico (Gasas, Jeringas, Guantes)</option>
-          <option value="material_brigada">⛺ Material de Brigada (Toldos, Sillas, Básculas)</option>
+          <option value="medicamento">Medicamento (Fármacos)</option>
+          <option value="insumo_medico">Insumo Médico (Gasas, Jeringas, Guantes)</option>
+          <option value="material_brigada">Material de Brigada (Toldos, Sillas, Básculas)</option>
         </select>
       </label>
 

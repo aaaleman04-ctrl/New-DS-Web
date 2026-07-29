@@ -134,12 +134,12 @@ export function FarmaciaClient({ userId }: { userId: string }) {
             <div style={{ padding: "2.4rem", display: "flex", flexDirection: "column", gap: "1.6rem" }}>
               {modalError && (
                 <div className={styles.formErrorBanner}>
-                  <span>⚠️ {modalError}</span>
+                  <span>{modalError}</span>
                 </div>
               )}
               {modalSuccess && (
                 <div className={styles.formSuccessBanner}>
-                  <span>✅ {modalSuccess}</span>
+                  <span>{modalSuccess}</span>
                 </div>
               )}
 

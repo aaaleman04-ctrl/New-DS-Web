@@ -52,6 +52,8 @@ export default async function DashboardPage() {
     view = "farmacia";
   } else if (role === "encargado_bodega") {
     view = "bodega";
+  } else if (role === "voluntario") {
+    view = "voluntario";
   }
 
   return (

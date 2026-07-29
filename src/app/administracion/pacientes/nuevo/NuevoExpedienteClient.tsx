@@ -693,7 +693,7 @@ export function NuevoExpedienteClient() {
                   </option>
                 ))}
               </select>
-              {errors.brigada_id && <span className={styles.formFieldError}>⚠️ {errors.brigada_id}</span>}
+              {errors.brigada_id && <span className={styles.formFieldError}>{errors.brigada_id}</span>}
             </label>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.6rem" }}>
@@ -709,7 +709,7 @@ export function NuevoExpedienteClient() {
                     if (errors.nombres) setErrors((prev) => ({ ...prev, nombres: "" }));
                   }}
                 />
-                {errors.nombres && <span className={styles.formFieldError}>⚠️ {errors.nombres}</span>}
+                {errors.nombres && <span className={styles.formFieldError}>{errors.nombres}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Apellidos <strong className={styles.requiredStar}>* (Requerido)</strong></span>
@@ -723,7 +723,7 @@ export function NuevoExpedienteClient() {
                     if (errors.apellidos) setErrors((prev) => ({ ...prev, apellidos: "" }));
                   }}
                 />
-                {errors.apellidos && <span className={styles.formFieldError}>⚠️ {errors.apellidos}</span>}
+                {errors.apellidos && <span className={styles.formFieldError}>{errors.apellidos}</span>}
               </label>
             </div>
 
@@ -742,7 +742,7 @@ export function NuevoExpedienteClient() {
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
-                {errors.sexo && <span className={styles.formFieldError}>⚠️ {errors.sexo}</span>}
+                {errors.sexo && <span className={styles.formFieldError}>{errors.sexo}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Edad (Años) <strong className={styles.requiredStar}>* (Requerido)</strong></span>
@@ -763,7 +763,7 @@ export function NuevoExpedienteClient() {
                     }
                   }}
                 />
-                {errors.edad && <span className={styles.formFieldError}>⚠️ {errors.edad}</span>}
+                {errors.edad && <span className={styles.formFieldError}>{errors.edad}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Teléfono <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -777,7 +777,7 @@ export function NuevoExpedienteClient() {
                     if (errors.telefono) setErrors((prev) => ({ ...prev, telefono: "" }));
                   }}
                 />
-                {errors.telefono && <span className={styles.formFieldError}>⚠️ {errors.telefono}</span>}
+                {errors.telefono && <span className={styles.formFieldError}>{errors.telefono}</span>}
               </label>
             </div>
 
@@ -793,7 +793,7 @@ export function NuevoExpedienteClient() {
                   if (errors.comunidad) setErrors((prev) => ({ ...prev, comunidad: "" }));
                 }}
               />
-              {errors.comunidad && <span className={styles.formFieldError}>⚠️ {errors.comunidad}</span>}
+              {errors.comunidad && <span className={styles.formFieldError}>{errors.comunidad}</span>}
             </label>
 
             <div className={styles.formField}>
@@ -853,7 +853,7 @@ export function NuevoExpedienteClient() {
                     if (errors.peso) setErrors((prev) => ({ ...prev, peso: "" }));
                   }}
                 />
-                {errors.peso && <span className={styles.formFieldError}>⚠️ {errors.peso}</span>}
+                {errors.peso && <span className={styles.formFieldError}>{errors.peso}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Talla (cm) <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -869,7 +869,7 @@ export function NuevoExpedienteClient() {
                     if (errors.talla) setErrors((prev) => ({ ...prev, talla: "" }));
                   }}
                 />
-                {errors.talla && <span className={styles.formFieldError}>⚠️ {errors.talla}</span>}
+                {errors.talla && <span className={styles.formFieldError}>{errors.talla}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Temperatura (°C) <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -885,7 +885,7 @@ export function NuevoExpedienteClient() {
                     if (errors.temperatura) setErrors((prev) => ({ ...prev, temperatura: "" }));
                   }}
                 />
-                {errors.temperatura && <span className={styles.formFieldError}>⚠️ {errors.temperatura}</span>}
+                {errors.temperatura && <span className={styles.formFieldError}>{errors.temperatura}</span>}
               </label>
             </div>
 
@@ -903,7 +903,7 @@ export function NuevoExpedienteClient() {
                     if (errors.frecuencia_cardiaca) setErrors((prev) => ({ ...prev, frecuencia_cardiaca: "" }));
                   }}
                 />
-                {errors.frecuencia_cardiaca && <span className={styles.formFieldError}>⚠️ {errors.frecuencia_cardiaca}</span>}
+                {errors.frecuencia_cardiaca && <span className={styles.formFieldError}>{errors.frecuencia_cardiaca}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Frecuencia Respiratoria (rpm) <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -918,7 +918,7 @@ export function NuevoExpedienteClient() {
                     if (errors.frecuencia_respiratoria) setErrors((prev) => ({ ...prev, frecuencia_respiratoria: "" }));
                   }}
                 />
-                {errors.frecuencia_respiratoria && <span className={styles.formFieldError}>⚠️ {errors.frecuencia_respiratoria}</span>}
+                {errors.frecuencia_respiratoria && <span className={styles.formFieldError}>{errors.frecuencia_respiratoria}</span>}
               </label>
             </div>
 
@@ -935,7 +935,7 @@ export function NuevoExpedienteClient() {
                     if (errors.presion_arterial) setErrors((prev) => ({ ...prev, presion_arterial: "" }));
                   }}
                 />
-                {errors.presion_arterial && <span className={styles.formFieldError}>⚠️ {errors.presion_arterial}</span>}
+                {errors.presion_arterial && <span className={styles.formFieldError}>{errors.presion_arterial}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Saturación O2 (%) <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -950,7 +950,7 @@ export function NuevoExpedienteClient() {
                     if (errors.saturacion) setErrors((prev) => ({ ...prev, saturacion: "" }));
                   }}
                 />
-                {errors.saturacion && <span className={styles.formFieldError}>⚠️ {errors.saturacion}</span>}
+                {errors.saturacion && <span className={styles.formFieldError}>{errors.saturacion}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Glucosa (mg/dL) <span className={styles.optionalTag}>(Opcional)</span></span>
@@ -966,7 +966,7 @@ export function NuevoExpedienteClient() {
                     if (errors.glucosa) setErrors((prev) => ({ ...prev, glucosa: "" }));
                   }}
                 />
-                {errors.glucosa && <span className={styles.formFieldError}>⚠️ {errors.glucosa}</span>}
+                {errors.glucosa && <span className={styles.formFieldError}>{errors.glucosa}</span>}
               </label>
             </div>
 
@@ -983,7 +983,7 @@ export function NuevoExpedienteClient() {
                   if (errors.observaciones) setErrors((prev) => ({ ...prev, observaciones: "" }));
                 }}
               />
-              {errors.observaciones && <span className={styles.formFieldError}>⚠️ {errors.observaciones}</span>}
+              {errors.observaciones && <span className={styles.formFieldError}>{errors.observaciones}</span>}
             </label>
 
             <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
@@ -1017,7 +1017,7 @@ export function NuevoExpedienteClient() {
                   <option value="Medica">Médica</option>
                   <option value="Odontologica">Odontológica</option>
                 </select>
-                {errors.tipo_consulta && <span className={styles.formFieldError}>⚠️ {errors.tipo_consulta}</span>}
+                {errors.tipo_consulta && <span className={styles.formFieldError}>{errors.tipo_consulta}</span>}
               </label>
               <label className={styles.formField}>
                 <span className={styles.fieldLabel}>Médico / Odontólogo que atendió <strong className={styles.requiredStar}>* (Requerido)</strong></span>
@@ -1044,7 +1044,7 @@ export function NuevoExpedienteClient() {
                     </>
                   )}
                 </select>
-                {errors.medico_id && <span className={styles.formFieldError}>⚠️ {errors.medico_id}</span>}
+                {errors.medico_id && <span className={styles.formFieldError}>{errors.medico_id}</span>}
               </label>
             </div>
 
@@ -1061,7 +1061,7 @@ export function NuevoExpedienteClient() {
                   if (errors.motivo_consulta) setErrors((prev) => ({ ...prev, motivo_consulta: "" }));
                 }}
               />
-              {errors.motivo_consulta && <span className={styles.formFieldError}>⚠️ {errors.motivo_consulta}</span>}
+              {errors.motivo_consulta && <span className={styles.formFieldError}>{errors.motivo_consulta}</span>}
             </label>
 
             <label className={styles.formField}>
@@ -1077,7 +1077,7 @@ export function NuevoExpedienteClient() {
                   if (errors.enfermedad_actual) setErrors((prev) => ({ ...prev, enfermedad_actual: "" }));
                 }}
               />
-              {errors.enfermedad_actual && <span className={styles.formFieldError}>⚠️ {errors.enfermedad_actual}</span>}
+              {errors.enfermedad_actual && <span className={styles.formFieldError}>{errors.enfermedad_actual}</span>}
             </label>
 
             <label className={styles.formField}>
@@ -1093,7 +1093,7 @@ export function NuevoExpedienteClient() {
                   if (errors.tratamiento) setErrors((prev) => ({ ...prev, tratamiento: "" }));
                 }}
               />
-              {errors.tratamiento && <span className={styles.formFieldError}>⚠️ {errors.tratamiento}</span>}
+              {errors.tratamiento && <span className={styles.formFieldError}>{errors.tratamiento}</span>}
             </label>
 
             <div
@@ -1150,7 +1150,7 @@ export function NuevoExpedienteClient() {
                   if (errors.diagnosticosStr) setErrors((prev) => ({ ...prev, diagnosticosStr: "" }));
                 }}
               />
-              {errors.diagnosticosStr && <span className={styles.formFieldError}>⚠️ {errors.diagnosticosStr}</span>}
+              {errors.diagnosticosStr && <span className={styles.formFieldError}>{errors.diagnosticosStr}</span>}
             </label>
 
             <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
@@ -1171,7 +1171,7 @@ export function NuevoExpedienteClient() {
 
             {recetaError && (
               <div className={styles.formErrorBanner}>
-                <span>⚠️ {recetaError}</span>
+                <span>{recetaError}</span>
               </div>
             )}
 
@@ -1207,7 +1207,7 @@ export function NuevoExpedienteClient() {
                       </option>
                     ))}
                   </select>
-                  {errors.newMedId && <span className={styles.formFieldError}>⚠️ {errors.newMedId}</span>}
+                  {errors.newMedId && <span className={styles.formFieldError}>{errors.newMedId}</span>}
                 </label>
                 <label className={styles.formField}>
                   <span className={styles.fieldLabel}>Cantidad <strong className={styles.requiredStar}>* (Requerido)</strong></span>
@@ -1222,7 +1222,7 @@ export function NuevoExpedienteClient() {
                       if (errors.newMedCantidad) setErrors((prev) => ({ ...prev, newMedCantidad: "" }));
                     }}
                   />
-                  {errors.newMedCantidad && <span className={styles.formFieldError}>⚠️ {errors.newMedCantidad}</span>}
+                  {errors.newMedCantidad && <span className={styles.formFieldError}>{errors.newMedCantidad}</span>}
                 </label>
               </div>
               <label className={styles.formField}>
@@ -1237,7 +1237,7 @@ export function NuevoExpedienteClient() {
                     if (errors.newMedIndicaciones) setErrors((prev) => ({ ...prev, newMedIndicaciones: "" }));
                   }}
                 />
-                {errors.newMedIndicaciones && <span className={styles.formFieldError}>⚠️ {errors.newMedIndicaciones}</span>}
+                {errors.newMedIndicaciones && <span className={styles.formFieldError}>{errors.newMedIndicaciones}</span>}
               </label>
               <div>
                 <button className={styles.btnSecondary} onClick={handleAddMed} disabled={isSubmitting}>
@@ -1289,7 +1289,7 @@ export function NuevoExpedienteClient() {
 
             {backendError && (
               <div className={styles.formErrorBanner} style={{ marginTop: "1.6rem" }}>
-                <span>⚠️ {backendError}</span>
+                <span>{backendError}</span>
               </div>
             )}
 

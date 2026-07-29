@@ -127,7 +127,7 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
 
   const getStatusBadge = (lote: LoteMedicamento) => {
     if (lote.cantidad_actual === 0) {
-      return <span style={{ background: "#e0f2fe", color: "#075985", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em" }}>🔵 Sin existencias</span>;
+      return <span style={{ background: "#e0f2fe", color: "#075985", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em", fontWeight: 600 }}>Sin existencias</span>;
     }
     
     const hoy = new Date();
@@ -135,12 +135,12 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
     const diasVencimiento = Math.ceil((vencimiento.getTime() - hoy.getTime()) / (1000 * 3600 * 24));
     
     if (diasVencimiento < 0) {
-      return <span style={{ background: "var(--danger)", color: "white", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em" }}>🔴 Vencido</span>;
+      return <span style={{ background: "var(--danger)", color: "white", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em", fontWeight: 600 }}>Vencido</span>;
     }
     if (diasVencimiento <= 30) {
-      return <span style={{ background: "#fef08a", color: "#854d0e", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em" }}>🟡 Próximo a vencer</span>;
+      return <span style={{ background: "#fef08a", color: "#854d0e", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em", fontWeight: 600 }}>Próximo a vencer</span>;
     }
-    return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em" }}>🟢 Normal</span>;
+    return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.6rem", borderRadius: "8px", fontSize: "0.9em", fontWeight: 600 }}>Normal</span>;
   };
 
   const formatDate = (dateStr: string) => {
@@ -171,7 +171,7 @@ export function LotesModal({ medicamentoId, medicamentoNombre, isOpen, onClose, 
 
           {feedbackMessage && (
             <div className={feedbackMessage.type === "success" ? styles.formSuccessBanner : styles.formErrorBanner} style={{ marginBottom: "1.6rem" }}>
-              <span>{feedbackMessage.type === "success" ? "✅" : "⚠️"} {feedbackMessage.text}</span>
+              <span>{feedbackMessage.text}</span>
             </div>
           )}
 

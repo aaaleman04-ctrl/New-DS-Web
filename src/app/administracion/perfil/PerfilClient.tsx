@@ -10,19 +10,20 @@ import RoleBadge from "../components/RoleBadge";
 import StatusBadge from "../components/StatusBadge";
 import styles from "@/styles/pages/admin.module.css";
 
+import { phoneHondurasSchema } from "@/lib/validation/validationUtils";
+
 // Zod Validation Schema
 const profileSchema = z.object({
   nombre_completo: z
     .string()
-    .min(2, "El nombre debe tener al menos 2 caracteres.")
-    .max(100, "El nombre no puede exceder los 100 caracteres."),
-  telefono: z
-    .string()
+    .trim()
+    .min(3, "Prueba de presencia: El nombre debe tener al menos 3 caracteres.")
+    .max(100, "Prueba de longitud: El nombre no puede exceder los 100 caracteres.")
     .regex(
-      /^\+?[0-9\s-]{8,15}$/,
-      "El número de teléfono no es válido (8 a 15 dígitos)."
-    )
-    .or(z.literal("")),
+      /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+      "Prueba de sintaxis: El nombre solo debe contener letras, acentos y espacios."
+    ),
+  telefono: phoneHondurasSchema,
   fecha_nacimiento: z.string().or(z.literal("")),
   sexo: z.string().or(z.literal("")),
 });

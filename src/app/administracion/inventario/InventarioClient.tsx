@@ -14,15 +14,17 @@ import styles from "@/styles/pages/admin.module.css";
 import { usePermissions } from "@/app/administracion/components/PermissionsProvider";
 import { PERMISSIONS } from "@/lib/auth/permissions";
 
+import { generateCleanToken } from "@/lib/coding/codingUtils";
+
 /**
  * Algoritmo generador de código de recurso que garantiza un formato estructurado
- * de un máximo absoluto de 20 caracteres (compatible con varchar(20)).
+ * y limpio sin caracteres ambiguos (evita 0/O, 1/I, 2/Z).
  */
 function generarCodigoRecurso(nombre: string, tipo: string): string {
   const prefijo = tipo === "insumo_medico" ? "INS" : (tipo === "material_brigada" ? "MAT" : "MED");
-  const nombreSanitizado = nombre.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 10);
-  const randomDigits = Math.floor(100 + Math.random() * 900); // 3 dígitos
-  return `${prefijo}_${nombreSanitizado}_${randomDigits}`.substring(0, 20);
+  const nombreSanitizado = nombre.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 8);
+  const tokenLimpio = generateCleanToken(4);
+  return `${prefijo}-${nombreSanitizado}-${tokenLimpio}`.substring(0, 20);
 }
 
 export function InventarioClient() {
@@ -123,11 +125,11 @@ export function InventarioClient() {
   const getTipoBadge = (tipo?: string) => {
     switch (tipo) {
       case "insumo_medico":
-        return <span style={{ background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>🩹 Insumo Médico</span>;
+        return <span style={{ background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Insumo Médico</span>;
       case "material_brigada":
-        return <span style={{ background: "#f3e8ff", color: "#6b21a8", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>⛺ Material Brigada</span>;
+        return <span style={{ background: "#f3e8ff", color: "#6b21a8", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Material Brigada</span>;
       default:
-        return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>💊 Medicamento</span>;
+        return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Medicamento</span>;
     }
   };
 
@@ -188,28 +190,32 @@ export function InventarioClient() {
                 style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "medicamento" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "medicamento" ? "white" : "inherit" }}
                 onClick={() => setFiltroTipo("medicamento")}
               >
-                💊 Fármacos
+                Fármacos
               </button>
               <button 
                 className={`${styles.btnSecondary} ${filtroTipo === "insumo_medico" ? styles.btnActive : ""}`}
                 style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "insumo_medico" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "insumo_medico" ? "white" : "inherit" }}
                 onClick={() => setFiltroTipo("insumo_medico")}
               >
-                🩹 Insumos
+                Insumos
               </button>
               <button 
                 className={`${styles.btnSecondary} ${filtroTipo === "material_brigada" ? styles.btnActive : ""}`}
                 style={{ padding: "0.6rem 1.2rem", fontSize: "1.2rem", border: "none", background: filtroTipo === "material_brigada" ? "var(--primaryColor)" : "transparent", color: filtroTipo === "material_brigada" ? "white" : "inherit" }}
                 onClick={() => setFiltroTipo("material_brigada")}
               >
-                ⛺ Brigada
+                Material Brigada
               </button>
             </div>
 
-            {can(PERMISSIONS.INVENTARIO_CREATE) && (
+            {can(PERMISSIONS.INVENTARIO_CREATE) ? (
               <button className={styles.btnPrimary} onClick={() => handleOpenMedForm()}>
                 + Nuevo Recurso
               </button>
+            ) : (
+              <span style={{ fontSize: "1.2rem", padding: "0.4rem 1rem", borderRadius: "1rem", background: "#e2e8f0", color: "#475569", fontWeight: 600 }}>
+                Modo Solo Lectura
+              </span>
             )}
           </div>
         </div>

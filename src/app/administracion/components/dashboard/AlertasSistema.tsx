@@ -14,14 +14,32 @@ export default async function AlertasSistema() {
       </h3>
       {(!alertas || alertas.length === 0) ? (
         <div style={{ padding: "2rem", textAlign: "center", color: "var(--gray)" }}>
-          <span style={{ fontSize: "2.4rem", display: "block", marginBottom: "0.5rem" }}>✅</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.8}
+            stroke="currentColor"
+            style={{ width: "3.2rem", height: "3.2rem", color: "#16a34a", margin: "0 auto 0.8rem auto", display: "block" }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
           <p style={{ fontSize: "1.4rem", margin: 0 }}>Todo en orden.</p>
         </div>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1.2rem" }}>
           {alertas.map((alerta: any, i: number) => (
             <li key={i} style={{ display: "flex", gap: "1rem", alignItems: "flex-start", background: "var(--bg-secondary)", padding: "1rem", borderRadius: "8px" }}>
-              <span style={{ fontSize: "1.8rem", lineHeight: 1 }}>{alerta.icono}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                style={{ width: "2rem", height: "2rem", color: "#d97706", flexShrink: 0 }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
               <div>
                 <p style={{ margin: 0, fontWeight: "bold", fontSize: "1.3rem", color: "var(--dark)" }}>{alerta.mensaje}</p>
                 <p style={{ margin: "0.2rem 0 0 0", color: "var(--gray)", fontSize: "1.2rem" }}>{alerta.detalle}</p>
