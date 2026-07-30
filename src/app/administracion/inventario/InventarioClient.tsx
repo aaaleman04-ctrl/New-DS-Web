@@ -6,6 +6,7 @@ import {
   getCategoriasInventarioAction as getCategoriasInventario,
   createMedicamentoAction as createMedicamento,
   updateMedicamentoAction as updateMedicamento,
+  deleteMedicamentoAction as deleteMedicamento,
 } from "./actions";
 import { LotesModal } from "./components/LotesModal";
 import { MedicamentoForm } from "./components/MedicamentoForm";
@@ -22,9 +23,8 @@ import { generateCleanToken } from "@/lib/coding/codingUtils";
  */
 function generarCodigoRecurso(nombre: string, tipo: string): string {
   const prefijo = tipo === "insumo_medico" ? "INS" : (tipo === "material_brigada" ? "MAT" : "MED");
-  const nombreSanitizado = nombre.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 8);
-  const tokenLimpio = generateCleanToken(4);
-  return `${prefijo}-${nombreSanitizado}-${tokenLimpio}`.substring(0, 20);
+  const tokenLimpio = generateCleanToken(5);
+  return `INV-${prefijo}-${tokenLimpio}`;
 }
 
 export function InventarioClient() {
@@ -35,10 +35,13 @@ export function InventarioClient() {
   const [selectedMedLotes, setSelectedMedLotes] = useState<{ id: string; nombre: string } | null>(null);
   const [filtroTipo, setFiltroTipo] = useState<"todos" | "medicamento" | "insumo_medico" | "material_brigada">("todos");
 
-  // States for Medicamento Form
   const [isMedModalOpen, setIsMedModalOpen] = useState(false);
   const [selectedMedForEdit, setSelectedMedForEdit] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // States for Delete Modal
+  const [medToDelete, setMedToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchMedicamentos = async () => {
     try {
@@ -119,6 +122,21 @@ export function InventarioClient() {
       alert(error.message || "Error al guardar el recurso.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!medToDelete) return;
+    try {
+      setIsDeleting(true);
+      const targetId = medToDelete.medicamento_id || medToDelete.id;
+      await deleteMedicamento(targetId);
+      setMedToDelete(null);
+      fetchMedicamentos();
+    } catch (error: any) {
+      alert(error.message || "Error al eliminar el recurso.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -274,6 +292,15 @@ export function InventarioClient() {
                           >
                             Ver Lotes
                           </button>
+                          {can(PERMISSIONS.INVENTARIO_DELETE) && (
+                            <button 
+                              className={styles.btnDanger}
+                              style={{ fontSize: "1.3rem", padding: "0.4rem 1rem", background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5" }}
+                              onClick={() => setMedToDelete(med)}
+                            >
+                              Eliminar
+                            </button>
+                          )}
                         </div>
                     </td>
                   </tr>
@@ -320,6 +347,48 @@ export function InventarioClient() {
                 onCancel={handleCloseMedForm}
                 isLoading={isSubmitting} 
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {medToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setMedToDelete(null)}>
+          <div 
+            className={styles.modal} 
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "400px", width: "95%", textAlign: "center" }}
+          >
+            <div style={{ padding: "3rem 2rem 2rem" }}>
+              <div style={{ background: "#fee2e2", width: "64px", height: "64px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 2rem", color: "#dc2626" }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "2rem", fontWeight: "700", marginBottom: "1rem" }}>¿Eliminar Recurso?</h3>
+              <p style={{ fontSize: "1.4rem", color: "var(--text-muted)", marginBottom: "2.4rem" }}>
+                Estás a punto de eliminar <strong>{medToDelete.nombre}</strong>. Esta acción borrará permanentemente todos sus lotes asociados y el historial de stock en este sistema.
+              </p>
+              
+              <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+                <button 
+                  className={styles.btnSecondary}
+                  onClick={() => setMedToDelete(null)}
+                  disabled={isDeleting}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className={styles.btnPrimary}
+                  style={{ background: "#dc2626" }}
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Eliminando..." : "Sí, eliminar"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

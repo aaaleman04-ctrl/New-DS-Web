@@ -109,7 +109,7 @@ export default function StockMinimo() {
           return false;
         return true;
       })
-      .sort((a, b) => a.id.localeCompare(b.id, "es"));
+      .sort((a, b) => a.stockActual - b.stockActual);
   };
 
   const inventarioFiltrado = procesarDatos();
@@ -263,7 +263,7 @@ export default function StockMinimo() {
                 ) : (
                   inventarioFiltrado
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                    .map((item) => {
+                    .map((item, index) => {
                       const nivelAncho = Math.min(item.porcentaje, 100);
                       let colorBarra = "var(--primaryColor)";
                       if (item.estado === "critico") colorBarra = "#ef4444";
@@ -272,7 +272,7 @@ export default function StockMinimo() {
                       else colorBarra = "#10b981";
 
                       return (
-                        <tr key={item.id}>
+                        <tr key={`${item.id}-${index}`}>
                           <td style={{ fontWeight: 600, color: "var(--gray)" }}>
                             {item.id}
                           </td>
@@ -411,7 +411,7 @@ export default function StockMinimo() {
                 </tr>
               ) : (
                 inventarioFiltrado.map((item, idx) => (
-                  <tr key={item.id}>
+                  <tr key={`${item.id}-${idx}`}>
                     <td style={{ textAlign: "center" }}>{idx + 1}</td>
                     <td style={{ fontWeight: "bold" }}>{item.nombre}</td>
                     <td>{item.categoria}</td>

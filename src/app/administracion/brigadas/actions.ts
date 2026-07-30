@@ -39,10 +39,20 @@ export async function getBrigadasAction() {
 }
 
 // Helper para autogenerar código consecutivo de brigada (Capítulo 15 - Regla de comparación y composición)
-export async function generarCodigoBrigada(): Promise<{ codigo: string; error: string | null }> {
+export async function generarCodigoBrigada(fechaStr?: string): Promise<{ codigo: string; error: string | null }> {
   try {
     const supabase = await getAuthedSupabase();
-    const currentYear = new Date().getFullYear();
+    
+    // 1. Extraer el año base
+    let currentYear = new Date().getFullYear();
+    if (fechaStr) {
+      const parsed = new Date(fechaStr);
+      if (!isNaN(parsed.getTime())) {
+        currentYear = parsed.getFullYear();
+      }
+    }
+    
+    // 2. Correlativo global continuo (se mantiene la secuencia sin importar el año)
     const { data: brigadas } = await supabase.from("brigadas").select("codigo");
 
     let maxNum = 0;
@@ -104,7 +114,7 @@ export async function crearBrigada(data: {
     // Autogenerar código si no fue provisto
     let finalCodigo = data.codigo?.trim().toUpperCase();
     if (!finalCodigo) {
-      const genRes = await generarCodigoBrigada();
+      const genRes = await generarCodigoBrigada(data.fecha_brigada);
       finalCodigo = genRes.codigo;
     }
 

@@ -45,7 +45,11 @@ export async function getDonacionesRopa(client: any = supabase) {
 export async function createDonacionRopa(donacion: any, client: any = supabase) {
   await assertPermission(PERMISSIONS.DONACIONES_CREATE);
   const anio = new Date().getFullYear();
-  const codigo = `DON-ROP-${anio}-${generateCleanToken(5)}`;
+  let pfx = 'ROP';
+  if (donacion.tipo_donacion === 'Dinero') pfx = 'DIN';
+  if (donacion.tipo_donacion === 'Juguetes') pfx = 'JUG';
+  
+  const codigo = `DON-${pfx}-${anio}-${generateCleanToken(5)}`;
   const { data, error } = await client
     .from("donaciones_ropa")
     .insert([{ ...donacion, codigo }])

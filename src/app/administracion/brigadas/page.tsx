@@ -1,11 +1,10 @@
-import { requirePermission } from "@/lib/auth/session";
-import { PERMISSIONS } from "@/lib/auth/permissions";
+import { requireRouteAccess } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import styles from "@/styles/pages/admin.module.css";
 import BrigadasAdminClient from "./BrigadasAdminClient";
 
 export default async function BrigadasPage() {
-  await requirePermission(PERMISSIONS.BRIGADAS_READ);
+  await requireRouteAccess("/administracion/brigadas");
   const supabase = await createSupabaseServerClient();
 
   // Load all required data in parallel using Promise.all

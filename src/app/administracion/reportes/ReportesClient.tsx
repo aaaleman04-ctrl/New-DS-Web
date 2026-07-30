@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "@/styles/pages/reportes.module.css";
+import { getDashboardStatsAction } from "./actions";
 
 // ── Importar Reportes Individuales ─────────────────────────────────────────
 import PacientesBrigada from "./components/PacientesBrigada";
@@ -239,6 +240,11 @@ export default function ReportesClient() {
     excepciones: "top-donantes",
   });
   const [dropdownAbierto, setDropdownAbierto] = useState<boolean>(false);
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    getDashboardStatsAction().then(setStats).catch(console.error);
+  }, []);
 
   const categoriaActual = categorias.find((c) => c.id === categoriaActiva)!;
   const reporteActivoId = reporteSeleccionado[categoriaActiva];
@@ -323,24 +329,24 @@ export default function ReportesClient() {
           <div className={styles.kpiGrid}>
             <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
               <p className={styles.kpiLabel}>Pacientes Atendidos</p>
-              <p className={styles.kpiValue}>1,701</p>
+              <p className={styles.kpiValue}>{stats?.pacientesAtendidos || "0"}</p>
               <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
                 +18% este año
               </p>
             </div>
             <div className={`${styles.kpiCard} ${styles.kpiCardGreen}`}>
               <p className={styles.kpiLabel}>Brigadas Médicas</p>
-              <p className={styles.kpiValue}>32</p>
-              <p className={styles.kpiChange}>12 departamentos cubiertos</p>
+              <p className={styles.kpiValue}>{stats?.brigadas || "0"}</p>
+              <p className={styles.kpiChange}>Comunidades cubiertas</p>
             </div>
             <div className={`${styles.kpiCard} ${styles.kpiCardTeal}`}>
               <p className={styles.kpiLabel}>Voluntarios Totales</p>
-              <p className={styles.kpiValue}>142</p>
+              <p className={styles.kpiValue}>{stats?.voluntarios || "0"}</p>
               <p className={styles.kpiChange}>Activos en brigadas</p>
             </div>
             <div className={`${styles.kpiCard} ${styles.kpiCardBlue}`}>
               <p className={styles.kpiLabel}>Fondos Recaudados</p>
-              <p className={styles.kpiValue}>L. 1.07M</p>
+              <p className={styles.kpiValue}>L. {(stats?.fondos || 0).toLocaleString("es-HN")}</p>
               <p className={`${styles.kpiChange} ${styles.kpiChangePositive}`}>
                 Periodo 2025/2026
               </p>
@@ -357,40 +363,20 @@ export default function ReportesClient() {
               </div>
               <div className={styles.chartContainer}>
                 <div className={styles.barChartGrid}>
-                  <div className={styles.barCol}>
-                    <div className={styles.barColTooltip}>280 Pacientes</div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{ height: "30%", width: "2.4rem" }}
-                    />
-                    <span className={styles.barLabel}>2023</span>
-                  </div>
-                  <div className={styles.barCol}>
-                    <div className={styles.barColTooltip}>680 Pacientes</div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{ height: "60%", width: "2.4rem" }}
-                    />
-                    <span className={styles.barLabel}>2024</span>
-                  </div>
-                  <div className={styles.barCol}>
-                    <div className={styles.barColTooltip}>1,200 Pacientes</div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{ height: "90%", width: "2.4rem" }}
-                    />
-                    <span className={styles.barLabel}>2025</span>
-                  </div>
-                  <div className={styles.barCol}>
-                    <div className={styles.barColTooltip}>
-                      711 Pacientes (Sem I)
-                    </div>
-                    <div
-                      className={styles.chartBarElement}
-                      style={{ height: "55%", width: "2.4rem" }}
-                    />
-                    <span className={styles.barLabel}>2026</span>
-                  </div>
+                  {stats?.atencionesAnuales?.map((anioData: any) => {
+                    const maxPacientes = Math.max(...(stats?.atencionesAnuales?.map((d: any) => d.total_pacientes) || [1000]));
+                    const heightPercent = maxPacientes > 0 ? (anioData.total_pacientes / maxPacientes) * 100 : 0;
+                    return (
+                      <div className={styles.barCol} key={anioData.anio}>
+                        <div className={styles.barColTooltip}>{anioData.total_pacientes} Pacientes</div>
+                        <div
+                          className={styles.chartBarElement}
+                          style={{ height: `${heightPercent}%`, width: "2.4rem", backgroundColor: "var(--primaryColor)" }}
+                        />
+                        <span className={styles.barLabel}>{anioData.anio}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -409,7 +395,7 @@ export default function ReportesClient() {
                       className={styles.chartBarElement}
                       style={{
                         height: "80%",
-                        backgroundColor: "#e74c3c",
+                        backgroundColor: "var(--primaryColor)",
                         width: "2.4rem",
                       }}
                     />
@@ -421,7 +407,7 @@ export default function ReportesClient() {
                       className={styles.chartBarElement}
                       style={{
                         height: "50%",
-                        backgroundColor: "#1abc9c",
+                        backgroundColor: "var(--accentColor)",
                         width: "2.4rem",
                       }}
                     />
@@ -433,7 +419,7 @@ export default function ReportesClient() {
                       className={styles.chartBarElement}
                       style={{
                         height: "35%",
-                        backgroundColor: "#f1c40f",
+                        backgroundColor: "var(--primaryDark)",
                         width: "2.4rem",
                       }}
                     />
@@ -445,7 +431,7 @@ export default function ReportesClient() {
                       className={styles.chartBarElement}
                       style={{
                         height: "28%",
-                        backgroundColor: "#9b59b6",
+                        backgroundColor: "var(--gray)",
                         width: "2.4rem",
                       }}
                     />

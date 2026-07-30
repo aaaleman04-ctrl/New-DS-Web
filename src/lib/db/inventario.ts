@@ -132,6 +132,17 @@ export async function createMedicamento(medicamento: InsertMedicamento, cantidad
   const cleanData = sanitizeMedicamentoPayload(medicamento);
   cleanData.stock_actual = cantidadInicial;
 
+  // Validación de duplicado (mismo nombre exacto)
+  const { data: exist, error: errExist } = await client
+    .from("medicamentos")
+    .select("id, nombre")
+    .ilike("nombre", cleanData.nombre.trim())
+    .maybeSingle();
+
+  if (exist) {
+    throw new Error(`Ya existe un recurso registrado con el nombre "${exist.nombre}". Si deseas incrementar la cantidad, por favor utiliza la opción "Ver Lotes" y agrega un nuevo lote a ese recurso en lugar de duplicarlo.`);
+  }
+
   const { data: newMed, error } = await client
     .from("medicamentos")
     .insert([cleanData as any])

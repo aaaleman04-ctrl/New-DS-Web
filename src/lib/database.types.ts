@@ -541,6 +541,7 @@ export type Database = {
           id: string
           nombre_donante: string | null
           observaciones: string | null
+          tipo_donacion: string | null
         }
         Insert: {
           cantidad_prendas: number
@@ -550,6 +551,7 @@ export type Database = {
           id?: string
           nombre_donante?: string | null
           observaciones?: string | null
+          tipo_donacion?: string | null
         }
         Update: {
           cantidad_prendas?: number
@@ -559,6 +561,7 @@ export type Database = {
           id?: string
           nombre_donante?: string | null
           observaciones?: string | null
+          tipo_donacion?: string | null
         }
         Relationships: []
       }

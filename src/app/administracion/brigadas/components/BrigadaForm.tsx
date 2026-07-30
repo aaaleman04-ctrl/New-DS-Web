@@ -228,14 +228,7 @@ export default function BrigadaForm({
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
 
-  // Carga previa del código autogenerado en modo creación
-  useEffect(() => {
-    if (mode === "create" && !codePreview) {
-      generarCodigoBrigada().then((res) => {
-        if (res.codigo) setCodePreview(res.codigo);
-      });
-    }
-  }, [mode, codePreview]);
+
 
   const [formData, setFormData] = useState<Partial<BrigadaFormData>>({
     codigo: brigada?.codigo ?? "",
@@ -257,6 +250,15 @@ export default function BrigadaForm({
 
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof BrigadaFormData, string>>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
+
+  // Carga previa del código autogenerado en modo creación y re-calculo dinámico si cambia la fecha
+  useEffect(() => {
+    if (mode === "create") {
+      generarCodigoBrigada(formData.fecha_brigada).then((res) => {
+        if (res.codigo) setCodePreview(res.codigo);
+      });
+    }
+  }, [mode, formData.fecha_brigada]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -360,6 +362,25 @@ export default function BrigadaForm({
 
             {/* SECCIÓN 2: Información General */}
             <div className={styles.formSectionTitle}>1. Información General del Evento</div>
+
+            {/* Fecha y Hora del Evento */}
+            <label className={styles.formField}>
+              <span className={styles.fieldLabel}>
+                Fecha y Hora de la Brigada <strong className={styles.requiredStar}>* (Requerido)</strong>
+              </span>
+              <input
+                name="fecha_brigada"
+                value={formData.fecha_brigada || ""}
+                onChange={handleInputChange}
+                type="datetime-local"
+                required
+              />
+              {formErrors.fecha_brigada && (
+                <span className={styles.formFieldError}>
+                  <AlertCircleIcon /> {formErrors.fecha_brigada}
+                </span>
+              )}
+            </label>
 
             {/* Nombre de Brigada */}
             <label className={styles.formField}>
@@ -473,25 +494,6 @@ export default function BrigadaForm({
 
             {/* SECCIÓN 4: Programación de Fechas */}
             <div className={styles.formSectionTitle}>3. Programación de Fechas</div>
-
-            {/* Fecha y Hora del Evento */}
-            <label className={styles.formField}>
-              <span className={styles.fieldLabel}>
-                Fecha y Hora de la Brigada <strong className={styles.requiredStar}>* (Requerido)</strong>
-              </span>
-              <input
-                name="fecha_brigada"
-                value={formData.fecha_brigada || ""}
-                onChange={handleInputChange}
-                type="datetime-local"
-                required
-              />
-              {formErrors.fecha_brigada && (
-                <span className={styles.formFieldError}>
-                  <AlertCircleIcon /> {formErrors.fecha_brigada}
-                </span>
-              )}
-            </label>
 
             {/* Fecha Inicio Inscripción */}
             <label className={styles.formField}>

@@ -355,8 +355,8 @@ export function canAccessRoute(
   pathname: string,
   specialtyName?: string | null
 ): boolean {
-  // 1. Restricción de Brigadas EXCLUSIVAMENTE para Administrador
-  if (pathname.startsWith("/administracion/brigadas")) {
+  // 1. Restricción de Brigadas y Reportes EXCLUSIVAMENTE para Administrador
+  if (pathname.startsWith("/administracion/brigadas") || pathname.startsWith("/administracion/reportes")) {
     if (role !== "admin") return false;
   }
 
