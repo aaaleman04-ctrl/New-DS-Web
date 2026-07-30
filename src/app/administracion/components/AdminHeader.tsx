@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/auth/actions";
 import UserAvatar from "./UserAvatar";
+import NotificacionesStockBtn from "./NotificacionesStockBtn";
 import styles from "@/styles/pages/admin.module.css";
 
 interface AdminHeaderProps {
@@ -130,8 +131,14 @@ export default function AdminHeader({
         </div>
       </div>
 
-      {/* LADO DERECHO: Perfil de usuario + Dropdown */}
-      <div className={styles.headerRight} ref={dropdownRef}>
+      {/* LADO DERECHO: Notificaciones de Stock + Perfil de usuario + Dropdown */}
+      <div className={styles.headerRight}>
+        {/* Botón de notificaciones de alertas de stock mínimo */}
+        <NotificacionesStockBtn />
+
+        <div className={styles.headerRightDivider} />
+
+        <div ref={dropdownRef} style={{ position: "relative" }}>
         <div
           className={styles.userProfileTrigger}
           onClick={() => setDropdownOpen((prev) => !prev)}
@@ -180,6 +187,7 @@ export default function AdminHeader({
             </form>
           </div>
         )}
+        </div>
       </div>
     </header>
   );
