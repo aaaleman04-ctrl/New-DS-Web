@@ -13,18 +13,51 @@ export const metadata: Metadata = {
     "Únete como voluntario a las brigadas médico-odontológicas de Dibujando Sonrisas en Honduras. Aplica en línea y marca una diferencia real.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Voluntariado() {
   const supabase = await createSupabaseServerClient();
   
-  // Query Supabase to find if there is a brigade with open registrations
+  // Buscar brigada activa con inscripciones abiertas
   const { data: activeBrigada } = await supabase
     .from("brigadas")
     .select("*")
     .eq("estado", "inscripciones_abiertas")
+    .order("fecha_brigada", { ascending: true })
     .limit(1)
     .maybeSingle();
 
+  let cuposInfo = {
+    total: null as number | null,
+    registrados: 0,
+    cupoLleno: false,
+    disponibles: null as number | null,
+  };
+
+  if (activeBrigada) {
+    const { count } = await supabase
+      .from("inscripciones_voluntarios")
+      .select("*", { count: "exact", head: true })
+      .eq("brigada_id", activeBrigada.id)
+      .neq("estado", "rechazado");
+
+    const totalCupos = activeBrigada.capacidad_voluntarios ?? null;
+    const registrados = count || 0;
+    const cupoLleno =
+      totalCupos !== null && totalCupos > 0 ? registrados >= totalCupos : false;
+    const disponibles =
+      totalCupos !== null ? Math.max(0, totalCupos - registrados) : null;
+
+    cuposInfo = {
+      total: totalCupos,
+      registrados,
+      cupoLleno,
+      disponibles,
+    };
+  }
+
   const isClosed = !activeBrigada;
+  const isCupoLleno = cuposInfo.cupoLleno;
 
   return (
     <>
@@ -38,10 +71,17 @@ export default async function Voluntariado() {
           médicas y marca una diferencia real en Honduras.
         </p>
         <div className={styles.heroButtons}>
-          {!isClosed ? (
+          {!isClosed && !isCupoLleno ? (
             <a href="#formulario" className={styles.btnPrimary}>
               Ser Voluntario
             </a>
+          ) : isCupoLleno ? (
+            <span
+              className={styles.btnPrimary}
+              style={{ opacity: 0.85, cursor: "not-allowed", backgroundColor: "#64748b", borderColor: "#64748b" }}
+            >
+              🔒 Cupo Máximo Alcanzado
+            </span>
           ) : (
             <span
               className={styles.btnPrimary}
@@ -59,10 +99,13 @@ export default async function Voluntariado() {
       {/* ── MAIN ── */}
       <main className={styles.volunteerMain}>
         <div className={styles.innerContainer}>
-          {/* ── BANNER DINÁMICO DE PRÓXIMA BRIGADA (TAREA 10) ── */}
+          {/* ── BANNER DINÁMICO DE PRÓXIMA BRIGADA ── */}
           {!isClosed && activeBrigada && (
             <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
-              <PublicBrigadaBanner brigada={activeBrigada as any} />
+              <PublicBrigadaBanner
+                brigada={activeBrigada as any}
+                cuposInfo={cuposInfo}
+              />
             </div>
           )}
 
@@ -324,17 +367,59 @@ export default async function Voluntariado() {
             id="formulario"
           >
             <h2 id="form-heading">
-              {!isClosed ? "¿Listo para Unirte?" : "Inscripciones Cerradas"}
+              {!isClosed && !isCupoLleno
+                ? "¿Listo para Unirte?"
+                : isCupoLleno
+                ? "Capacidad Máxima Alcanzada"
+                : "Inscripciones Cerradas"}
             </h2>
             <div>
               <p>
-                {!isClosed
-                  ? "Llena el formulario y nos pondremos en contacto contigo pronto."
+                {!isClosed && !isCupoLleno
+                  ? `Llena el formulario para postularte a la brigada ${activeBrigada?.nombre ?? ""}${
+                      cuposInfo.disponibles !== null
+                        ? ` (${cuposInfo.disponibles} cupos disponibles)`
+                        : ""
+                    }. Nos pondremos en contacto contigo pronto.`
+                  : isCupoLleno
+                  ? `Hemos completado la capacidad máxima de voluntarios (${cuposInfo.registrados} de ${cuposInfo.total} cupos ocupados) para la brigada ${activeBrigada?.nombre ?? ""}. Agradecemos tu vocación de servicio; mantente al tanto para futuras convocatorias.`
                   : "Actualmente no contamos con brigadas activas para inscripciones abiertas de voluntarios. Por favor mantente al tanto de nuestros canales oficiales para futuras convocatorias."}
               </p>
             </div>
-            {!isClosed && activeBrigada && (
+            {!isClosed && !isCupoLleno && activeBrigada && (
               <VolunteerForm activeBrigadaId={activeBrigada.id} />
+            )}
+            {isCupoLleno && (
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: "var(--radius-md)",
+                  padding: "3rem 2rem",
+                  maxWidth: "60rem",
+                  margin: "2rem auto 0",
+                  boxShadow: "var(--shadow-sm)",
+                  border: "1px solid var(--border-color)",
+                  textAlign: "center",
+                }}
+              >
+                <span style={{ fontSize: "3.6rem", display: "block", marginBottom: "1rem" }}>
+                  🔒
+                </span>
+                <h3 style={{ fontSize: "2rem", color: "var(--dark)", marginBottom: "1rem" }}>
+                  Cupo de Voluntarios Completo
+                </h3>
+                <p style={{ fontSize: "1.5rem", color: "var(--gray)", marginBottom: "2rem" }}>
+                  Esta brigada médica ha alcanzado el número máximo de participantes. Puedes seguir apoyando nuestra labor donando insumos o conociendo nuestras brigadas anteriores.
+                </p>
+                <div style={{ display: "flex", gap: "1.2rem", justifyContent: "center", flexWrap: "wrap" }}>
+                  <Link href="/brigadas" className="btn-primary">
+                    Ver Brigadas Realizadas
+                  </Link>
+                  <Link href="/donar" className="btn-outline-blue">
+                    Apoyar con Donación
+                  </Link>
+                </div>
+              </div>
             )}
           </section>
         </div>

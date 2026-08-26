@@ -9,6 +9,7 @@ import CountdownBrigada from "./components/dashboard/CountdownBrigada";
 import ActividadReciente from "./components/dashboard/ActividadReciente";
 import AlertasSistema from "./components/dashboard/AlertasSistema";
 import QuickActions from "./components/dashboard/QuickActions";
+import SolicitudesRecientesWidget from "./components/dashboard/SolicitudesRecientesWidget";
 import { AdminStats, ClinicoStats, FarmaciaStats, VoluntarioStats } from "./components/dashboard/TarjetasDashboard";
 
 function DashboardSkeleton() {
@@ -163,6 +164,15 @@ export default async function DashboardPage() {
           {view === "voluntario" && <VoluntarioStats />}
         </Suspense>
       </div>
+
+      {/* Solicitudes de Inscripción para la Brigada Activa */}
+      {view === "admin" && (
+        <div style={{ marginBottom: "2.4rem" }}>
+          <Suspense fallback={<div className={styles.statCard}>Cargando solicitudes de voluntariado...</div>}>
+            <SolicitudesRecientesWidget />
+          </Suspense>
+        </div>
+      )}
 
       {/* Alertas y Actividad Reciente solo para admin/coord */}
       {view === "admin" && (

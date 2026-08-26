@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HomeBrigadaBanner, { CuposInfo } from "./components/HomeBrigadaBanner";
+import type { Brigada } from "@/lib/db/brigadas";
 import styles from "../styles/pages/home.module.css";
 
 export const metadata: Metadata = {
@@ -10,7 +13,44 @@ export const metadata: Metadata = {
     "Dibujando Sonrisas — Brigadas médico-odontológicas en Honduras. Llevando atención médica y odontológica esencial a las comunidades que más lo necesitan, una sonrisa a la vez.",
 };
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const supabase = await createSupabaseServerClient();
+
+  // Buscar la próxima brigada que NO esté finalizada ni cancelada
+  const { data: upcomingBrigadas } = await supabase
+    .from("brigadas")
+    .select("*")
+    .neq("estado", "finalizada")
+    .neq("estado", "cancelada")
+    .order("fecha_brigada", { ascending: true })
+    .limit(1);
+
+  const activeBrigada: Brigada | null = (upcomingBrigadas?.[0] as Brigada) ?? null;
+
+  let cuposInfo: CuposInfo | undefined = undefined;
+  if (activeBrigada) {
+    const { count } = await supabase
+      .from("inscripciones_voluntarios")
+      .select("*", { count: "exact", head: true })
+      .eq("brigada_id", activeBrigada.id)
+      .neq("estado", "rechazado");
+
+    const totalCupos = activeBrigada.capacidad_voluntarios ?? null;
+    const registrados = count || 0;
+    const cupoLleno =
+      totalCupos !== null && totalCupos > 0 ? registrados >= totalCupos : false;
+    const disponibles =
+      totalCupos !== null ? Math.max(0, totalCupos - registrados) : null;
+
+    cuposInfo = {
+      total: totalCupos,
+      registrados,
+      cupoLleno,
+      disponibles,
+    };
+  }
   return (
     <>
       <Header />
@@ -46,6 +86,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {activeBrigada && (
+        <HomeBrigadaBanner brigada={activeBrigada} cuposInfo={cuposInfo} />
+      )}
 
       <main className={`${styles.main} container`}>
         <section className={styles.mision} aria-labelledby="mision-heading">

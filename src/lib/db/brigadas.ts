@@ -39,7 +39,8 @@ export async function getBrigadas(
   const { data, error } = await client
     .from("brigadas")
     .select("*")
-    .order("fecha_brigada", { ascending: false });
+    .order("fecha_brigada", { ascending: true })
+    .order("codigo", { ascending: true });
 
   return { data: data ?? null, error: error?.message ?? null };
 }
