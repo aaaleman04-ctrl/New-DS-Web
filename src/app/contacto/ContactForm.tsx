@@ -53,9 +53,14 @@ export default function ContactForm() {
 
   if (success) {
     return (
-      <p className={styles.successMsg}>
-        ✅ ¡Mensaje enviado correctamente! Te responderemos pronto.
-      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", background: "#dcfce7", color: "#166534", padding: "1.6rem 2rem", borderRadius: "var(--radius-sm)", border: "1px solid #bbf7d0" }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        <span style={{ fontSize: "1.5rem", fontWeight: 600 }}>
+          ¡Mensaje enviado correctamente! Te responderemos pronto.
+        </span>
+      </div>
     );
   }
 

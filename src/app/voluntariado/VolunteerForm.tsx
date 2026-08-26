@@ -72,11 +72,29 @@ export default function VolunteerForm({ activeBrigadaId }: VolunteerFormProps) {
   if (success) {
     return (
       <div className={styles.form}>
-        <p className={styles.successMsg}>
-          ✅ ¡Tu solicitud de inscripción ha sido enviada correctamente! Un
-          coordinador de Dibujando Sonrisas revisará tus datos y se pondrá en
-          contacto contigo pronto.
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "1.2rem", padding: "2rem 1rem" }}>
+          <div
+            style={{
+              width: "5.6rem",
+              height: "5.6rem",
+              borderRadius: "50%",
+              background: "#dcfce7",
+              color: "#16a34a",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <p className={styles.successMsg} style={{ margin: 0, padding: 0 }}>
+            ¡Tu solicitud de inscripción ha sido enviada correctamente! Un
+            coordinador de Dibujando Sonrisas revisará tus datos y se pondrá en
+            contacto contigo pronto.
+          </p>
+        </div>
       </div>
     );
   }
@@ -156,8 +174,23 @@ export default function VolunteerForm({ activeBrigadaId }: VolunteerFormProps) {
         </div>
 
         {error && (
-          <p style={{ color: "red", fontSize: "1.4rem", marginTop: "1rem", textAlign: "left" }}>
-            ❌ {error}
+          <p
+            style={{
+              color: "#dc2626",
+              fontSize: "1.4rem",
+              marginTop: "1rem",
+              textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {error}
           </p>
         )}
 

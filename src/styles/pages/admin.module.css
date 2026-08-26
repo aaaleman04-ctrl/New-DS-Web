@@ -289,13 +289,17 @@
   top: 7.2rem;
   height: calc(100dvh - 7.2rem);
   z-index: 40;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
   flex-shrink: 0;
 }
 
 .sidebarCollapsed {
   width: 72px;
+}
+
+.mobileOverlay {
+  display: none;
 }
 
 .sidebarHeader {
@@ -538,12 +542,15 @@
 }
 
 /* ── Tablas ── */
-.tableContainer {
+.tableContainer,
+.tableCard {
   background-color: var(--white);
-  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 .tableHeader {
@@ -562,6 +569,7 @@
 .adminTable {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .adminTable th,
@@ -1120,56 +1128,99 @@
   color: var(--gray);
 }
 
-/* ── Responsive ── */
+/* ── Responsive Global para el Sistema Administrativo ── */
 @media (max-width: 1024px) {
+  .toggleBtn {
+    display: none !important;
+  }
+
+  .toggleMobileBtn {
+    display: flex !important;
+  }
+
+  .mobileOverlay {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 998;
+    animation: fadeInOverlay 0.2s ease-out;
+  }
+
+  @keyframes fadeInOverlay {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   .sidebar {
-    width: 240px;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100dvh !important;
+    width: 280px !important;
+    z-index: 999 !important;
+    transform: translateX(-100%) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    border-right: 1px solid var(--border-color) !important;
+    background-color: var(--white) !important;
+  }
+
+  .sidebarMobileOpen {
+    transform: translateX(0) !important;
+  }
+
+  .mainContent {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
 @media (max-width: 768px) {
-  .adminLayout {
-    flex-direction: column;
+  .header100 {
+    padding: 0 1.2rem;
   }
 
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .sidebarNav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 1.6rem;
-  }
-
-  .navItem {
-    white-space: nowrap;
-  }
-
-  .sidebarFooter {
+  .headerModuleSub {
     display: none;
   }
 
-  .topbar {
-    padding: 0 1.6rem;
+  .userProfileText {
+    display: none;
+  }
+
+  .headerRightDivider {
+    display: none;
   }
 
   .contentArea {
-    padding: 1.6rem;
+    padding: 1.6rem 1.2rem;
   }
 
   .formRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+  }
+
+  .adminFormGrid {
+    grid-template-columns: 1fr !important;
   }
 
   .toast {
-    left: 1.6rem;
-    right: 1.6rem;
+    left: 1.2rem;
+    right: 1.2rem;
     max-width: none;
+  }
+
+  .modalCard,
+  .modalContent {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 2rem 1.6rem !important;
   }
 }
 

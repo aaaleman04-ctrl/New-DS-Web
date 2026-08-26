@@ -57,24 +57,44 @@ export default function SobreNosotros() {
           <h2 className={styles.cardHeader}>Nuestros Valores</h2>
           <ul className={styles.valuesList}>
             <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>✓</span>
+              <span className={styles.checkmark}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
               Fe: Todo lo que hacemos es inspirado por nuestra fe en Cristo.
             </li>
             <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>✓</span>
+              <span className={styles.checkmark}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
               Compasión: Tratamos a cada persona con amor, dignidad y respeto.
             </li>
             <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>✓</span>
+              <span className={styles.checkmark}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
               Integridad: Actuamos con transparencia y ética en todo momento.
             </li>
             <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>✓</span>
+              <span className={styles.checkmark}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
               Trabajo en equipo: Creemos en la fuerza de la unión para lograr
               más.
             </li>
             <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>✓</span>
+              <span className={styles.checkmark}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
               Excelencia: Nos comprometemos con la calidad en cada brigada.
             </li>
           </ul>

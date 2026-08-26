@@ -44,7 +44,7 @@
 .navbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 0.2rem;
+  gap: 0.4rem 0.6rem;
   align-items: center;
 }
 
@@ -52,17 +52,29 @@
   color: var(--gray);
   font-size: 1.5rem;
   font-weight: 500;
-  padding: 0.6rem 1rem;
+  padding: 0.8rem 1.4rem;
   border-radius: var(--radius-sm);
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none;
 }
 
-.navRef:hover,
-.navRefActive {
+.navRef:hover {
   color: var(--primaryColor);
   background: var(--primaryLight);
+}
+
+.navRefActive {
+  color: var(--primaryColor) !important;
+  background: var(--primaryLight) !important;
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--primaryColor);
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .headerButton {
@@ -77,6 +89,7 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .headerButton:hover {
@@ -97,6 +110,7 @@
   border: 2px solid var(--primaryColor);
   transition: all 0.3s ease;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .headerButtonOutline:hover {
@@ -106,9 +120,88 @@
   box-shadow: var(--shadow-md);
 }
 
+.mobileMenuToggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  color: var(--dark);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.mobileMenuToggle:hover {
+  background: var(--bg-light);
+  color: var(--primaryColor);
+}
+
+.mobileNavContainer {
+  display: none;
+  background: var(--white);
+  border-top: 1px solid var(--border-color);
+  padding: 1.6rem 2rem;
+  box-shadow: var(--shadow-md);
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileNavbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mobileNavRef {
+  font-size: 1.55rem;
+  font-weight: 500;
+  color: var(--dark);
+  padding: 1rem 1.4rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.mobileNavRef:hover {
+  background: var(--bg-light);
+  color: var(--primaryColor);
+}
+
+.mobileNavRefActive {
+  background: var(--primaryLight);
+  color: var(--primaryColor);
+  font-weight: 700;
+  border-left: 4px solid var(--primaryColor);
+}
+
+.mobileNavButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.mobileNavButtons a {
+  flex: 1;
+  text-align: center;
+}
+
 .headerLogo {
-  width: 6rem;
-  height: 6rem;
+  width: 5rem;
+  height: 5rem;
   border-radius: 10%;
   overflow: hidden;
   flex-shrink: 0;
@@ -119,4 +212,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+@media (max-width: 960px) {
+  .navbar {
+    display: none;
+  }
+
+  .mobileMenuToggle {
+    display: flex;
+  }
+
+  .mobileNavContainer {
+    display: block;
+  }
+
+  .headerActions a {
+    display: none;
+  }
 }

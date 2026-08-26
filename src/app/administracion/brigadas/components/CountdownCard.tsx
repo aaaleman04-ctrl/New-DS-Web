@@ -71,7 +71,9 @@ export default function CountdownCard({ targetDateStr }: CountdownCardProps) {
           backdropFilter: "blur(10px)",
           padding: "1.2rem 2.4rem",
           borderRadius: "12px",
-          display: "inline-block",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.8rem",
           fontSize: "1.6rem",
           fontWeight: "bold",
           letterSpacing: "0.05em",
@@ -79,7 +81,10 @@ export default function CountdownCard({ targetDateStr }: CountdownCardProps) {
           border: "1px solid rgba(255,255,255,0.25)",
         }}
       >
-        🚀 ¡La Brigada ha Comenzado!
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+        ¡La Brigada ha Comenzado!
       </div>
     );
   }

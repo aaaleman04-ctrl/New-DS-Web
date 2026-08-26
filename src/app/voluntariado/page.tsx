@@ -78,9 +78,21 @@ export default async function Voluntariado() {
           ) : isCupoLleno ? (
             <span
               className={styles.btnPrimary}
-              style={{ opacity: 0.85, cursor: "not-allowed", backgroundColor: "#64748b", borderColor: "#64748b" }}
+              style={{
+                opacity: 0.85,
+                cursor: "not-allowed",
+                backgroundColor: "#64748b",
+                borderColor: "#64748b",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.6rem",
+              }}
             >
-              🔒 Cupo Máximo Alcanzado
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Cupo Máximo Alcanzado
             </span>
           ) : (
             <span
@@ -348,7 +360,9 @@ export default async function Voluntariado() {
             </div>
             <div className={styles.quoteWords}>
               <div className={styles.quoteIcon} aria-hidden="true">
-                ❝
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" opacity="0.8">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
               </div>
               <h3>
                 &#34;Ser voluntario con Dibujando Sonrisas me recordó por qué
@@ -402,9 +416,24 @@ export default async function Voluntariado() {
                   textAlign: "center",
                 }}
               >
-                <span style={{ fontSize: "3.6rem", display: "block", marginBottom: "1rem" }}>
-                  🔒
-                </span>
+                <div
+                  style={{
+                    width: "6.4rem",
+                    height: "6.4rem",
+                    borderRadius: "50%",
+                    background: "#f1f5f9",
+                    color: "#64748b",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 1.6rem",
+                  }}
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
                 <h3 style={{ fontSize: "2rem", color: "var(--dark)", marginBottom: "1rem" }}>
                   Cupo de Voluntarios Completo
                 </h3>

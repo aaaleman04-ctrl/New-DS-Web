@@ -176,22 +176,66 @@ export default function InscripcionModal({
           onClick={onClose}
           aria-label="Cerrar modal"
         >
-          ✕
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
 
         {!submittedSuccess ? (
           <>
             <div className={styles.header}>
               <span className={styles.badge}>
-                🏥 Inscripción a Brigada Médica
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ verticalAlign: "middle", marginRight: "6px" }}
+                  aria-hidden="true"
+                >
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                </svg>
+                Inscripción a Brigada Médica
               </span>
               <h2 className={styles.title} id="modal-title">
                 {brigada.nombre}
               </h2>
-              <p className={styles.subtitle}>
-                {brigada.lugar ? `📍 ${brigada.lugar}` : ""}
-                {brigada.lugar && brigada.fecha_brigada ? " • " : ""}
-                {brigada.fecha_brigada ? `📅 ${formatDate(brigada.fecha_brigada)}` : ""}
+              <p className={styles.subtitle} style={{ display: "flex", alignItems: "center", gap: "1.2rem", flexWrap: "wrap" }}>
+                {brigada.lugar && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {brigada.lugar}
+                  </span>
+                )}
+                {brigada.fecha_brigada && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    {formatDate(brigada.fecha_brigada)}
+                  </span>
+                )}
               </p>
             </div>
 
@@ -386,7 +430,21 @@ export default function InscripcionModal({
         ) : (
           /* ── PANTALLA DE ÉXITO Y REGISTRO / LOGIN ── */
           <div className={styles.successContainer}>
-            <div className={styles.successIconCircle}>✓</div>
+            <div className={styles.successIconCircle}>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <h2 className={styles.successTitle}>¡Solicitud Enviada con Éxito!</h2>
             <p className={styles.successDesc}>
               Hemos recibido tu postulación para <strong>{brigada.nombre}</strong>.
@@ -396,7 +454,19 @@ export default function InscripcionModal({
 
             <div className={styles.accountPromptBox}>
               <div className={styles.accountPromptHeading}>
-                <span>💡</span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
                 <span>¿Deseas dar seguimiento a tus voluntariados?</span>
               </div>
               <p className={styles.accountPromptText}>

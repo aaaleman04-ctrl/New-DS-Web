@@ -128,9 +128,15 @@ export default async function SolicitudesRecientesWidget() {
                 borderRadius: "2rem",
                 fontSize: "1.25rem",
                 fontWeight: 700,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
               }}
             >
-              ⚡ {pendientesCount} {pendientesCount === 1 ? "pendiente" : "pendientes"}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              {pendientesCount} {pendientesCount === 1 ? "pendiente" : "pendientes"}
             </span>
           ) : (
             <span
@@ -142,9 +148,15 @@ export default async function SolicitudesRecientesWidget() {
                 borderRadius: "2rem",
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
               }}
             >
-              ✓ Al día
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Al día
             </span>
           )}
 
