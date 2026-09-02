@@ -87,6 +87,7 @@ const DEPARTAMENTOS_HONDURAS = [
 // Esquema Zod de validación estricta (Capítulo 15 - Análisis y Diseño de Datos)
 const brigadaSchema = z
   .object({
+    id: z.string().optional(),
     codigo: z.string().optional(),
     nombre: z
       .string()
@@ -257,8 +258,10 @@ export default function BrigadaForm({
       generarCodigoBrigada(formData.fecha_brigada).then((res) => {
         if (res.codigo) setCodePreview(res.codigo);
       });
+    } else if (brigada?.codigo) {
+      setCodePreview(brigada.codigo);
     }
-  }, [mode, formData.fecha_brigada]);
+  }, [mode, formData.fecha_brigada, brigada?.codigo]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -303,6 +306,7 @@ export default function BrigadaForm({
     const data = result.data;
     const formattedData = {
       ...data,
+      id: mode === "edit" ? brigada?.id : undefined,
       codigo: mode === "edit" ? brigada?.codigo : codePreview,
       fecha_brigada: new Date(data.fecha_brigada).toISOString(),
       fecha_inicio_inscripcion: new Date(data.fecha_inicio_inscripcion).toISOString(),

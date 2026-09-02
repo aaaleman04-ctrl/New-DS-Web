@@ -163,6 +163,11 @@ export default function BrigadasAdminClient({
     return initialImages.filter((img) => img.brigada_id === selectedId);
   }, [initialImages, selectedId]);
 
+  const closeModal = () => {
+    setModalMode(null);
+    setEditingBrigada(null);
+  };
+
   // 1. Create Brigade Submit Handler
   const handleCreateBrigada = async (data: Parameters<typeof crearBrigada>[0]) => {
     startActionTransition(async () => {
@@ -171,22 +176,28 @@ export default function BrigadasAdminClient({
         showToast(res.error, "error");
       } else {
         showToast("Brigada creada y presupuesto inicializado con éxito.", "success");
-        setModalMode(null);
+        closeModal();
         if (res.id) setSelectedId(res.id);
+        router.refresh();
       }
     });
   };
 
   // 2. Edit Brigade Submit Handler
-  const handleEditBrigada = async (data: Parameters<typeof editarBrigada>[1]) => {
-    if (!selectedId) return;
+  const handleEditBrigada = async (data: Parameters<typeof editarBrigada>[1] & { id?: string }) => {
+    const targetId = data.id || editingBrigada?.id;
+    if (!targetId) {
+      showToast("No se pudo identificar la brigada a editar.", "error");
+      return;
+    }
     startActionTransition(async () => {
-      const res = await editarBrigada(selectedId, data);
+      const res = await editarBrigada(targetId, data);
       if (res.error) {
         showToast(res.error, "error");
       } else {
-        showToast("Cambios guardados con éxito.", "success");
-        setModalMode(null);
+        showToast("Brigada actualizada correctamente.", "success");
+        closeModal();
+        router.refresh();
       }
     });
   };
@@ -520,8 +531,8 @@ export default function BrigadasAdminClient({
           mode={modalMode}
           brigada={editingBrigada || undefined}
           initialBudget={editingBrigada ? budgetsMap[editingBrigada.id] ?? 0 : 0}
-          onClose={() => setModalMode(null)}
-          onSubmit={modalMode === "create" ? handleCreateBrigada : handleEditBrigada}
+          onClose={closeModal}
+          onSubmit={modalMode === "create" ? handleCreateBrigada : (handleEditBrigada as any)}
           isSubmitting={isPending}
         />
       )}

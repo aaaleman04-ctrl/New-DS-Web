@@ -187,6 +187,22 @@ export async function editarBrigada(
     await assertPermission(PERMISSIONS.BRIGADAS_UPDATE);
     const supabase = await getAuthedSupabase();
 
+    if (!id) {
+      throw new Error("ID de brigada no proporcionado.");
+    }
+
+    // Verificar nombre duplicado en otra brigada
+    const { data: existingName } = await supabase
+      .from("brigadas")
+      .select("id, nombre")
+      .ilike("nombre", data.nombre.trim())
+      .neq("id", id)
+      .maybeSingle();
+
+    if (existingName) {
+      throw new Error(`Ya existe otra brigada registrada con el nombre "${data.nombre.trim()}".`);
+    }
+
     // 1. Update brigade details (no modificar código)
     const { error: bError } = await supabase
       .from("brigadas")

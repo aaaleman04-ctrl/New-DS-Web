@@ -159,6 +159,34 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
     }, 100);
   }
 
+  // Gestos táctiles (Swipe)
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diffX = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 35;
+
+    if (diffX > minSwipeDistance) {
+      applyCarousel(carIdxRef.current + 1);
+    } else if (diffX < -minSwipeDistance) {
+      applyCarousel(carIdxRef.current - 1);
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   return (
     <>
       {brigadas.length === 0 && (
@@ -171,7 +199,7 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
             <button
               ref={btnPrevRef}
               className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
-              aria-label="Anterior"
+              aria-label="Anterior brigada"
               onClick={() => applyCarousel(carIdxRef.current - 1)}
             >
               <svg
@@ -188,7 +216,13 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
               </svg>
             </button>
 
-            <div className={styles.carouselViewport} ref={viewportRef}>
+            <div
+              className={styles.carouselViewport}
+              ref={viewportRef}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <div className={styles.carouselTrack} ref={trackRef}>
                 {brigadas.map((b) => (
                   <button
@@ -207,7 +241,7 @@ export default function BrigadasClient({ brigadas }: { brigadas: Brigada[] }) {
             <button
               ref={btnNextRef}
               className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
-              aria-label="Siguiente"
+              aria-label="Siguiente brigada"
               onClick={() => applyCarousel(carIdxRef.current + 1)}
             >
               <svg
