@@ -5,7 +5,7 @@
 
 /* ── HERO ── */
 .hero {
-  background-image: url(/aboutUs-hero.png);
+  background-image: url(/new-AboutUs-hero.png);
   background-color: rgba(26, 35, 50, 0.55);
   background-blend-mode: multiply;
   background-size: cover;
@@ -21,6 +21,7 @@
   color: var(--white);
   font-size: 5.5rem;
   margin: 0;
+  padding: 0 0 18rem 0;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 

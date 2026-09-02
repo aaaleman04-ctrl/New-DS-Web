@@ -67,12 +67,19 @@ export default function Donar() {
     <>
       <Header />
 
+      {/* ── HERO ── */}
+      <div className={styles.hero} role="banner">
+        <h1 className={styles.heroHeading}>¡Tu apoyo hace la diferencia!</h1>
+      </div>
+
       <main>
         <section className={styles.comingSoon} aria-labelledby="donate-heading">
           <div className={styles.content}>
             <div className={styles.icon} aria-hidden="true"></div>
 
-            <h1 id="donate-heading">¡Tu apoyo hace la diferencia!</h1>
+            <h2 id="donate-heading" className={styles.contentHeading}>
+              VARIEDAD DE FORMAS DE AYUDAR A DIBUJAR UNA SONRISA
+            </h2>
             <p>
               Estamos trabajando para implementar un sistema de donaciones en
               línea seguro y conveniente. Mientras tanto, puedes apoyarnos a
