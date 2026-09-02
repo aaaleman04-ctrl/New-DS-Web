@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/about.module.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
     "Conoce la historia, misión, visión y valores de Dibujando Sonrisas — fundación cristiana de brigadas médico-odontológicas en Honduras.",
 };
 
-export default function SobreNosotros() {
+export const dynamic = "force-dynamic";
+
+export default async function SobreNosotros() {
+  const { data: brigadas } = await getBrigadas();
+
   return (
     <>
       <Header />
@@ -30,7 +35,7 @@ export default function SobreNosotros() {
             jóvenes con un corazón de servicio, nuestra fundación surgió de la
             necesidad que veían en comunidades hondureñas alejadas de centros de
             salud. Desde nuestra primera brigada hasta hoy, hemos llevado
-            atención médica y odontológica a más de 15 comunidades, siempre
+            atención médica y odontológica a más de {brigadas?.length ?? 0} comunidades, siempre
             acompañando el servicio con la proclamación del evangelio.
           </p>
         </article>
@@ -158,9 +163,9 @@ export default function SobreNosotros() {
                 </svg>
               </div>
               <div className={styles.achievementText}>
-                <h3>15+ Brigadas Realizadas</h3>
+                <h3>{brigadas?.length ?? 0}+ Brigadas Realizadas</h3>
                 <p>
-                  Hemos llevado a cabo más de 15 brigadas médico-odontológicas
+                  Hemos llevado a cabo más de {brigadas?.length ?? 0} brigadas médico-odontológicas
                   en comunidades de Honduras.
                 </p>
               </div>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/our-work.module.css";
 
 export const metadata: Metadata = {
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
   description:
     "Descubre el impacto de las brigadas médico-odontológicas de Dibujando Sonrisas — más de 2,000 pacientes atendidos, 15 comunidades servidas y cientos de voluntarios.",
 };
+
+export const dynamic = "force-dynamic";
 
 /* ── Servicios data ── */
 const services = [
@@ -142,7 +145,9 @@ const stories = [
   },
 ];
 
-export default function NuestroTrabajo() {
+export default async function NuestroTrabajo() {
+  const { data: brigadas } = await getBrigadas();
+
   return (
     <div className={styles.pageWrapper}>
       <Header />
@@ -185,7 +190,7 @@ export default function NuestroTrabajo() {
               </div>
               <div className={styles.statCard}>
                 <h4>Comunidades Servidas</h4>
-                <p>15+</p>
+                <p>{brigadas?.length ?? 0}+</p>
               </div>
             </div>
           </div>

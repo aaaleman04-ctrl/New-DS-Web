@@ -59,7 +59,7 @@ export default function Contacto() {
               </div>
               <div className={styles.infoText}>
                 <h4>Ubicación</h4>
-                <p>San Pedro Sula, Cortés – Honduras</p>
+                <p>Tela, Atlántida – Honduras</p>
               </div>
             </div>
 
