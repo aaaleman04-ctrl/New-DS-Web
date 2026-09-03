@@ -247,7 +247,7 @@ export default function Contacto() {
           Mantente al día con nuestras próximas brigadas, proyectos y formas de
           apoyar.
         </p>
-        <a href="#" className={styles.btnWhatsapp}>
+        <a href="https://chat.whatsapp.com/DKeiRi1iRXS7koprGs7ZDm" className={styles.btnWhatsapp}>
           <svg
             fill="currentColor"
             viewBox="0 0 24 24"
