@@ -1,79 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "../../styles/components/header.module.css";
 
+import { HeartHandshake, UserRoundArrowLeft, Headset } from "lucide-react";
+
 const NAV_LINKS = [
-  { href: "/sobre-nosotros", label: "Sobre Nosotros" },
+  { href: "/sobre-nosotros", label: "Nosotros" },
   { href: "/nuestro-trabajo", label: "Nuestro Trabajo" },
   { href: "/brigadas", label: "Brigadas" },
   { href: "/voluntariado", label: "Voluntariado" },
-  { href: "/donar", label: "Donar" },
-  { href: "/contacto", label: "Contacto" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Cerrar menú móvil al cambiar de ruta
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
   return (
     <header className={styles.header}>
-      <div className={`${styles.headerContent} container`}>
-        <Link href="/" className={styles.logoLink}>
-          <span className={styles.headerLogo}>
-            <Image
-              src="/DS-LOGO.png"
-              alt="Logo Dibujando Sonrisas"
-              width={50}
-              height={50}
-              priority
-            />
-          </span>
-          <p className={styles.logo}>
-            Dibujando<span className={styles.logoSpan}> Sonrisas</span>
-          </p>
-        </Link>
-
-        {/* Navegación Desktop */}
-        <nav className={styles.navbar} aria-label="Navegación principal">
-          {NAV_LINKS.map((link) => {
-            const isActive =
-              pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
-
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`${styles.navRef} ${
-                  isActive ? styles.navRefActive : ""
-                }`}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {link.label}
+      <div className={styles.headerContent}>
+        <div className={styles.navigation}>
+          <div className={styles.logoContainer}>
+            <div className={styles.logo}>
+              <Link href={"/"} className={styles.logoLink}>
+                <Image src={"/logo.png"} width={100} height={100} alt="Logo" />
               </Link>
-            );
-          })}
-        </nav>
+            </div>
+          </div>
 
-        {/* Botones de Acción Desktop */}
+          <nav className={styles.navbar} aria-label="Navegación principal">
+            {NAV_LINKS.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href));
+
+              return (
+                <div key={link.href}>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`${styles.navRef} ${
+                      isActive ? styles.navRefActive : ""
+                    }`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+
         <div className={styles.headerActions}>
           <Link href="/auth/login" className={styles.headerButtonOutline}>
-            Iniciar Sesión
+            <UserRoundArrowLeft width={20} height={20} />
           </Link>
           <Link href="/donar" className={styles.headerButton}>
+            <Headset width={20} height={20} />
+          </Link>
+          <Link href="/donar" className={styles.headerButton}>
+            <HeartHandshake width={20} height={20} />
             Donar
           </Link>
 
-          {/* Botón Hamburguesa Móvil */}
           <button
             type="button"
             className={styles.mobileMenuToggle}
@@ -115,7 +112,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menú Desplegable Móvil */}
       {mobileMenuOpen && (
         <div className={styles.mobileNavContainer}>
           <nav className={styles.mobileNavbar} aria-label="Navegación móvil">
@@ -139,10 +135,10 @@ export default function Header() {
             })}
             <div className={styles.mobileNavButtons}>
               <Link href="/auth/login" className={styles.headerButtonOutline}>
-                Iniciar Sesión
+                <UserRoundArrowLeft />
               </Link>
               <Link href="/donar" className={styles.headerButton}>
-                Donar
+                <HeartHandshake />
               </Link>
             </div>
           </nav>

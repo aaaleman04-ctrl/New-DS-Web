@@ -35,10 +35,21 @@
 }
 
 .heroHeading {
+  font-family: var(--fontHeading), sans-serif;
   color: var(--white);
   font-size: 6rem;
   margin-bottom: 1.5rem;
   text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.heroHeading span:nth-child(1) {
+  color: var(--primaryColor);
+}
+.heroHeading span:nth-child(2) {
+  color: var(--secondaryColor);
+}
+.heroHeading span:nth-child(3) {
+  color: var(--tertiaryColor);
 }
 
 @media (min-width: 768px) {

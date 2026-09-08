@@ -71,7 +71,12 @@ export default async function Home() {
         <div className={styles.heroOverlay} aria-hidden="true" />
 
         <div className={`${styles.heroContent} container`}>
-          <h1 className={styles.heroHeading}>Dibujando Sonrisas</h1>
+          <h1 className={styles.heroHeading}>
+            Dibujando
+            <span> Son</span>
+            <span>ri</span>
+            <span>sas</span>
+          </h1>
           <p className={styles.heroParagraph}>
             Llevando atención médica y odontológica esencial a las comunidades
             de Honduras que más lo necesitan, una sonrisa a la vez.

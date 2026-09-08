@@ -1,14 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Sriracha&family=Valley+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  --fontHeading: "PT Sans", sans-serif;
-  --fontBody: "Open Sans", sans-serif;
+  --fontHeading: "Sriracha", sans-serif;
+  --fontBody: "Valley Sans", sans-serif;
+  --fontMain: "Inter", sans-serif;
 
   --white: #ffffff;
   --dark: #1a2332;
-  --primaryColor: #3498db;
-  --primaryDark: #2980b9;
-  --primaryLight: #d6eaf8;
+  --primaryColor: #0a8c88;
+  --primaryDark: #075c58;
+  --primaryLight: #2ab2ad;
+  --secondaryColor: #f7cb70ff;
+  --tertiaryColor: #cd463aff;
   --accentColor: #1abc9c;
   --gray: #6b7280;
   --grayLight: #9ca3af;
