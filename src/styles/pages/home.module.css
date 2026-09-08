@@ -24,14 +24,14 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
   z-index: 2;
 }
 
 .heroContent {
   position: relative;
   z-index: 3;
-  text-align: center;
 }
 
 .heroHeading {
@@ -39,7 +39,6 @@
   color: var(--white);
   font-size: 6rem;
   margin-bottom: 1.5rem;
-  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
 }
 
 .heroHeading span:nth-child(1) {
@@ -61,8 +60,8 @@
 .heroParagraph {
   font-size: 2rem;
   color: rgba(255, 255, 255, 0.9);
-  max-width: 70rem;
-  margin: 0 auto 3rem;
+  margin-top: 1.5rem;
+  max-width: 60rem;
 }
 
 .heroButtons {
@@ -71,21 +70,20 @@
   display: flex;
   gap: 1.6rem;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 2rem;
+  justify-content: start;
+  margin-top: 3rem;
 }
 
 /* ── MAIN ── */
 .main {
   align-items: center;
-  margin-top: 4rem;
 }
 
 /* ── MISIÓN ── */
 .mision {
   text-align: center;
   margin-bottom: 8rem;
-  padding: 5rem 2rem;
+  padding: 8rem 2rem;
   background: var(--bg-section);
   border-radius: var(--radius-lg);
 }
@@ -106,6 +104,7 @@
 .testimonialsHeader {
   text-align: center;
   margin-bottom: 4rem;
+  color: var(--primaryColor);
 }
 
 .impactGrid {
@@ -122,53 +121,53 @@
 }
 
 .impactCard {
-  background: var(--white);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--white);
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    background-color 500ms ease,
+    border-color 500ms ease;
 }
 
 .impactCard:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
+  background: var(--primaryColor);
+  border-color: var(--primaryColor);
+  color: var(--white);
+}
+.impactCard:hover p {
+  color: var(--white);
 }
 
 .impactCardBody {
   padding: 2rem;
-  text-align: center;
 }
 
 .impactCardBody h3 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 0.8rem;
+  color: var(--tertiaryColor);
 }
 
 .impactCardBody p {
   font-size: 1.5rem;
 }
 
+.cardImg1, .cardImg2, .cardImg3 {
+  background-size: cover;
+  background-position: center;
+  height: 18rem;
+  margin: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
 .cardImg1 {
   background-image: url(/1-impact.png);
-  background-size: cover;
-  background-position: center;
-  height: 18rem;
 }
-
 .cardImg2 {
   background-image: url(/2-impact.png);
-  background-size: cover;
-  background-position: center;
-  height: 18rem;
 }
-
 .cardImg3 {
   background-image: url(/3-impact.png);
-  background-size: cover;
-  background-position: center;
-  height: 18rem;
 }
 
 /* ── TESTIMONIOS ── */
@@ -187,17 +186,26 @@
 
 .testimonialCard {
   background: var(--white);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
 }
 
+.testimonialCard:nth-child(1) {
+  margin-bottom: 18rem;
+}
+.testimonialCard:nth-child(2) {
+  margin-top: 9rem;
+  margin-bottom: 9rem;
+}
+.testimonialCard:nth-child(3) {
+  margin-top: 18rem;
+}
+
 .testimonialCard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+
 }
 
 .testimonialImgPlaceholder {
@@ -226,20 +234,20 @@
 
 /* ── CTA / SUPPORT ── */
 .support {
-  background: linear-gradient(135deg, #3498db, #1abc9c);
+  background: var(--white);
   text-align: center;
   padding: 8rem 2rem;
-  color: var(--white);
+  color: var(--gray);
 }
 
 .support h2 {
-  color: var(--white);
+  color: var(--secondaryColor);
   font-size: 4rem;
   margin-bottom: 1rem;
 }
 
 .support p {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--gray);
   font-size: 2rem;
   margin-bottom: 3rem;
 }

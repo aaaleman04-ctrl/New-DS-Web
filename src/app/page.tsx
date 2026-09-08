@@ -96,7 +96,7 @@ export default async function Home() {
         <HomeBrigadaBanner brigada={activeBrigada} cuposInfo={cuposInfo} />
       )}
 
-      <main className={`${styles.main} container`}>
+      <main className={`${styles.main}`}>
         <section className={styles.mision} aria-labelledby="mision-heading">
           <h2 id="mision-heading">Nuestra Misión</h2>
           <p>
@@ -112,7 +112,7 @@ export default async function Home() {
           Nuestro Impacto
         </h2>
         <div
-          className={styles.impactGrid}
+          className={`${styles.impactGrid} container`}
           role="list"
           aria-labelledby="impacto-heading"
         >
@@ -154,7 +154,7 @@ export default async function Home() {
           Testimonios
         </h2>
         <div
-          className={styles.testimonialsGrid}
+          className={`${styles.testimonialsGrid} container`}
           role="list"
           aria-labelledby="testimonios-heading"
         >

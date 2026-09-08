@@ -3,7 +3,7 @@
 ===================================================== */
 
 .footer {
-  background-color: var(--dark);
+  background-color: var(--primaryColor);
   color: var(--white);
 }
 
@@ -27,7 +27,7 @@
 }
 
 .logo {
-  font-family: var(--fontHeading);
+  font-family: var(--fontHeading), sans-serif;
   font-size: 2.4rem;
   font-weight: 700;
   color: var(--white);
@@ -36,7 +36,7 @@
 }
 
 .logoSpan {
-  color: var(--primaryColor);
+  color: var(--white);
 }
 
 .tagline {
@@ -54,14 +54,10 @@
 }
 
 .socialLink {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--white);
   transition: color 0.2s ease;
   display: flex;
   align-items: center;
-}
-
-.socialLink:hover {
-  color: var(--primaryColor);
 }
 
 .gfmLink {
@@ -71,12 +67,12 @@
 
 /* Nav column */
 .navTitle {
-  font-family: var(--fontHeading);
-  font-size: 1.4rem;
+  font-family: var(--fontHeading), sans-serif;
+  font-size: 1.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--white);
   margin-bottom: 1.6rem;
 }
 
@@ -104,8 +100,8 @@
 }
 
 .infoCol p {
-  font-size: 1.4rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* Bottom bar */

@@ -118,7 +118,7 @@ export default function Footer() {
         </div>
 
         <nav>
-          <p className={styles.navTitle}>Navegación</p>
+          <h4 className={styles.navTitle}>Navegación</h4>
           <ul className={styles.navList}>
             <li>
               <Link href="/sobre-nosotros">Sobre Nosotros</Link>
@@ -142,7 +142,7 @@ export default function Footer() {
         </nav>
 
         <div className={styles.infoCol}>
-          <p className={styles.navTitle}>Contacto</p>
+          <h4 className={styles.navTitle}>Contacto</h4>
           <p>Honduras</p>
           <p>fundacion.ds2021@gmail.com</p>
           <p>WhatsApp disponible próximamente</p>
