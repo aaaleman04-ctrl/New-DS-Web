@@ -251,3 +251,7 @@
   font-size: 2rem;
   margin-bottom: 3rem;
 }
+
+.support a {
+  margin: 0 auto;
+}

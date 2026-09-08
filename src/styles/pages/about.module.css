@@ -10,19 +10,157 @@
   background-blend-mode: multiply;
   background-size: cover;
   background-position: center;
-  height: 40rem;
+  height: 50rem;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  text-align: center;
+}
+
+.heroContainer {
+  max-width: 120rem;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  color: var(--white);
+  font-size: 6.5rem;
+  margin: 0;
+  padding: 15rem 0 1rem 0;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.heroTitle span:nth-child(1) {
+  color: var(--primaryColor);
+}
+.heroTitle span:nth-child(2) {
+  color: var(--secondaryColor);
+}
+.heroTitle span:nth-child(3) {
+  color: var(--tertiaryColor);
 }
 
 .heroHeading {
   color: var(--white);
-  font-size: 5.5rem;
+  font-family: var(--fontBody), sans-serif;
+  font-size: 4rem;
   margin: 0;
   padding: 0 0 18rem 0;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.history {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  margin-top: 4rem;
+}
+
+.historyImage {
+  content: url("/new-AboutUs-hero.png");
+  width: 65rem;
+  height: auto;
+  border-radius: var(--radius-lg);
+}
+
+.historyHeader {
+  color: var(--tertiaryColor);
+  grid-column: 1 / 3;
+}
+
+.history p {
+  font-size: 1.6rem;
+  margin-left: 4rem;
+}
+
+.historyIcons {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.historyIcon {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--white);
+  padding: .5rem 2rem;
+  width: fit-content;
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+}
+
+.historyIcon:nth-child(1) {
+  color: var(--primaryColor);
+}
+.historyIcon:nth-child(2) {
+  color: var(--secondaryColor);
+}
+.historyIcon:nth-child(3) {
+  color: var(--tertiaryColor);
+}
+
+
+.missionAndVisionContainer {
+  display: flex;
+  gap: 4rem;
+  margin-top: 10rem;
+}
+
+.missionAndVision {
+  border: 3px dashed var(--secondaryColor);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (max-width: 1080px) {
+  .missionAndVisionContainer {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 768px) {
+  .missionAndVision {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.missionAndVisionText {
+  flex: 1;
+}
+
+.missionAndVisionImage {
+  flex-shrink: 0;
+  width: 18rem;
+  height: 18rem;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.missionAndVision:nth-child(2) {
+  border: 3px dashed var(--primaryColor);
+}
+
+.missionAndVision h3 {
+  color: var(--secondaryColor);
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+}
+
+.missionAndVision:nth-child(2) h3 {
+  color: var(--primaryColor);
+}
+
+.missionAndVision p {
+  font-size: 1.6rem;
+  line-height: 1.5;
 }
 
 /* ── SECCIONES PRINCIPALES (3 tarjetas) ── */

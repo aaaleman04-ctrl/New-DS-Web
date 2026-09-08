@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import HomeBrigadaBanner, { CuposInfo } from "./components/HomeBrigadaBanner";
 import type { Brigada } from "@/lib/db/brigadas";
 import styles from "../styles/pages/home.module.css";
+import { HeartHandshake } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Inicio | Dibujando Sonrisas",
@@ -199,6 +200,7 @@ export default async function Home() {
           Tu contribución puede transformar la vida de una familia en Honduras.
         </p>
         <Link href="/donar" className="btn-primary">
+          <HeartHandshake />
           Donar Ahora
         </Link>
       </section>

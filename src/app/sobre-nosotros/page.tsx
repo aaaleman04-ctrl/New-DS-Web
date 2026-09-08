@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/about.module.css";
+import { BookOpenText, PillBottle, ScanHeart, Stethoscope } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sobre Nosotros | Dibujando Sonrisas",
@@ -21,49 +23,112 @@ export default async function SobreNosotros() {
 
       {/* ── HERO ── */}
       <div className={styles.hero} role="banner">
-        <h1 className={styles.heroHeading}>Sobre Nosotros</h1>
+        <div className={`container`}>
+          <h1 className={styles.heroTitle}>
+            Dibujando
+            <span> Son</span>
+            <span>ri</span>
+            <span>sas</span>
+          </h1>
+          <h2 className={styles.heroHeading}>¿Quienes somos?</h2>
+        </div>
       </div>
 
-      {/* ── SECCIONES PRINCIPALES ── */}
-      <main className={`${styles.mainAbout} container`}>
-        {/* Historia */}
-        <article className={styles.card}>
-          <h2 className={styles.cardHeader}>Nuestra Historia</h2>
+      <section className={`${styles.history} container`}>
+        <h2 className={styles.historyHeader}>Nuestra Historia</h2>
+        <div className={styles.historyImage}></div>
+        <div>
           <p>
             Dibujando Sonrisas nació de una idea simple pero poderosa: que cada
             persona merece acceso a atención médica de calidad. Fundada por dos
             jóvenes con un corazón de servicio, nuestra fundación surgió de la
             necesidad que veían en comunidades hondureñas alejadas de centros de
             salud. Desde nuestra primera brigada hasta hoy, hemos llevado
-            atención médica y odontológica a más de {brigadas?.length ?? 0} comunidades, siempre
-            acompañando el servicio con la proclamación del evangelio.
+            atención médica y odontológica a más de {brigadas?.length ?? 0}{" "}
+            comunidades, siempre acompañando el servicio con la proclamación del
+            evangelio.
           </p>
-        </article>
 
-        {/* Misión & Visión */}
-        <article className={styles.card}>
-          <h2 className={styles.cardHeader}>Misión &amp; Visión</h2>
-          <p>
-            <strong>Misión:</strong> Brindar servicios médico-odontológicos
-            esenciales, educación en salud y apoyo comunitario a poblaciones
-            vulnerables de Honduras, siempre guiados por la fe cristiana.
-          </p>
-          <br />
-          <p>
-            <strong>Visión:</strong> Ser una fundación reconocida a nivel
-            nacional que logre transformar la salud de las comunidades más
-            necesitadas, creando un impacto sostenible que se extienda por
-            generaciones.
-          </p>
-        </article>
+          <div className={styles.historyIcons}>
+            <p className={styles.historyIcon}>
+              <Stethoscope />
+              Atención medica
+            </p>
 
+            <p className={styles.historyIcon}>
+              <PillBottle />
+              Provisión de medicamentos
+            </p>
+
+            <p className={styles.historyIcon}>
+              <BookOpenText />
+              Predicación del evangelio
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className={`${styles.missionAndVisionContainer} container`}>
+        <div className={styles.missionAndVision}>
+          <div className={styles.missionAndVisionText}>
+            <h3>Nuestra Misión</h3>
+            <p>
+              Brindar servicios médico-odontológicos esenciales, educación en
+              salud y apoyo comunitario a poblaciones vulnerables de Honduras,
+              siempre guiados por la fe cristiana.
+            </p>
+          </div>
+
+          <Image
+            className={styles.missionAndVisionImage}
+            src="/new-OurWork-hero.png"
+            alt="Dos niños sonriendo durante una brigada de Dibujando Sonrisas"
+            width={480}
+            height={640}
+            sizes="180px"
+          />
+        </div>
+
+        <div className={styles.missionAndVision}>
+          <div className={styles.missionAndVisionText}>
+            <h3>Nuestra Visión</h3>
+            <p>
+              Ser una fundación reconocida a nivel nacional que logre
+              transformar la salud de las comunidades más necesitadas, creando
+              un impacto sostenible que se extienda por generaciones.
+            </p>
+          </div>
+
+          <Image
+            className={styles.missionAndVisionImage}
+            src="/new-Donar-hero.png"
+            alt="Niña abrazando un peluche recibido en una brigada"
+            width={480}
+            height={640}
+            sizes="180px"
+          />
+        </div>
+      </section>
+
+      {/* ── SECCIONES PRINCIPALES ── */}
+      <main className={`${styles.mainAbout} container`}>
         {/* Valores */}
         <article className={styles.card}>
           <h2 className={styles.cardHeader}>Nuestros Valores</h2>
           <ul className={styles.valuesList}>
             <li className={styles.valuesItem}>
               <span className={styles.checkmark}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </span>
@@ -71,7 +136,17 @@ export default async function SobreNosotros() {
             </li>
             <li className={styles.valuesItem}>
               <span className={styles.checkmark}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </span>
@@ -79,7 +154,17 @@ export default async function SobreNosotros() {
             </li>
             <li className={styles.valuesItem}>
               <span className={styles.checkmark}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </span>
@@ -87,7 +172,17 @@ export default async function SobreNosotros() {
             </li>
             <li className={styles.valuesItem}>
               <span className={styles.checkmark}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </span>
@@ -96,7 +191,17 @@ export default async function SobreNosotros() {
             </li>
             <li className={styles.valuesItem}>
               <span className={styles.checkmark}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </span>
@@ -165,8 +270,8 @@ export default async function SobreNosotros() {
               <div className={styles.achievementText}>
                 <h3>{brigadas?.length ?? 0}+ Brigadas Realizadas</h3>
                 <p>
-                  Hemos llevado a cabo más de {brigadas?.length ?? 0} brigadas médico-odontológicas
-                  en comunidades de Honduras.
+                  Hemos llevado a cabo más de {brigadas?.length ?? 0} brigadas
+                  médico-odontológicas en comunidades de Honduras.
                 </p>
               </div>
             </div>
