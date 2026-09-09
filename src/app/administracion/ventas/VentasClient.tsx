@@ -293,7 +293,9 @@ export function VentasClient({ userId }: { userId: string }) {
                           </div>
                         </div>
                         <div style={{ fontWeight: "bold" }}>L. {(item.cantidad * item.precio_unitario).toFixed(2)}</div>
-                        <button type="button" onClick={() => removeFromCart(item.producto_id)} style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", marginLeft: "1rem", fontWeight: "bold" }}>✕</button>
+                        <button type="button" onClick={() => removeFromCart(item.producto_id)} style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", marginLeft: "1rem", display: "inline-flex", alignItems: "center" }} aria-label="Remover del carrito">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
                       </div>
                     ))
                   }
@@ -438,7 +440,9 @@ export function VentasClient({ userId }: { userId: string }) {
           <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Nueva Categoría de Producto</h3>
-              <button className={styles.modalClose} onClick={() => setIsCatModalOpen(false)}>✕</button>
+              <button className={styles.modalClose} onClick={() => setIsCatModalOpen(false)} aria-label="Cerrar modal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <form className={styles.adminFormSingleColumn} onSubmit={submitCategoria} style={{ padding: "2.4rem" }}>
               <div className={styles.formSectionTitle}>1. Clasificación de Recaudación</div>
@@ -469,7 +473,9 @@ export function VentasClient({ userId }: { userId: string }) {
           <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Nuevo Producto de Recaudación</h3>
-              <button className={styles.modalClose} onClick={() => setIsProdModalOpen(false)}>✕</button>
+              <button className={styles.modalClose} onClick={() => setIsProdModalOpen(false)} aria-label="Cerrar modal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <form className={styles.adminFormSingleColumn} onSubmit={submitProducto} style={{ padding: "2.4rem" }}>
               <div className={styles.formSectionTitle}>1. Información del Producto</div>
@@ -518,7 +524,9 @@ export function VentasClient({ userId }: { userId: string }) {
           <div className={`${styles.modal} ${styles.modalSm}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 style={{ fontSize: "1.8rem", fontWeight: "700" }}>Ajustar Stock Físico</h3>
-              <button className={styles.modalClose} onClick={() => setIsStockModalOpen(false)}>✕</button>
+              <button className={styles.modalClose} onClick={() => setIsStockModalOpen(false)} aria-label="Cerrar modal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <form className={styles.adminFormSingleColumn} onSubmit={submitStock} style={{ padding: "2.4rem" }}>
               <p style={{ marginBottom: "1.6rem", fontSize: "1.4rem", color: "var(--text-muted)" }}>

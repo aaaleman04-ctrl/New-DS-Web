@@ -64,10 +64,10 @@ export default async function DashboardPage() {
         style={{
           padding: "2.8rem 3.2rem",
           marginBottom: "3.2rem",
-          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--border-color)",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+          background: "#ffffff",
+          borderRadius: "1.8rem",
+          border: "1px solid #f1f5f9",
+          boxShadow: "0 4px 20px rgba(15, 23, 42, 0.03)",
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "space-between",
@@ -80,17 +80,27 @@ export default async function DashboardPage() {
             avatarUrl={ctx.profile.avatar_url}
             nombres={ctx.profile.nombre_completo}
             email={ctx.user.email}
-            size={68}
+            size={70}
           />
           <div>
-            <h2 style={{ fontSize: "2.6rem", fontWeight: 700, margin: 0, color: "var(--dark)", letterSpacing: "-0.01em" }}>
+            <h2
+              style={{
+                fontFamily: "var(--fontMain)",
+                fontSize: "2.6rem",
+                fontWeight: 800,
+                margin: 0,
+                color: "var(--dark)",
+                letterSpacing: "-0.02em",
+              }}
+            >
               Bienvenido, {nameDisplay}
             </h2>
             <p
               style={{
                 margin: "0.5rem 0 0",
-                color: "var(--gray)",
+                color: "#64748b",
                 fontSize: "1.5rem",
+                fontWeight: 500,
               }}
             >
               Llevando salud, amor y esperanza a las comunidades de Honduras.
@@ -101,41 +111,69 @@ export default async function DashboardPage() {
         {/* Tarjeta de Detalles del Perfil */}
         <div
           style={{
-            backgroundColor: "var(--white)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--border-color)",
-            padding: "1.6rem 2.2rem",
+            backgroundColor: "#f8fafc",
+            borderRadius: "1.4rem",
+            border: "1px solid #e2e8f0",
+            padding: "1.8rem 2.4rem",
             minWidth: "290px",
-            boxShadow: "var(--shadow-sm)",
+            boxShadow: "0 2px 8px rgba(15, 23, 42, 0.02)",
           }}
         >
           <h4
             style={{
-              fontSize: "1.2rem",
+              fontFamily: "var(--fontMain)",
+              fontSize: "1.15rem",
               fontWeight: 700,
-              color: "var(--text-muted)",
+              color: "#94a3b8",
               marginBottom: "1.2rem",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
             }}
           >
-            Perfil de Usuario
+            Perfil Activo
           </h4>
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               gap: "1rem",
-              fontSize: "1.3rem",
+              fontSize: "1.35rem",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: 600, color: "var(--dark)" }}>Rol Asignado:</span>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontWeight: 600, color: "var(--dark)" }}>
+                Rol:
+              </span>
               <RoleBadge role={ctx.profile.rol} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
-              <span style={{ fontWeight: 600, color: "var(--dark)" }}>Especialidad:</span>
-              <span style={{ color: "var(--primaryDark)", fontWeight: 600, background: "#e0f2fe", padding: "0.2rem 0.8rem", borderRadius: "1rem", fontSize: "1.2rem" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "1rem",
+              }}
+            >
+              <span style={{ fontWeight: 600, color: "var(--dark)" }}>
+                Especialidad:
+              </span>
+              <span
+                style={{
+                  color: "#0f766e",
+                  fontWeight: 600,
+                  background: "#f0fdfa",
+                  border: "1px solid #ccfbf1",
+                  padding: "0.25rem 0.9rem",
+                  borderRadius: "9999px",
+                  fontSize: "1.2rem",
+                }}
+              >
                 {specialtyName}
               </span>
             </div>

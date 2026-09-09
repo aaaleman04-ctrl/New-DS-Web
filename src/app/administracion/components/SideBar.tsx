@@ -13,14 +13,27 @@ import {
   MODULE_PERMISSIONS,
 } from "@/lib/auth/permissions";
 import styles from "@/styles/pages/admin.module.css";
+import UserAvatar from "./UserAvatar";
 
 interface SideBarProps {
   isCollapsed: boolean;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
+  displayName?: string;
+  roleLabel?: string;
+  avatarUrl?: string | null;
+  email?: string | null;
 }
 
-export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: SideBarProps) {
+export default function SideBar({
+  isCollapsed,
+  isMobileOpen,
+  onCloseMobile,
+  displayName,
+  roleLabel,
+  avatarUrl,
+  email,
+}: SideBarProps) {
   const pathname = usePathname();
   const { role, specialtyName } = usePermissions();
 
@@ -48,14 +61,14 @@ export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: Si
                 <Image
                   src="/DS-LOGO.png"
                   alt="Logo Fundación"
-                  width={34}
-                  height={34}
+                  width={32}
+                  height={32}
                   style={{ objectFit: "contain" }}
                 />
               </div>
               <div className={styles.sidebarBrandText}>
                 <p className={styles.sidebarLogoTitle}>Dibujando Sonrisas</p>
-                <p className={styles.sidebarLogoSub}>Fundación Honduras</p>
+                <p className={styles.sidebarLogoSub}>Panel Administrativo</p>
               </div>
             </Link>
           </div>
@@ -89,9 +102,25 @@ export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: Si
           })}
         </nav>
 
+        {/* Mini Widget de Perfil Integrado en la Barra Lateral */}
+        {!isCollapsed && displayName && (
+          <div className={styles.sidebarProfileWidget}>
+            <UserAvatar
+              avatarUrl={avatarUrl}
+              nombres={displayName}
+              email={email}
+              size={36}
+            />
+            <div className={styles.sidebarProfileText}>
+              <span className={styles.sidebarProfileName}>{displayName}</span>
+              <span className={styles.sidebarProfileRole}>{roleLabel || "Personal"}</span>
+            </div>
+          </div>
+        )}
+
         {/* Pie del Menú / Cerrar Sesión */}
         <div className={styles.sidebarFooter}>
-          <form action={logoutAction}>
+          <form action={logoutAction} style={{ width: "100%" }}>
             <button
               type="submit"
               className={styles.logoutBtn}
@@ -102,7 +131,7 @@ export default function SideBar({ isCollapsed, isMobileOpen, onCloseMobile }: Si
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
-                  strokeWidth={1.5}
+                  strokeWidth={1.8}
                   stroke="currentColor"
                 >
                   <path

@@ -63,9 +63,15 @@ export default function AdminHeader({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const todayFormatted = new Intl.DateTimeFormat("es-HN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date());
+
   return (
     <header className={styles.header100}>
-      {/* LADO IZQUIERDO: Toggle ☰ + Brand + Módulo Dinámico */}
+      {/* LADO IZQUIERDO: Alternar Menú + Brand + Módulo Dinámico */}
       <div className={styles.headerLeft}>
         <button
           className={styles.toggleBtn}
@@ -79,7 +85,7 @@ export default function AdminHeader({
             viewBox="0 0 24 24"
             strokeWidth={1.8}
             stroke="currentColor"
-            style={{ width: "2.4rem", height: "2.4rem" }}
+            style={{ width: "2.2rem", height: "2.2rem" }}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
@@ -96,7 +102,7 @@ export default function AdminHeader({
             viewBox="0 0 24 24"
             strokeWidth={1.8}
             stroke="currentColor"
-            style={{ width: "2.4rem", height: "2.4rem" }}
+            style={{ width: "2.2rem", height: "2.2rem" }}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
@@ -110,15 +116,15 @@ export default function AdminHeader({
                 <Image
                   src="/DS-LOGO.png"
                   alt="Logo Fundación Dibujando Sonrisas"
-                  width={40}
-                  height={40}
+                  width={38}
+                  height={38}
                   className={styles.headerLogoImg}
                   priority
                 />
               </div>
               <div className={styles.headerBrandInfo}>
-                <span className={styles.headerAppName}>Sistema Web de Gestión Integral</span>
-                <span className={styles.headerFoundationName}>Fundación Dibujando Sonrisas</span>
+                <span className={styles.headerAppName}>Sistema Web de Gestión</span>
+                <span className={styles.headerFoundationName}>Dibujando Sonrisas</span>
               </div>
             </Link>
             <div className={styles.headerDivider} />
@@ -128,6 +134,51 @@ export default function AdminHeader({
         <div className={styles.headerModuleBadge}>
           <span className={styles.headerModuleName}>{activeModule.title}</span>
           <span className={styles.headerModuleSub}>{activeModule.subtitle}</span>
+        </div>
+      </div>
+
+      {/* CENTRO: Barra de búsqueda y fecha estilizada */}
+      <div className={styles.headerCenter}>
+        <div className={styles.headerSearchWrapper}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className={styles.headerSearchIcon}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar paciente, brigada o medicina..."
+            className={styles.headerSearchInput}
+            aria-label="Buscar en el sistema"
+          />
+        </div>
+
+        <div className={styles.headerDateBadge} title="Fecha del sistema">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.8}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+            />
+          </svg>
+          <span style={{ textTransform: "capitalize" }}>{todayFormatted}</span>
         </div>
       </div>
 

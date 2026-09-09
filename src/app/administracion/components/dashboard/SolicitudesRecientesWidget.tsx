@@ -43,11 +43,11 @@ export default async function SolicitudesRecientesWidget() {
       className={styles.statCard}
       style={{
         gridColumn: "1 / -1",
-        background: "var(--white)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--border-color)",
+        background: "#ffffff",
+        borderRadius: "1.8rem",
+        border: "1px solid #f1f5f9",
         padding: "2.8rem 3.2rem",
-        boxShadow: "var(--shadow-sm)",
+        boxShadow: "0 4px 24px -2px rgba(15, 23, 42, 0.04)",
         display: "flex",
         flexDirection: "column",
         gap: "2rem",
@@ -61,21 +61,22 @@ export default async function SolicitudesRecientesWidget() {
           alignItems: "center",
           flexWrap: "wrap",
           gap: "1.2rem",
-          borderBottom: "1px solid var(--border-color)",
-          paddingBottom: "1.6rem",
+          borderBottom: "1px solid #f1f5f9",
+          paddingBottom: "1.8rem",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.4rem" }}>
           <div
             style={{
               width: "4.4rem",
               height: "4.4rem",
-              borderRadius: "1rem",
-              background: "var(--primaryLight)",
-              color: "var(--primaryDark)",
+              borderRadius: "1.2rem",
+              background: "#f0fdfa",
+              color: "var(--primaryColor)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
             <svg
@@ -96,10 +97,12 @@ export default async function SolicitudesRecientesWidget() {
           <div>
             <h3
               style={{
+                fontFamily: "var(--fontMain)",
                 fontSize: "1.8rem",
                 fontWeight: 700,
                 color: "var(--dark)",
                 margin: 0,
+                letterSpacing: "-0.01em",
               }}
             >
               Solicitudes de Inscripción Recibidas
@@ -107,30 +110,29 @@ export default async function SolicitudesRecientesWidget() {
             <p
               style={{
                 fontSize: "1.35rem",
-                color: "var(--gray)",
-                margin: "0.2rem 0 0 0",
+                color: "#64748b",
+                margin: "0.3rem 0 0 0",
               }}
             >
-              Brigada Activa: <strong>{activeBrigada.nombre}</strong> (
-              {activeBrigada.lugar})
+              Brigada Activa: <strong style={{ color: "var(--dark)" }}>{activeBrigada.nombre}</strong> ({activeBrigada.lugar})
             </p>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.4rem" }}>
           {pendientesCount > 0 ? (
             <span
               style={{
-                background: "#fef3c7",
-                color: "#92400e",
+                background: "#fffbeb",
+                color: "#b45309",
                 border: "1px solid #fde68a",
                 padding: "0.4rem 1.2rem",
-                borderRadius: "2rem",
+                borderRadius: "9999px",
                 fontSize: "1.25rem",
                 fontWeight: 700,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.4rem",
+                gap: "0.5rem",
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -141,16 +143,16 @@ export default async function SolicitudesRecientesWidget() {
           ) : (
             <span
               style={{
-                background: "#dcfce7",
-                color: "#166534",
-                border: "1px solid #bbf7d0",
+                background: "#ecfdf5",
+                color: "#047857",
+                border: "1px solid #a7f3d0",
                 padding: "0.4rem 1.2rem",
-                borderRadius: "2rem",
+                borderRadius: "9999px",
                 fontSize: "1.25rem",
                 fontWeight: 600,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.4rem",
+                gap: "0.5rem",
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

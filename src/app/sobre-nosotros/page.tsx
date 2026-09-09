@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/about.module.css";
-import { BookOpenText, PillBottle, ScanHeart, Stethoscope } from "lucide-react";
+import { BookOpenText, PillBottle, Stethoscope } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sobre Nosotros | Dibujando Sonrisas",

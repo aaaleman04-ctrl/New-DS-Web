@@ -1245,16 +1245,26 @@
 
 .chartBarElement {
   width: 2.8rem;
-  border-radius: 4px 4px 0 0;
+  border-radius: 0.8rem 0.8rem 0 0;
   background-color: var(--primaryColor);
   transition:
     height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 0.2s;
+    background-color 0.2s,
+    transform 0.2s ease;
   cursor: pointer;
 }
 
 .chartBarElement:hover {
   background-color: var(--primaryDark);
+  transform: scaleY(1.03);
+}
+
+.chartBarElementInactive {
+  background-color: #e2e8f0;
+}
+
+.chartBarElementInactive:hover {
+  background-color: #cbd5e1;
 }
 
 .barLabel {

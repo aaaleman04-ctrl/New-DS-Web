@@ -121,15 +121,18 @@ export default function VoluntariosTable({ voluntarios }: VoluntariosTableProps)
                 </td>
                 <td>
                   <span
-                    style={{
-                      padding: "0.2rem 0.6rem",
-                      borderRadius: "1rem",
-                      fontSize: "0.85rem",
-                      backgroundColor: v.activo ? "var(--green-light, #d1fae5)" : "var(--red-light, #fee2e2)",
-                      color: v.activo ? "var(--green-dark, #065f46)" : "var(--red-dark, #991b1b)",
-                      fontWeight: 500,
-                    }}
+                    className={`${styles.badge} ${
+                      v.activo ? styles.badgeSuccess : styles.badgeDanger
+                    }`}
                   >
+                    <span
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        backgroundColor: v.activo ? "#10b981" : "#f43f5e",
+                      }}
+                    />
                     {v.activo ? "Activo" : "Inactivo"}
                   </span>
                 </td>

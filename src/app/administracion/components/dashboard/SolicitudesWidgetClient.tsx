@@ -158,10 +158,11 @@ export default function SolicitudesWidgetClient({
                 <td>
                   <span
                     style={{
-                      background: "var(--bg-light)",
-                      padding: "0.3rem 0.8rem",
-                      borderRadius: "0.6rem",
-                      fontSize: "1.25rem",
+                      background: "#f0fdfa",
+                      border: "1px solid #ccfbf1",
+                      padding: "0.3rem 0.9rem",
+                      borderRadius: "9999px",
+                      fontSize: "1.2rem",
                       fontWeight: 600,
                       color: "var(--primaryDark)",
                       display: "inline-block",
@@ -170,33 +171,20 @@ export default function SolicitudesWidgetClient({
                     {sol.area_interes || "Sin área"}
                   </span>
                 </td>
-                <td style={{ fontSize: "1.25rem", color: "var(--gray)" }}>
+                <td style={{ fontSize: "1.3rem", color: "#64748b" }}>
                   {formatDate(sol.created_at)}
                 </td>
                 <td>
                   <span
-                    style={{
-                      display: "inline-block",
-                      padding: "0.3rem 1rem",
-                      borderRadius: "1rem",
-                      fontSize: "1.2rem",
-                      fontWeight: 700,
-                      textTransform: "capitalize",
-                      backgroundColor:
-                        estadoStr === "aceptado"
-                          ? "#dcfce7"
-                          : estadoStr === "rechazado"
-                          ? "#fee2e2"
-                          : "#fef3c7",
-                      color:
-                        estadoStr === "aceptado"
-                          ? "#15803d"
-                          : estadoStr === "rechazado"
-                          ? "#b91c1c"
-                          : "#b45309",
-                    }}
+                    className={`${styles.badge} ${
+                      estadoStr === "aceptado"
+                        ? styles.badgeSuccess
+                        : estadoStr === "rechazado"
+                        ? styles.badgeDanger
+                        : styles.badgeWarning
+                    }`}
                   >
-                    {estadoStr}
+                    {estadoStr.charAt(0).toUpperCase() + estadoStr.slice(1)}
                   </span>
                 </td>
                 <td style={{ textAlign: "right" }}>
@@ -213,21 +201,22 @@ export default function SolicitudesWidgetClient({
                         onClick={() => handleAccept(sol.id)}
                         disabled={isItemPending}
                         style={{
-                          background: "#10b981",
-                          color: "#fff",
+                          background: "var(--primaryColor)",
+                          color: "#ffffff",
                           border: "none",
-                          borderRadius: "0.6rem",
-                          padding: "0.5rem 1rem",
+                          borderRadius: "1rem",
+                          padding: "0.6rem 1.2rem",
                           fontSize: "1.25rem",
                           fontWeight: 600,
                           cursor: "pointer",
-                          transition: "opacity 0.2s",
+                          transition: "all 0.2s ease",
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: "0.4rem",
+                          gap: "0.5rem",
+                          boxShadow: "0 2px 8px rgba(10, 140, 136, 0.2)",
                         }}
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                         Aceptar
@@ -237,20 +226,21 @@ export default function SolicitudesWidgetClient({
                         onClick={() => handleReject(sol.id)}
                         disabled={isItemPending}
                         style={{
-                          background: "transparent",
-                          color: "#ef4444",
-                          border: "1px solid #fca5a5",
-                          borderRadius: "0.6rem",
-                          padding: "0.5rem 0.9rem",
+                          background: "#fff1f2",
+                          color: "#be123c",
+                          border: "1px solid #fecdd3",
+                          borderRadius: "1rem",
+                          padding: "0.6rem 1.1rem",
                           fontSize: "1.25rem",
                           fontWeight: 600,
                           cursor: "pointer",
+                          transition: "all 0.2s ease",
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: "0.4rem",
+                          gap: "0.5rem",
                         }}
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <line x1="18" y1="6" x2="6" y2="18" />
                           <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
@@ -258,7 +248,7 @@ export default function SolicitudesWidgetClient({
                       </button>
                     </div>
                   ) : (
-                    <span style={{ fontSize: "1.2rem", color: "var(--gray)" }}>
+                    <span style={{ fontSize: "1.2rem", color: "#94a3b8", fontWeight: 500 }}>
                       Revisado
                     </span>
                   )}

@@ -143,41 +143,101 @@ export function InventarioClient() {
   const getTipoBadge = (tipo?: string) => {
     switch (tipo) {
       case "insumo_medico":
-        return <span style={{ background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Insumo Médico</span>;
+        return (
+          <span
+            style={{
+              background: "#f0fdfa",
+              color: "#0f766e",
+              border: "1px solid #ccfbf1",
+              padding: "0.3rem 0.9rem",
+              borderRadius: "9999px",
+              fontSize: "1.15rem",
+              fontWeight: 700,
+              display: "inline-block",
+            }}
+          >
+            Insumo Médico
+          </span>
+        );
       case "material_brigada":
-        return <span style={{ background: "#f3e8ff", color: "#6b21a8", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Material Brigada</span>;
+        return (
+          <span
+            style={{
+              background: "#f5f3ff",
+              color: "#6d28d9",
+              border: "1px solid #ddd6fe",
+              padding: "0.3rem 0.9rem",
+              borderRadius: "9999px",
+              fontSize: "1.15rem",
+              fontWeight: 700,
+              display: "inline-block",
+            }}
+          >
+            Material Brigada
+          </span>
+        );
       default:
-        return <span style={{ background: "#dcfce7", color: "#166534", padding: "0.2rem 0.8rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold" }}>Medicamento</span>;
+        return (
+          <span
+            style={{
+              background: "#ecfdf5",
+              color: "#047857",
+              border: "1px solid #a7f3d0",
+              padding: "0.3rem 0.9rem",
+              borderRadius: "9999px",
+              fontSize: "1.15rem",
+              fontWeight: 700,
+              display: "inline-block",
+            }}
+          >
+            Medicamento
+          </span>
+        );
     }
   };
 
   const getStockBadge = (estado: string) => {
-    let bgColor = "var(--bg-light)";
-    let color = "var(--text)";
-    
+    let bg = "#f8fafc";
+    let color = "#64748b";
+    let border = "#e2e8f0";
+
     if (estado === "Sin Existencias") {
-      bgColor = "var(--danger)";
-      color = "white";
+      bg = "#fff1f2";
+      color = "#be123c";
+      border = "#fecdd3";
     } else if (estado === "Stock Bajo" || estado === "Stock Crítico") {
-      bgColor = "#fef08a"; // yellow-200
-      color = "#854d0e"; // yellow-800
+      bg = "#fffbeb";
+      color = "#b45309";
+      border = "#fde68a";
     } else {
-      bgColor = "#dcfce7"; // green-100
-      color = "#166534"; // green-800
+      bg = "#ecfdf5";
+      color = "#047857";
+      border = "#a7f3d0";
     }
 
     return (
       <span
         style={{
-          background: bgColor,
+          background: bg,
           color: color,
-          padding: "0.4rem 0.8rem",
-          borderRadius: "4px",
-          fontWeight: "bold",
+          border: `1px solid ${border}`,
+          padding: "0.35rem 1rem",
+          borderRadius: "9999px",
+          fontWeight: 700,
           fontSize: "1.2rem",
-          display: "inline-block",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.5rem",
         }}
       >
+        <span
+          style={{
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            backgroundColor: color,
+          }}
+        />
         {estado}
       </span>
     );

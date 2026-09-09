@@ -66,6 +66,10 @@ export default function AdminLayoutClient({
           isCollapsed={isCollapsed}
           isMobileOpen={isMobileOpen}
           onCloseMobile={handleCloseMobile}
+          displayName={displayName}
+          roleLabel={roleLabel}
+          avatarUrl={avatarUrl}
+          email={email}
         />
 
         <main

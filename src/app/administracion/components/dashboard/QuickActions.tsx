@@ -63,15 +63,40 @@ export default function QuickActions({ role }: { role: AppRole }) {
 
   return (
     <div style={{ marginBottom: "3rem" }}>
-      <h3 style={{ fontSize: "1.6rem", color: "var(--dark)", marginBottom: "1.6rem" }}>Accesos Rápidos</h3>
-      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <h3
+        style={{
+          fontFamily: "var(--fontMain)",
+          fontSize: "1.7rem",
+          fontWeight: 700,
+          color: "var(--dark)",
+          marginBottom: "1.4rem",
+          letterSpacing: "-0.01em",
+        }}
+      >
+        Accesos Rápidos
+      </h3>
+      <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
         {visibleActions.map((action, i) => (
           <Link key={i} href={action.href} style={{ textDecoration: "none" }}>
             <div className={styles.quickActionCard}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", color: "var(--primaryDark)" }}>
+              <div
+                style={{
+                  width: "3.4rem",
+                  height: "3.4rem",
+                  borderRadius: "1rem",
+                  backgroundColor: "#f0fdfa",
+                  color: "var(--primaryColor)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
                 {action.icon}
-                <span>{action.label}</span>
               </div>
+              <span style={{ fontSize: "1.35rem", fontWeight: 600 }}>
+                {action.label}
+              </span>
             </div>
           </Link>
         ))}
