@@ -1,6 +1,11 @@
 /* =====================================================
    ABOUT US — about.module.css
    Estilos exclusivos para la página /sobre-nosotros
+
+   Layout fluido: historia y misión/visión se reacomodan
+   solas (auto-fit / flex-wrap) sin media query. El único
+   breakpoint declarado es 768px, para las grillas de
+   3 columnas (logros y equipo).
 ===================================================== */
 
 /* ── HERO ── */
@@ -10,22 +15,17 @@
   background-blend-mode: multiply;
   background-size: cover;
   background-position: center;
-  height: 50rem;
+  min-height: min(50rem, 80vh);
+  padding: clamp(6rem, 12vw, 12rem) 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.heroContainer {
-  max-width: 120rem;
-  margin: 0 auto;
-}
-
 .heroTitle {
   color: var(--white);
-  font-size: 6.5rem;
-  margin: 0;
-  padding: 15rem 0 1rem 0;
+  font-size: clamp(3.6rem, 8vw, 6.5rem);
+  margin: 0 0 1rem 0;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
@@ -42,34 +42,37 @@
 .heroHeading {
   color: var(--white);
   font-family: var(--fontBody), sans-serif;
-  font-size: 4rem;
+  font-size: clamp(2.2rem, 5vw, 4rem);
   margin: 0;
-  padding: 0 0 18rem 0;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
+/* ── NUESTRA HISTORIA ── */
 .history {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
+  /* min() evita que la columna mínima desborde en pantallas < 30rem */
+  grid-template-columns: repeat(auto-fit, minmax(min(30rem, 100%), 1fr));
+  gap: 4rem;
   margin-top: 4rem;
-}
-
-.historyImage {
-  content: url("/new-AboutUs-hero.png");
-  width: 65rem;
-  height: auto;
-  border-radius: var(--radius-lg);
 }
 
 .historyHeader {
   color: var(--tertiaryColor);
-  grid-column: 1 / 3;
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.historyImage {
+  content: url("/new-AboutUs-hero.png");
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
 }
 
 .history p {
   font-size: 1.6rem;
-  margin-left: 4rem;
 }
 
 .historyIcons {
@@ -84,10 +87,15 @@
   align-items: center;
   gap: 1rem;
   background-color: var(--white);
-  padding: .5rem 2rem;
+  padding: 0.5rem 2rem;
   width: fit-content;
+  max-width: 100%;
   border-radius: var(--radius-lg);
   font-size: 1.5rem;
+}
+
+.historyIcon svg {
+  flex-shrink: 0;
 }
 
 .historyIcon:nth-child(1) {
@@ -100,14 +108,17 @@
   color: var(--tertiaryColor);
 }
 
-
+/* ── MISIÓN Y VISIÓN ── */
 .missionAndVisionContainer {
   display: flex;
+  flex-wrap: wrap;
   gap: 4rem;
-  margin-top: 10rem;
+  margin-top: clamp(6rem, 10vw, 10rem);
 }
 
 .missionAndVision {
+  /* se apilan solas cuando ya no caben dos tarjetas por fila */
+  flex: 1 1 46rem;
   border: 3px dashed var(--secondaryColor);
   border-radius: var(--radius-lg);
   padding: 2rem;
@@ -117,17 +128,23 @@
   gap: 2rem;
 }
 
-@media (max-width: 1080px) {
-  .missionAndVisionContainer {
-    flex-direction: column;
-  }
+.missionAndVision:nth-child(2) {
+  border-color: var(--primaryColor);
 }
 
-@media (min-width: 768px) {
-  .missionAndVision {
-    flex-direction: row;
-    justify-content: space-between;
-  }
+.missionAndVision h3 {
+  color: var(--secondaryColor);
+  font-size: clamp(2.2rem, 3vw, 2.8rem);
+  margin-bottom: 1rem;
+}
+
+.missionAndVision:nth-child(2) h3 {
+  color: var(--primaryColor);
+}
+
+.missionAndVision p {
+  font-size: 1.6rem;
+  line-height: 1.5;
 }
 
 .missionAndVisionText {
@@ -144,97 +161,91 @@
   box-shadow: var(--shadow-sm);
 }
 
-.missionAndVision:nth-child(2) {
-  border: 3px dashed var(--primaryColor);
-}
-
-.missionAndVision h3 {
-  color: var(--secondaryColor);
-  font-size: 2.8rem;
-  margin-bottom: 1rem;
-}
-
-.missionAndVision:nth-child(2) h3 {
-  color: var(--primaryColor);
-}
-
-.missionAndVision p {
-  font-size: 1.6rem;
-  line-height: 1.5;
-}
-
-/* ── SECCIONES PRINCIPALES (3 tarjetas) ── */
-.mainAbout {
-  padding: 6rem 2rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4rem;
-}
-
 @media (min-width: 768px) {
-  .mainAbout {
-    grid-template-columns: repeat(3, 1fr);
+  .missionAndVision {
+    flex-direction: row;
+    justify-content: space-between;
   }
 }
 
-.card {
-  background: var(--white);
-  border-radius: var(--radius-md);
-  padding: 3rem 2.5rem;
-  box-shadow: var(--shadow-sm);
-  border-top: 4px solid var(--primaryColor);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+/* ── NUESTROS VALORES ── */
+.ourValues {
+  width: min(90%, 120rem);
+  margin: clamp(6rem, 10vw, 10rem) auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(3rem, 6vw, 8rem);
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-}
-
-.cardHeader {
+.ourValuesTitle {
   color: var(--primaryColor);
-  font-size: 2.2rem;
-  margin-bottom: 1.5rem;
+  font-size: clamp(2.6rem, 4vw, 3.5rem);
+  margin: 0 0 1.5rem 0;
+  text-wrap: balance;
 }
 
 .valuesList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .valuesItem {
   font-size: 1.5rem;
   color: var(--gray);
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-lg);
   display: flex;
   gap: 1rem;
   align-items: flex-start;
   line-height: 1.5;
-}
-
-.valuesItem:last-child {
-  border-bottom: none;
+  background-color: var(--white);
+  margin-top: 1rem;
+  transition: transform 0.3s ease;
 }
 
 .checkmark {
   color: var(--primaryColor);
-  font-weight: 700;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  /* alto de la primera línea, para alinear el check con ella */
+  height: 1.5em;
+}
+
+.checkmark svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+@media (hover: hover) {
+  .valuesItem:hover {
+    transform: translateX(10px);
+  }
+}
+
+/* El título se apila sobre la lista cuando la fila queda apretada */
+@media (max-width: 1024px) {
+  .ourValues {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2rem;
+  }
+
+  .ourValuesTitle {
+    margin-bottom: 0;
+  }
 }
 
 /* ── LOGROS ── */
 .achievements {
   background: var(--bg-section);
-  padding: 7rem 2rem;
+  padding: clamp(4rem, 8vw, 7rem) 2rem;
 }
 
 .achievementsInner h2 {
   text-align: center;
-  margin-bottom: 4rem;
+  color: var(--tertiaryColor);
+  margin-bottom: clamp(3rem, 6vw, 4rem);
 }
 
 .achievementsRow {
@@ -243,32 +254,23 @@
   gap: 2.5rem;
 }
 
-@media (min-width: 768px) {
-  .achievementsRow {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 .achievementCard {
-  background: var(--white);
-  border-radius: var(--radius-md);
-  padding: 3rem 2.5rem;
+  border-radius: var(--radius-lg);
+  border: 3px dashed var(--secondaryColor);
+  padding: 3rem clamp(1.8rem, 3vw, 2.5rem);
   display: flex;
-  gap: 2rem;
-  align-items: flex-start;
-  box-shadow: var(--shadow-sm);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.8rem;
   transition: transform 0.3s ease;
 }
 
-.achievementCard:hover {
-  transform: translateY(-4px);
-}
-
 .iconWrap {
-  background: var(--primaryLight);
-  color: var(--primaryColor);
-  width: 5rem;
-  height: 5rem;
+  background: var(--secondaryColor);
+  color: var(--white);
+  width: 6rem;
+  height: 6rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -276,23 +278,45 @@
   flex-shrink: 0;
 }
 
+.iconWrap svg {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
 .achievementText h3 {
   font-size: 1.9rem;
   margin-bottom: 0.6rem;
+  color: var(--secondaryColor);
+  text-wrap: balance;
 }
 
 .achievementText p {
   font-size: 1.4rem;
 }
 
+@media (hover: hover) {
+  .achievementCard:hover {
+    transform: translateY(-4px);
+  }
+}
+
+/* Tres columnas solo cuando cada tarjeta tiene ancho suficiente;
+   por debajo se apilan en vez de quedar angostas y muy altas */
+@media (min-width: 900px) {
+  .achievementsRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 /* ── EQUIPO ── */
 .team {
-  padding: 7rem 2rem;
+  padding: clamp(4rem, 8vw, 7rem) 2rem;
   text-align: center;
 }
 
 .team h2 {
-  margin-bottom: 5rem;
+  color: var(--primaryColor);
+  margin-bottom: clamp(3rem, 6vw, 5rem);
 }
 
 .teamGrid {
@@ -301,12 +325,6 @@
   gap: 3rem;
   max-width: 90rem;
   margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .teamGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 .teamPerson {
@@ -322,10 +340,11 @@
   border-radius: 50%;
   background-size: cover;
   background-position: center;
-  border: 4px solid var(--primaryLight);
+  border: 5px solid var(--tertiaryColor);
   box-shadow: var(--shadow-sm);
 }
 
+/* TODO: reemplazar por la foto real de cada integrante */
 .teamImage1 {
   background-image: url(/team2.jpg);
 }
@@ -339,6 +358,7 @@
 }
 
 .teamPerson h4 {
+  color: var(--tertiaryColor);
   font-size: 1.8rem;
   margin: 0;
 }
@@ -347,4 +367,10 @@
   font-size: 1.4rem;
   color: var(--primaryColor);
   margin: 0;
+}
+
+@media (min-width: 768px) {
+  .teamGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

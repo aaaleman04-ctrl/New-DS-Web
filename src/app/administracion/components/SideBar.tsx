@@ -53,27 +53,6 @@ export default function SideBar({
           isMobileOpen ? styles.sidebarMobileOpen : ""
         }`}
       >
-        {/* Cabecera del Menú Lateral (Solo se muestra cuando el menú está EXPANDIDO) */}
-        {!isCollapsed && (
-          <div className={styles.sidebarHeader}>
-            <Link href="/" className={styles.sidebarBrandLink} onClick={onCloseMobile}>
-              <div className={styles.sidebarLogoIcon}>
-                <Image
-                  src="/DS-LOGO.png"
-                  alt="Logo Fundación"
-                  width={32}
-                  height={32}
-                  style={{ objectFit: "contain" }}
-                />
-              </div>
-              <div className={styles.sidebarBrandText}>
-                <p className={styles.sidebarLogoTitle}>Dibujando Sonrisas</p>
-                <p className={styles.sidebarLogoSub}>Panel Administrativo</p>
-              </div>
-            </Link>
-          </div>
-        )}
-
         {/* Lista de Navegación de Módulos */}
         <nav className={styles.sidebarNav}>
           {visibleModules.map((link) => {
@@ -88,15 +67,18 @@ export default function SideBar({
                 href={link.href}
                 onClick={onCloseMobile}
                 title={isCollapsed ? link.name : undefined}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                className={`${styles.navItem} ${isActive && styles.navItemActive} ${isCollapsed && styles.navItemCollapsed}`}
               >
                 <div className={styles.navItemIcon}>{link.icon}</div>
-                {!isCollapsed && (
-                  <span className={styles.navItemLabel}>
-                    {link.name}
-                    {!link.available && <span className={styles.navSoon}>Próx.</span>}
-                  </span>
-                )}
+
+                <span
+                  className={`${styles.navItemLabel} ${isCollapsed && styles.navItemLabelCollapsed}`}
+                >
+                  {link.name}
+                  {!link.available && (
+                    <span className={styles.navSoon}>Próx.</span>
+                  )}
+                </span>
               </Link>
             );
           })}
@@ -113,7 +95,9 @@ export default function SideBar({
             />
             <div className={styles.sidebarProfileText}>
               <span className={styles.sidebarProfileName}>{displayName}</span>
-              <span className={styles.sidebarProfileRole}>{roleLabel || "Personal"}</span>
+              <span className={styles.sidebarProfileRole}>
+                {roleLabel || "Personal"}
+              </span>
             </div>
           </div>
         )}
@@ -123,7 +107,7 @@ export default function SideBar({
           <form action={logoutAction} style={{ width: "100%" }}>
             <button
               type="submit"
-              className={styles.logoutBtn}
+              className={`${styles.logoutBtn} ${isCollapsed && styles.logoutBtnCollapsed}`}
               title={isCollapsed ? "Cerrar Sesión" : undefined}
             >
               <div className={styles.logoutIcon}>
@@ -141,7 +125,11 @@ export default function SideBar({
                   />
                 </svg>
               </div>
-              {!isCollapsed && <span>Cerrar Sesión</span>}
+              <span
+                className={`${isCollapsed && styles.navItemLabelCollapsed}`}
+              >
+                Cerrar Sesión
+              </span>
             </button>
           </form>
         </div>

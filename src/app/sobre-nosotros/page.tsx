@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getBrigadas } from "../../lib/db/brigadas";
 import styles from "../../styles/pages/about.module.css";
-import { BookOpenText, PillBottle, Stethoscope } from "lucide-react";
+import { BookOpenText, Check, PillBottle, Stethoscope } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Sobre Nosotros | Dibujando Sonrisas",
@@ -110,106 +110,43 @@ export default async function SobreNosotros() {
         </div>
       </section>
 
-      {/* ── SECCIONES PRINCIPALES ── */}
-      <main className={`${styles.mainAbout} container`}>
-        {/* Valores */}
-        <article className={styles.card}>
-          <h2 className={styles.cardHeader}>Nuestros Valores</h2>
-          <ul className={styles.valuesList}>
-            <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-              Fe: Todo lo que hacemos es inspirado por nuestra fe en Cristo.
-            </li>
-            <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-              Compasión: Tratamos a cada persona con amor, dignidad y respeto.
-            </li>
-            <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-              Integridad: Actuamos con transparencia y ética en todo momento.
-            </li>
-            <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-              Trabajo en equipo: Creemos en la fuerza de la unión para lograr
-              más.
-            </li>
-            <li className={styles.valuesItem}>
-              <span className={styles.checkmark}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </span>
-              Excelencia: Nos comprometemos con la calidad en cada brigada.
-            </li>
-          </ul>
-        </article>
-      </main>
+
+      <section className={styles.ourValues}>
+        <h3 className={styles.ourValuesTitle}>Nuestros Valores</h3>
+        <ul className={styles.valuesList}>
+          <li className={styles.valuesItem}>
+            <span className={styles.checkmark}>
+              <Check />
+            </span>
+            Fe: Todo lo que hacemos es inspirado por nuestra fe en Cristo.
+          </li>
+          <li className={styles.valuesItem}>
+            <span className={styles.checkmark}>
+              <Check />
+            </span>
+            Compasión: Tratamos a cada persona con amor, dignidad y respeto.
+          </li>
+          <li className={styles.valuesItem}>
+            <span className={styles.checkmark}>
+              <Check />
+            </span>
+            Integridad: Actuamos con transparencia y ética en todo momento.
+          </li>
+          <li className={styles.valuesItem}>
+            <span className={styles.checkmark}>
+              <Check />
+            </span>
+            Trabajo en equipo: Creemos en la fuerza de la unión para lograr
+            más.
+          </li>
+          <li className={styles.valuesItem}>
+            <span className={styles.checkmark}>
+              <Check />
+            </span>
+            Excelencia: Nos comprometemos con la calidad en cada brigada.
+          </li>
+        </ul>
+      </section>
 
       {/* ── LOGROS ── */}
       <section className={styles.achievements} aria-labelledby="logros-heading">
