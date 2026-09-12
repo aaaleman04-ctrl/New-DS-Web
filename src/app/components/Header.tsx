@@ -63,7 +63,7 @@ export default function Header() {
           <Link href="/auth/login" className={styles.headerButtonOutline}>
             <UserRoundArrowLeft width={20} height={20} />
           </Link>
-          <Link href="/donar" className={styles.headerButton}>
+          <Link href="/contacto" className={styles.headerButton}>
             <Headset width={20} height={20} />
           </Link>
           <Link href="/donar" className={styles.headerButton}>
@@ -124,8 +124,8 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`${styles.mobileNavRef} ${
-                    isActive ? styles.mobileNavRefActive : ""
+                  className={`${styles.navRef} ${styles.mobileNavRef} ${
+                    isActive ? styles.navRefActive : ""
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -134,10 +134,25 @@ export default function Header() {
               );
             })}
             <div className={styles.mobileNavButtons}>
-              <Link href="/auth/login" className={styles.headerButtonOutline}>
+              <Link
+                href="/auth/login"
+                className={styles.headerButtonOutline}
+                aria-label="Iniciar sesión"
+              >
                 <UserRoundArrowLeft />
               </Link>
-              <Link href="/donar" className={styles.headerButton}>
+              <Link
+                href="/contacto"
+                className={styles.headerButton}
+                aria-label="Contacto"
+              >
+                <Headset />
+              </Link>
+              <Link
+                href="/donar"
+                className={styles.headerButton}
+                aria-label="Donar"
+              >
                 <HeartHandshake />
               </Link>
             </div>

@@ -54,10 +54,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-.logoSpan {
-  color: var(--primaryColor);
-}
-
 .navbar {
   display: flex;
   flex-wrap: wrap;
@@ -196,26 +192,11 @@
   gap: 0.6rem;
 }
 
+/* Los enlaces del menú móvil usan .navRef / .navRefActive (mismo estilo que
+   en escritorio: fondo blanco, activo en color primario con punto al lado).
+   Esta clase solo agranda el área táctil. */
 .mobileNavRef {
-  font-size: 1.55rem;
-  font-weight: 500;
-  color: var(--dark);
-  padding: 1rem 1.4rem;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.mobileNavRef:hover {
-  background: var(--bg-light);
-  color: var(--primaryColor);
-}
-
-.mobileNavRefActive {
-  background: var(--primaryLight);
-  color: var(--primaryColor);
-  font-weight: 700;
-  border-left: 4px solid var(--primaryColor);
+  padding: 1.2rem 1rem;
 }
 
 .mobileNavButtons {
@@ -228,25 +209,30 @@
 
 .mobileNavButtons a {
   flex: 1;
-  text-align: center;
+  justify-content: center;
 }
 
-.headerLogo {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 10%;
-  overflow: hidden;
-  flex-shrink: 0;
-  border-style: none;
-}
-
-.headerLogo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* ── TABLET Y MÓVIL ── */
 @media (max-width: 960px) {
+  .header {
+    /* ligados entre sí: el alto del logo define cuánto asoma bajo la barra
+       y, por lo tanto, dónde puede empezar el menú desplegable */
+    --barPadY: 0.8rem;
+    --barPadX: 1.4rem;
+    --logoSize: 10rem;
+    /* cuánto se levanta el logo respecto al borde inferior de la barra */
+    --logoLift: 1rem;
+
+    top: 0;
+  }
+
+  /* Pegado a los bordes: sin separación superior ni esquinas redondeadas */
+  .headerContent {
+    max-width: none;
+    border-radius: 0;
+    padding: var(--barPadY) var(--barPadX);
+  }
+
   .navbar {
     display: none;
   }
@@ -255,11 +241,33 @@
     display: flex;
   }
 
-  .mobileNavContainer {
-    display: block;
-  }
-
   .headerActions a {
     display: none;
+  }
+
+  .logoContainer {
+    /* deja de ser el contenedor de posicionamiento para que .logo se ancle
+       a la barra completa y pueda asomar por debajo */
+    position: static;
+    width: var(--logoSize);
+  }
+
+  /* Media luna: el círculo comparte el blanco de la barra, así que la mitad
+     superior se funde con ella y solo asoma la inferior */
+  .logo {
+    width: var(--logoSize);
+    height: var(--logoSize);
+    top: 100%;
+    left: var(--barPadX);
+    transform: translateY(calc(-50% - var(--logoLift)));
+    box-shadow: none;
+  }
+
+  .mobileNavContainer {
+    display: block;
+    /* deja libre la parte del logo que invade el desplegable */
+    padding-top: calc(var(--logoSize) / 2 - var(--logoLift) + var(--barPadX));
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
   }
 }
